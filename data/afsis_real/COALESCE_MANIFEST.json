@@ -1,0 +1,43 @@
+{
+  "purpose": "canonical AfSIS Phase I dataset for afsis_experiment.py",
+  "source_root": "afsis",
+  "source_files": {
+    "Georeferences/georeferences.csv": "097d72849ea8aa0c1ee4103847e9705f14c5d503ad65ab3ac115aee626af5d0a",
+    "Wet_Chemistry/CROPNUTS/Wet_Chemistry_CROPNUTS.csv": "7fe5bdd69286c8d3b12b7b4b7a065a3f835c1c3b3cba1dc4c4aacc3f8c4e99a3",
+    "Wet_Chemistry/ICRAF/Wet_Chemistry_ICRAF.csv": "1cf397ea16ec17618a0a16ba6557140051db052980e8aa4bd71a043da916ea42",
+    "Wet_Chemistry/RRES/Wet_Chemistry_RRES.csv": "a45b82e20ef7167019699722707664e8322b4cdae013aa91e6bf3184f504e200"
+  },
+  "coalesce": {
+    "rule": "one row per SSN; first non-null value per column per lab; CROPNUTS and ICRAF outer-joined",
+    "single_table": "Wet_Chemistry/COALESCED/Wet_Chemistry_COALESCED.csv",
+    "why_single_table": "clean() keeps one row per record with mode='first', which would keep CROPNUTS and drop the ICRAF texture and carbon columns",
+    "CROPNUTS": {
+      "PH": "pH_H2O",
+      "EC": "EC"
+    },
+    "ICRAF": {
+      "Psa aclay": "Clay percent",
+      "Psa asand": "Sand percent",
+      "Psa asilt": "Silt percent",
+      "Total carbon": "Total carbon"
+    },
+    "unused": {
+      "RRES": "C % Org (organic carbon), counted, not used"
+    }
+  },
+  "depth_policy": "topsoil selected on the AfSIS depth label; the 0-5 cm interval rule cannot be applied because the source records a categorical label, so the label travels as DepthLabel and the pipeline reports applied=False",
+  "grouping": "SSN. Site and cluster travel as SiteName/ClusterCode for reporting only.",
+  "target": "Total carbon",
+  "target_note": "total carbon, not organic carbon; see module docstring",
+  "counts": {
+    "geo_rows_raw": 1843,
+    "geo_unique_ssn": 1843,
+    "topsoil_rows": 927,
+    "joined_rows": 926,
+    "complete_rows": 926,
+    "complete_clusters": 16,
+    "complete_sites": 58,
+    "complete_countries": 19,
+    "organic_carbon_rows_unused": 498
+  }
+}
