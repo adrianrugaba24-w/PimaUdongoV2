@@ -1,10 +1,15 @@
-pandas
-numpy
-scikit-learn
-matplotlib
-joblib
-fastapi
-uvicorn[standard]
-pydantic
-pytest
-httpx
+# Versions recorded in export/results.json for the committed bundle.
+# scikit-learn is pinned EXACTLY: the saved model is a pickle, and soil_api.py
+# refuses to start if the installed major.minor differs from the one it was
+# fitted with.  If you change it, regenerate the bundle:  python afsis_experiment.py
+scikit-learn==1.8.0
+numpy>=2.3,<2.6
+pandas>=3.0,<3.1
+# not recorded in the bundle; lower bounds only
+matplotlib>=3.8
+joblib>=1.3
+fastapi>=0.110
+uvicorn[standard]>=0.29
+pydantic>=2.6
+pytest>=8.0
+httpx>=0.27

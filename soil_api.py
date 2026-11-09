@@ -48,6 +48,21 @@ def _sha256(path: Path) -> str:
     return hashlib.sha256(path.read_bytes()).hexdigest()
 
 
+def _text_hashes(path: Path) -> set[str]:
+    """
+    Hashes of a TEXT file under every common newline convention.
+
+    results.json is plain text, and git/Windows can rewrite its line endings
+    (LF <-> CRLF) without changing a single number.  A hash that only matches one
+    convention makes a fresh clone refuse to start.  Any change to the CONTENT
+    still changes all three hashes, so tamper detection is unaffected.
+    """
+    raw = path.read_bytes()
+    lf = raw.replace(b"\r\n", b"\n")
+    crlf = lf.replace(b"\n", b"\r\n")
+    return {hashlib.sha256(b).hexdigest() for b in (raw, lf, crlf)}
+
+
 def load_bundle(model_dir: Path) -> dict:
     files = {n: model_dir / n for n in ("model.joblib", "model_meta.json", "results.json")}
     missing = [n for n, p in files.items() if not p.is_file()]
@@ -71,7 +86,7 @@ def load_bundle(model_dir: Path) -> dict:
         raise BundleError(f"Cannot start: model_meta.json is missing {absent}. "
                           f"The bundle is from an older/incomplete run; regenerate it.")
 
-    if _sha256(files["results.json"]) != meta["results_sha256"]:
+    if meta["results_sha256"] not in _text_hashes(files["results.json"]):
         raise BundleError(
             "Cannot start: results.json does not match the hash recorded in "
             "model_meta.json. The model and the reported metrics are out of "

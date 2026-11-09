@@ -1,0 +1,1227 @@
+diff --git a/.gitattributes b/.gitattributes
+new file mode 100644
+index 0000000..0959c4d
+--- /dev/null
++++ b/.gitattributes
+@@ -0,0 +1,6 @@
++# The export bundle is hash-verified at API start-up.  Keep text files LF on every
++# OS so a hash recorded on Windows still matches after a clone on Linux/macOS,
++# and keep the model binary untouched.
++export/*.json     text eol=lf
++export/*.joblib   binary
++*.py              text eol=lf
+diff --git a/.gitignore b/.gitignore
+new file mode 100644
+index 0000000..75c6182
+--- /dev/null
++++ b/.gitignore
+@@ -0,0 +1,3 @@
++__pycache__/
++*.pyc
++.pytest_cache/
+diff --git a/README.md b/README.md
+index 973e96e..3b25adb 100644
+--- a/README.md
++++ b/README.md
+@@ -73,6 +73,50 @@ Useful flags: `--root <AfSIS dir>` (real data), `--synthetic`, `--countries`,
+ `experiment_scope.quick = true` in the output, so a quick artefact can never be
+ mistaken for a reported one.
+ 
++## Part A — simulated sensor survey (`sensor_experiment.py`)
++
++The proposal has two parts that are **never combined**: Part B (the AfSIS
++experiment above) and Part A, a *simulated* field survey read through a
++low-cost-sensor measurement model.
++
++```bash
++python sensor_experiment.py            # full run  -> export/part_a_results.{json,csv}
++python sensor_experiment.py --quick    # smoke run (flagged quick, not reportable)
++```
++
++* `sensor_sim.py` builds a spatially correlated field of true pH, moisture and
++  SOC and reads pH and moisture through sensors with **gain, offset, random
++  noise, calibration drift (basis: sampling order) and cross-sensitivity of the
++  pH reading to moisture**.
++* **No parameter is sourced.** All are marked `assumed` in `parameters[]`
++  because no datasheet or bench test has been supplied. The "baseline" error
++  setting is therefore exploratory until real values replace them.
++* Inputs: the two sensor channels. Targets: true pH and true SOC (standing in for
++  laboratory values). Models: mean baseline, ridge, random forest, gradient
++  boosting, on the same spatial folds as Part B (hyperparameters fixed, no nested
++  tuning, to keep the sweep affordable).
++* **The assumptions that could decide the answer are swept, not fixed:** spatial
++  correlation length (H1), SOC coupling to pH/moisture (H3) and error scale
++  (H2/H3). Read H1 and H3 as functions of those, not as single numbers.
++* "Useful skill" for H3 is fixed in advance as spatial R² >= 0.5. A break-even
++  error scale is the largest *tested* scale that still meets it; `null` means it
++  was never met and nothing is extrapolated.
++* Both noise arms are run: fit on clean readings / score on noisy ones, and
++  fit and score on noisy ones.
++* Output is labelled `kind: "simulation"`, `is_real_data: false`. It says how
++  models respond to the stated sensor errors, **not** how any real probe, soil or
++  farm behaves.
++
++## pH as a second target
++
++`python afsis_experiment.py --root <AfSIS dir> --target-kind ph`
++
++pH is dimensionless, so there is no unit inference, the bounds are 0-14, it is
++**not** log-transformed again, and the pH column is never used as a feature when
++it is the target. Moisture is picked up as a covariate only if the table really
++has a moisture column; the data card lists exactly which features were chosen
++(override with `--features`).
++
+ ## Start the API and the demo
+ 
+ ```powershell
+diff --git a/afsis_data.py b/afsis_data.py
+index a07f8dc..583200c 100644
+--- a/afsis_data.py
++++ b/afsis_data.py
+@@ -57,6 +57,9 @@ PATTERNS = {
+         "clay": [r"(?i)^clay"],
+         "sand": [r"(?i)^sand"],
+         "silt": [r"(?i)^silt"],
++        # Moisture is a covariate in the proposal.  It is only picked up if the
++        # table really has such a column; the data card lists what was chosen.
++        "moisture": [r"(?i)moist", r"(?i)water.?content"],
+     },
+     # Never allowed as a feature: anything carbon- or target-like.
+     "forbidden_feature": [r"(?i)organic.?c", r"(?i)^t?c$", r"(?i)total.?c",
+@@ -91,10 +94,18 @@ def dataset_version(manifest: list[dict]) -> str:
+ 
+ 
+ def git_version() -> str | None:
++    """Short commit hash, with '-dirty' appended when the working tree has
++    uncommitted changes - so a result can never claim a clean commit that the
++    code which produced it was not actually in."""
+     try:
+         out = subprocess.run(["git", "rev-parse", "--short", "HEAD"],
+                              capture_output=True, text=True, timeout=10)
+-        return out.stdout.strip() or None
++        head = out.stdout.strip()
++        if not head:
++            return None
++        status = subprocess.run(["git", "status", "--porcelain"],
++                                capture_output=True, text=True, timeout=10)
++        return head + ("-dirty" if status.stdout.strip() else "")
+     except Exception:
+         return None
+ 
+@@ -175,6 +186,7 @@ class Schema:
+     depth_from: str | None = None
+     depth_to: str | None = None
+     target: str | None = None
++    target_kind: str = "soc"           # "soc" | "ph" - what the target column is
+     features: list[str] = field(default_factory=list)
+     origin: dict = field(default_factory=dict)
+     unmatched: list[str] = field(default_factory=list)
+@@ -188,13 +200,18 @@ def detect_schema(df: pd.DataFrame, overrides: dict | None = None) -> Schema:
+     cols = list(df.columns)
+     ov = overrides or {}
+     s = Schema()
++    s.target_kind = ov.get("target_kind") or "soc"
++    if s.target_kind not in ("soc", "ph"):
++        raise ValueError(f"target_kind must be 'soc' or 'ph', got {s.target_kind!r}")
+     for role in ("lat", "lon", "country", "ssn", "site_id", "profile_id",
+                  "depth_from", "depth_to", "target"):
+         if ov.get(role):
+             setattr(s, role, ov[role])
+             s.origin[role] = "override"
+         else:
+-            setattr(s, role, _find_any(cols, PATTERNS[role]))
++            pats = (PATTERNS["feature"]["ph"]
++                    if role == "target" and s.target_kind == "ph" else PATTERNS[role])
++            setattr(s, role, _find_any(cols, pats))
+             s.origin[role] = "auto" if getattr(s, role) else "missing"
+ 
+     if ov.get("features"):
+@@ -334,18 +351,23 @@ def clean(df: pd.DataFrame, schema: Schema, cfg: dict) -> tuple[pd.DataFrame, li
+              "site id, so they cannot leak across folds", removed=0, key=key)
+ 
+     # --- 5. target ----------------------------------------------------------
+-    units, how = infer_target_units(pd.to_numeric(d[schema.target], errors="coerce"))
+-    if cfg.get("target_units") and cfg["target_units"] != "auto":
+-        units = {"percent": "percent (g/100 g)", "g_per_kg": "g/kg"}.get(
+-            cfg["target_units"], cfg["target_units"])
+-        how = f"forced by --target-units={cfg['target_units']}"
+-    lo, hi = BOUNDS["oc_percent"] if units.startswith("percent") else BOUNDS["oc_g_per_kg"]
++    if schema.target_kind == "ph":
++        # pH is dimensionless: there are no units to infer, and no carbon bounds.
++        units, how = "pH units", "target kind = ph (dimensionless; no unit inference)"
++        lo, hi = BOUNDS["ph"]
++    else:
++        units, how = infer_target_units(pd.to_numeric(d[schema.target], errors="coerce"))
++        if cfg.get("target_units") and cfg["target_units"] != "auto":
++            units = {"percent": "percent (g/100 g)", "g_per_kg": "g/kg"}.get(
++                cfg["target_units"], cfg["target_units"])
++            how = f"forced by --target-units={cfg['target_units']}"
++        lo, hi = BOUNDS["oc_percent"] if units.startswith("percent") else BOUNDS["oc_g_per_kg"]
+ 
+     before = len(d)
+     d[schema.target] = pd.to_numeric(d[schema.target], errors="coerce")
+     d = d[d[schema.target].notna()]
+     step("missing_target", before,
+-         "target absent; a row with no SOC label cannot be trained on",
++         "target absent; a row with no label cannot be trained on",
+          removed=before - len(d))
+ 
+     before = len(d)
+diff --git a/afsis_experiment.py b/afsis_experiment.py
+index 92cf30f..e901bcf 100644
+--- a/afsis_experiment.py
++++ b/afsis_experiment.py
+@@ -196,6 +196,9 @@ def main(argv=None):
+     ap.add_argument("--data-dir", default="data/afsis_stand_in",
+                     help="Where the synthetic stand-in is written (ignored with --root)")
+     ap.add_argument("--target"); ap.add_argument("--features", nargs="+")
++    ap.add_argument("--target-kind", dest="target_kind", default="soc", choices=["soc", "ph"],
++                    help="what the target is: soil organic carbon (default) or soil pH. "
++                         "pH is never used as a feature when it is the target.")
+     ap.add_argument("--lat-col", dest="lat_col"); ap.add_argument("--lon-col", dest="lon_col")
+     ap.add_argument("--country-col", dest="country_col")
+     ap.add_argument("--ssn-col", dest="ssn_col"); ap.add_argument("--site-col", dest="site_id")
+@@ -254,6 +257,7 @@ def main(argv=None):
+         val = getattr(a, attr)
+         if val:
+             overrides[role] = val
++    overrides["target_kind"] = a.target_kind
+     schema = A.detect_schema(df, overrides)
+     if a.list_columns:
+         print(f"country counts:\n{df[schema.country].value_counts().to_string()}"
+@@ -286,9 +290,11 @@ def main(argv=None):
+     # SOC is strictly positive and right-skewed at any unit, so the model works
+     # on log1p and predictions are returned on the original scale.  If any
+     # non-positive value survived cleaning, the log scale is off the table.
+-    log_target = bool(np.all(y > 0))
+-    print(f"[setup] {X0.shape[0]} rows x {X0.shape[1]} features | units={units} | "
+-          f"log-target={log_target} (decided from the inferred units, not tuned)")
++    # pH is already a logarithmic scale, so it is never log-transformed again.
++    log_target = bool(np.all(y > 0)) and schema.target_kind == "soc"
++    print(f"[setup] target={schema.target_kind} | {X0.shape[0]} rows x {X0.shape[1]} features | "
++          f"units={units} | log-target={log_target} (decided from the target kind and "
++          f"units, not tuned)")
+ 
+     seeds = list(range(a.seed0, a.seed0 + max(1, a.seeds)))
+     if a.quick:
+@@ -575,7 +581,8 @@ def main(argv=None):
+             units=units, units_basis=next((l.get("units_basis") for l in log
+                                            if "units_basis" in l), None),
+         ),
+-        target=dict(name=schema.target, units=units, log_transform=bool(log_target),
++        target=dict(name=schema.target, kind=schema.target_kind, units=units,
++                    log_transform=bool(log_target),
+                     column_detection=schema.origin.get("target")),
+         features=list(schema.features),
+         feature_ranges=ranges,
+@@ -643,7 +650,9 @@ def main(argv=None):
+     payload["training_data_version"] = dversion
+ 
+     results_txt = json.dumps(_jsonable(payload), indent=1)
+-    (export_dir / "results.json").write_text(results_txt)
++    # newline="\n": Python's text mode would write CRLF on Windows, git would then
++    # store LF, and the recorded hash would no longer match a fresh clone.
++    (export_dir / "results.json").write_text(results_txt, newline="\n")
+     # Hash the file exactly as written, so the API can detect any drift between
+     # the model and the numbers it is supposed to report.
+     results_sha = hashlib.sha256((export_dir / "results.json").read_bytes()).hexdigest()
+@@ -662,7 +671,7 @@ def main(argv=None):
+         model_params=_jsonable(final_params), model_seed=int(seeds[0]),
+         sklearn_version=A.package_versions()["scikit-learn"],
+         fitted_at_utc=payload["generated_at_utc"],
+-    )), indent=1))
++    )), indent=1), newline="\n")
+ 
+     _plot(out_prefix, main_rows, noise_rows, block_rows, interval, base_rmse, gap_rows,
+           part_summary)
+diff --git a/requirements.txt b/requirements.txt
+index 6f41541..a82e8f7 100644
+--- a/requirements.txt
++++ b/requirements.txt
+@@ -1,10 +1,15 @@
+-pandas
+-numpy
+-scikit-learn
+-matplotlib
+-joblib
+-fastapi
+-uvicorn[standard]
+-pydantic
+-pytest
+-httpx
++# Versions recorded in export/results.json for the committed bundle.
++# scikit-learn is pinned EXACTLY: the saved model is a pickle, and soil_api.py
++# refuses to start if the installed major.minor differs from the one it was
++# fitted with.  If you change it, regenerate the bundle:  python afsis_experiment.py
++scikit-learn==1.8.0
++numpy>=2.3,<2.6
++pandas>=3.0,<3.1
++# not recorded in the bundle; lower bounds only
++matplotlib>=3.8
++joblib>=1.3
++fastapi>=0.110
++uvicorn[standard]>=0.29
++pydantic>=2.6
++pytest>=8.0
++httpx>=0.27
+diff --git a/sensor_experiment.py b/sensor_experiment.py
+new file mode 100644
+index 0000000..cb5ca3c
+--- /dev/null
++++ b/sensor_experiment.py
+@@ -0,0 +1,296 @@
++"""
++Part A experiment - how validation design and sensor error affect model skill
++on a SIMULATED survey (SLR Section IX, Steps 2-6; hypotheses H1-H3).
++
++    python sensor_experiment.py            # full run
++    python sensor_experiment.py --quick    # small run (tests, smoke checks)
++
++Inputs : two simulated sensor channels - pH and moisture - read through the
++         measurement model in sensor_sim.py.
++Targets: TRUE pH and TRUE SOC (standing in for laboratory values).
++
++The result of this experiment is conditional on the assumptions in
++sensor_sim.py.  To stop one assumption deciding the answer silently, the three
++that matter most are SWEPT, not fixed:
++
++  * spatial correlation length  -> controls how big the random-vs-spatial gap is (H1)
++  * SOC coupling to pH/moisture -> controls whether SOC is predictable at all   (H3)
++  * error scale                 -> controls the noise curve                     (H2, H3)
++
++Nothing here is a claim about a real sensor, soil or farm.
++"""
++from __future__ import annotations
++
++import argparse
++import json
++import sys
++from pathlib import Path
++
++import numpy as np
++import pandas as pd
++
++import afsis_data as A
++import afsis_validation as V
++import sensor_sim as S
++
++# ---- design (stated, not tuned) --------------------------------------------
++USEFUL_R2 = 0.5            # "useful skill" threshold for H3, fixed before any run
++ERROR_SCALES = [0.0, 0.5, 1.0, 2.0, 4.0]
++CORR_LENGTHS_KM = [2.0, 6.0, 15.0]
++COUPLINGS = [0.0, 0.5, 0.9]
++DEFAULT_L, DEFAULT_C = 6.0, 0.5       # the single setting used for the noise sweep
++MODELS = ("mean_baseline", "ridge", "random_forest", "gradient_boosting")
++TARGETS = ("ph", "soc")
++FEATURES = ["ph_sensor", "moisture_sensor"]
++BASELINE_SCALE = 1.0       # the "baseline" error setting; 0.5 / 2.0 are low / high
++
++LIMITATIONS = [
++    "Simulation under stated assumptions: results describe how models respond to "
++    "the sensor errors and field structure defined in sensor_sim.py, not how any "
++    "real probe or soil behaves.",
++    "No parameter is sourced from a datasheet or bench test; all are marked "
++    "'assumed' in parameters[]. The 'baseline' error setting is therefore "
++    "exploratory until real specifications replace those values.",
++    "SOC is built to depend on true pH and moisture with a tunable coupling; "
++    "whether SOC is 'predictable' from the sensor channels is a function of that "
++    "coupling, which is why it is swept.",
++    "One device and one survey geometry per replicate; gain and offset are fixed "
++    "per run, so device-to-device variation is not modelled.",
++    "Hyperparameters are fixed at the learners' defaults here (no nested tuning), "
++    "to keep the sweep affordable; the public-data experiment tunes by nested CV.",
++]
++
++
++# ---------------------------------------------------------------------------
++# One scored run
++# ---------------------------------------------------------------------------
++
++def cv_two_inputs(X_fit, X_eval, y, groups, spec, scheme, seed, log_target):
++    """
++    Cross-validated predictions where the model is FITTED on X_fit and SCORED on
++    X_eval (same rows, possibly different noise).  Passing the same array for
++    both gives ordinary CV.  Folds come from V.outer_splits, so they depend only
++    on (scheme, seed, groups) - never on the model or on the noise level.
++    """
++    X_fit, X_eval = np.asarray(X_fit, float), np.asarray(X_eval, float)
++    y = np.asarray(y, float)
++    oof = np.full(len(y), np.nan)
++    for tr, te in V.outer_splits(scheme, X_fit, y, groups, seed):
++        pipe = V.apply_params(V.build_pipeline(spec, log_target, seed), spec.default_params)
++        pipe.fit(X_fit[tr], y[tr])
++        oof[te] = pipe.predict(X_eval[te])
++    return V.metrics(y, oof)
++
++
++def _log_target(target: str) -> bool:
++    # SOC is positive and right-skewed; pH is already a logarithmic scale, so a
++    # further log transform would be wrong for it.
++    return target == "soc"
++
++
++def _target_values(f: S.Field, target: str) -> np.ndarray:
++    return f.ph if target == "ph" else f.soc
++
++
++def _matrix(f: S.Field, scale: float, params) -> np.ndarray:
++    r = S.sensor_readings(f, scale, params)
++    return np.column_stack([r["ph_sensor"], r["moisture_sensor"]])
++
++
++# ---------------------------------------------------------------------------
++# The experiment
++# ---------------------------------------------------------------------------
++
++def run(reps: int, seed0: int, blocks: int, scales, corr_lengths, couplings,
++        n_points: int | None, progress: bool = True):
++    specs = V.model_specs()
++    params = S.default_parameters()
++    rows: list[dict] = []
++
++    def add(**kw):
++        rows.append(kw)
++
++    # ---- core grid: random vs spatial, at the baseline error scale ----------
++    for L in corr_lengths:
++        for c in couplings:
++            for rep in range(reps):
++                seed = seed0 + rep
++                f = S.make_field(seed, params, corr_length_km=L, coupling=c, n_points=n_points)
++                X = _matrix(f, BASELINE_SCALE, params)
++                grp, _ = V.spatial_groups(f.coords, np.arange(len(X)), blocks, seed)
++                for target in TARGETS:
++                    if target == "ph" and c != couplings[0]:
++                        continue            # pH does not depend on coupling: run once
++                    y = _target_values(f, target)
++                    for m in MODELS:
++                        for scheme in ("random", "spatial"):
++                            mt = cv_two_inputs(X, X, y, grp, specs[m], scheme, seed,
++                                               _log_target(target))
++                            add(experiment="core", corr_length_km=L,
++                                coupling=(None if target == "ph" else c),
++                                rep=rep, target=target, model=m, scheme=scheme,
++                                error_scale=BASELINE_SCALE, arm="train_noisy", **mt)
++        if progress:
++            print(f"  core: corr_length={L} km done", flush=True)
++
++    # ---- noise sweep: spatial CV, two arms ----------------------------------
++    for rep in range(reps):
++        seed = seed0 + rep
++        f = S.make_field(seed, params, corr_length_km=DEFAULT_L, coupling=DEFAULT_C,
++                         n_points=n_points)
++        grp, _ = V.spatial_groups(f.coords, np.arange(len(f.ph)), blocks, seed)
++        X_clean = _matrix(f, 0.0, params)
++        for s in scales:
++            X_s = _matrix(f, s, params)
++            for target in TARGETS:
++                y = _target_values(f, target)
++                for m in MODELS:
++                    for arm, (Xf, Xe) in dict(train_clean=(X_clean, X_s),
++                                              train_noisy=(X_s, X_s)).items():
++                        mt = cv_two_inputs(Xf, Xe, y, grp, specs[m], "spatial", seed,
++                                           _log_target(target))
++                        add(experiment="noise", corr_length_km=DEFAULT_L,
++                            coupling=(None if target == "ph" else DEFAULT_C), rep=rep,
++                            target=target, model=m, scheme="spatial", error_scale=s,
++                            arm=arm, **mt)
++        if progress:
++            print(f"  noise: replicate {rep + 1}/{reps} done", flush=True)
++
++    # ---- control: shuffled target must collapse to ~0 ------------------------
++    for rep in range(reps):
++        seed = seed0 + rep
++        f = S.make_field(seed, params, corr_length_km=DEFAULT_L, coupling=DEFAULT_C,
++                         n_points=n_points)
++        X = _matrix(f, BASELINE_SCALE, params)
++        grp, _ = V.spatial_groups(f.coords, np.arange(len(X)), blocks, seed)
++        rng = np.random.default_rng([seed, 99])
++        for target in TARGETS:
++            y = rng.permutation(_target_values(f, target))
++            for m in MODELS:
++                mt = cv_two_inputs(X, X, y, grp, specs[m], "spatial", seed, _log_target(target))
++                add(experiment="shuffled_control", corr_length_km=DEFAULT_L,
++                    coupling=(None if target == "ph" else DEFAULT_C), rep=rep,
++                    target=target, model=m, scheme="spatial", error_scale=BASELINE_SCALE,
++                    arm="train_noisy", **mt)
++
++    return pd.DataFrame(rows), params
++
++
++# ---------------------------------------------------------------------------
++# Summaries and hypothesis statements (computed, never asserted)
++# ---------------------------------------------------------------------------
++
++def _agg(df: pd.DataFrame, by: list[str]) -> pd.DataFrame:
++    g = df.groupby(by, dropna=False)["r2"]
++    out = g.agg(r2_mean="mean", r2_sd="std", n_reps="count").reset_index()
++    return out
++
++
++def evaluate_hypotheses(df: pd.DataFrame) -> dict:
++    learners = [m for m in MODELS if m != "mean_baseline"]
++    out: dict = dict(useful_r2_threshold=USEFUL_R2)
++
++    # H1: random R2 minus spatial R2, paired by replicate, SOC target
++    core = df[(df.experiment == "core") & (df.target == "soc") & df.model.isin(learners)]
++    wide = core.pivot_table(index=["corr_length_km", "coupling", "model", "rep"],
++                            columns="scheme", values="r2").reset_index()
++    wide["gap"] = wide["random"] - wide["spatial"]
++    h1 = (wide.groupby(["corr_length_km", "coupling", "model"])["gap"]
++          .agg(gap_mean="mean", gap_sd="std").reset_index())
++    out["H1_validation_gap_soc"] = dict(
++        definition="R2(random 5-fold) - R2(spatial blocks), SOC target, paired by replicate",
++        by_setting=h1.round(4).to_dict("records"),
++        share_of_settings_with_positive_gap=float((h1.gap_mean > 0).mean()),
++        gap_mean_by_corr_length=h1.groupby("corr_length_km").gap_mean.mean().round(4).to_dict(),
++    )
++
++    # H2: skill vs error scale, by model and arm
++    nz = df[(df.experiment == "noise") & df.model.isin(learners)]
++    curve = _agg(nz, ["target", "model", "arm", "error_scale"])
++    out["H2_noise_curves"] = curve.round(4).to_dict("records")
++    top = curve[(curve.error_scale == curve.error_scale.max()) & (curve.arm == "train_noisy")]
++    out["H2_spread_between_models_at_max_error"] = {
++        t: float(top[top.target == t].r2_mean.max() - top[top.target == t].r2_mean.min())
++        for t in TARGETS}
++
++    # H3: largest tested error scale at which spatial R2 stays above the threshold
++    be: dict = {}
++    for t in TARGETS:
++        for m in learners:
++            for arm in ("train_clean", "train_noisy"):
++                c = curve[(curve.target == t) & (curve.model == m) & (curve.arm == arm)]
++                ok = c[c.r2_mean >= USEFUL_R2].error_scale
++                be[f"{t}|{m}|{arm}"] = (None if ok.empty else float(ok.max()))
++    out["H3_break_even_error_scale"] = dict(
++        definition=f"largest tested error scale with mean spatial R2 >= {USEFUL_R2}; "
++                   "null = never reached; the maximum tested scale = not exceeded "
++                   "(no extrapolation)",
++        tested_scales=sorted(float(x) for x in nz.error_scale.unique()),
++        values=be)
++
++    soc_by_c = (core[(core.scheme == "spatial") & (core.model == "random_forest")]
++                .groupby(["corr_length_km", "coupling"]).r2.mean().round(4).reset_index())
++    out["H3_soc_skill_vs_coupling"] = dict(
++        note="SOC skill from the sensor channels as a function of the assumed "
++             "coupling; this is the assumption, made visible.",
++        spatial_r2_random_forest=soc_by_c.to_dict("records"))
++
++    ctrl = df[df.experiment == "shuffled_control"]
++    out["control_shuffled_target_r2_mean"] = ctrl.groupby("model").r2.mean().round(4).to_dict()
++    return out
++
++
++# ---------------------------------------------------------------------------
++# Main
++# ---------------------------------------------------------------------------
++
++def main(argv=None) -> int:
++    ap = argparse.ArgumentParser(description=__doc__.split("\n\n")[0])
++    ap.add_argument("--reps", type=int, default=5, help="replicate surveys (>=5 for SDs)")
++    ap.add_argument("--seed0", type=int, default=20261104)
++    ap.add_argument("--blocks", type=int, default=10)
++    ap.add_argument("--n-points", type=int, default=None)
++    ap.add_argument("--export", default="export")
++    ap.add_argument("--quick", action="store_true",
++                    help="small run for tests; results are flagged quick and not reportable")
++    a = ap.parse_args(argv)
++
++    reps, scales, Ls, Cs = a.reps, ERROR_SCALES, CORR_LENGTHS_KM, COUPLINGS
++    n_points = a.n_points
++    if a.quick:
++        reps, scales, Ls, Cs = 2, [0.0, 1.0, 4.0], [2.0, 15.0], [0.0, 0.9]
++        n_points = n_points or 120
++
++    print(f"Part A: simulated survey, reps={reps}, quick={a.quick}")
++    df, params = run(reps, a.seed0, a.blocks, scales, Ls, Cs, n_points)
++    hyp = evaluate_hypotheses(df)
++
++    out_dir = Path(a.export); out_dir.mkdir(parents=True, exist_ok=True)
++    df.to_csv(out_dir / "part_a_results.csv", index=False)
++    result = dict(
++        kind="simulation",
++        is_real_data=False,
++        part="A (sensor simulation)",
++        schema_version=S.SCHEMA_VERSION,
++        experiment_scope=dict(quick=bool(a.quick), reps=reps, seed0=a.seed0,
++                              blocks=a.blocks, n_points=n_points or int(params["n_points"].value),
++                              error_scales=list(scales), corr_lengths_km=list(Ls),
++                              couplings=list(Cs), models=list(MODELS),
++                              features=FEATURES, targets=list(TARGETS),
++                              hyperparameters="fixed defaults (no nested tuning)"),
++        parameters=S.parameter_table(params),
++        n_parameters_assumed=sum(p.status == "assumed" for p in params.values()),
++        n_parameters_sourced=sum(p.status == "sourced" for p in params.values()),
++        hypotheses=hyp,
++        limitations=LIMITATIONS,
++        code_version=A.git_version(),
++        package_versions=A.package_versions(),
++    )
++    (out_dir / "part_a_results.json").write_text(json.dumps(result, indent=2, default=float))
++    print(f"wrote {out_dir / 'part_a_results.json'} and part_a_results.csv "
++          f"({len(df)} scored runs)")
++    return 0
++
++
++if __name__ == "__main__":
++    sys.exit(main())
+diff --git a/sensor_sim.py b/sensor_sim.py
+new file mode 100644
+index 0000000..daa7851
+--- /dev/null
++++ b/sensor_sim.py
+@@ -0,0 +1,175 @@
++"""
++Part A - simulated field survey with a low-cost sensor measurement model.
++
++Implements Step 2 of the SLR (Section IX): a synthetic field with spatially
++correlated pH, SOC and moisture is surveyed at a fixed number of points, and each
++sensor reading is the TRUE value passed through a measurement model with gain,
++offset, random noise, calibration drift and cross-sensitivity to moisture.
++
++What this module can and cannot show
++------------------------------------
++* The truth is known, so the size and spatial pattern of sensor error can be
++  controlled and its effect isolated.
++* Every result depends on the assumptions below.  It is evidence about how models
++  respond to STATED sensor errors - not about any real probe, soil or farm.
++* No parameter here comes from a datasheet or a bench test: the proposal wants
++  those, and none have been supplied.  Every parameter is therefore marked
++  "assumed".  Replace a value and flip its status to "sourced" (with a citation)
++  only when a real document supports it.
++
++The one assumption that decides the SOC result
++----------------------------------------------
++SOC is built from a latent field that is partly a function of true pH and true
++moisture, with a single tunable `coupling` (0 = unrelated, 1 = fully determined
++by them).  "SOC cannot be predicted from pH and moisture channels" (H3) is then a
++statement about that coupling, so the experiment SWEEPS it instead of hiding it.
++"""
++from __future__ import annotations
++
++from dataclasses import dataclass, field, asdict
++
++import numpy as np
++
++SCHEMA_VERSION = 1
++AREA_KM = 20.0                      # side of the square survey area (assumed)
++
++# Weights that tie the SOC latent field to the pH and moisture latent fields.
++# The signs are an assumption (SOC rises with moisture, falls with pH).
++_SOC_W_PH, _SOC_W_MOIST = -0.5, 0.5
++
++
++# ---------------------------------------------------------------------------
++# Parameters (every one is marked sourced | assumed)
++# ---------------------------------------------------------------------------
++
++@dataclass(frozen=True)
++class Param:
++    value: float
++    unit: str
++    meaning: str
++    status: str = "assumed"        # "assumed" | "sourced"
++    source: str = "no datasheet or bench test supplied"
++
++
++def default_parameters() -> dict[str, Param]:
++    """The simulation's parameter table (Table 3.4 of the proposal)."""
++    A = Param
++    return {
++        # ---- true soil values and how they relate --------------------------
++        "ph_mean": A(6.0, "pH", "mean true soil pH"),
++        "ph_sd": A(0.6, "pH", "SD of true pH across the field"),
++        "moist_mean": A(0.25, "m3/m3", "mean true volumetric moisture"),
++        "moist_sd": A(0.06, "m3/m3", "SD of true moisture across the field"),
++        "soc_median": A(1.5, "%", "median true soil organic carbon"),
++        "soc_log_sd": A(0.4, "ln-units", "SD of ln(SOC) across the field"),
++        # ---- pH channel -----------------------------------------------------
++        "ph_gain": A(0.97, "-", "systematic gain error of the pH probe"),
++        "ph_offset": A(0.10, "pH", "systematic offset of the pH probe"),
++        "ph_noise_sd": A(0.15, "pH", "reading-to-reading random noise"),
++        "ph_drift_total": A(0.20, "pH", "drift accumulated over the whole survey "
++                                          "(basis: sampling order)"),
++        "ph_moist_cross": A(2.0, "pH per m3/m3", "cross-sensitivity of the pH reading "
++                                                  "to moisture, about the reference"),
++        "moist_ref": A(0.25, "m3/m3", "moisture at which cross-sensitivity is zero"),
++        # ---- moisture channel ----------------------------------------------
++        "moist_gain": A(1.0, "-", "systematic gain error of the moisture probe"),
++        "moist_offset": A(0.01, "m3/m3", "systematic offset of the moisture probe"),
++        "moist_noise_sd": A(0.02, "m3/m3", "reading-to-reading random noise"),
++        "moist_drift_total": A(0.01, "m3/m3", "drift over the whole survey"),
++        # ---- field geometry -------------------------------------------------
++        "corr_length_km": A(6.0, "km", "spatial correlation length (exponential model); "
++                                        "varied in the experiment"),
++        "coupling": A(0.5, "correlation", "how strongly SOC follows true pH and "
++                                          "moisture; varied in the experiment"),
++        "n_points": A(250, "points", "number of surveyed locations"),
++    }
++
++
++def parameter_table(params: dict[str, Param]) -> list[dict]:
++    return [dict(name=k, **asdict(v)) for k, v in params.items()]
++
++
++# ---------------------------------------------------------------------------
++# The synthetic field
++# ---------------------------------------------------------------------------
++
++@dataclass
++class Field:
++    coords: np.ndarray             # (n, 2) in km
++    order: np.ndarray              # sampling order, 0..n-1 (the drift clock)
++    ph: np.ndarray                 # TRUE pH
++    moisture: np.ndarray           # TRUE volumetric moisture
++    soc: np.ndarray                # TRUE SOC, percent
++    z_soc: np.ndarray              # latent SOC field (for tests)
++    eps: dict = field(default_factory=dict)   # standard-normal noise draws, reused
++                                              # across error scales (common random numbers)
++
++
++def _correlated_fields(coords: np.ndarray, corr_length_km: float, rng, k: int = 3):
++    """k independent unit-variance Gaussian fields, exponential covariance."""
++    d = np.sqrt(((coords[:, None, :] - coords[None, :, :]) ** 2).sum(-1))
++    cov = np.exp(-d / max(corr_length_km, 1e-6)) + 1e-8 * np.eye(len(coords))
++    chol = np.linalg.cholesky(cov)
++    return [chol @ rng.standard_normal(len(coords)) for _ in range(k)]
++
++
++def make_field(seed: int, params: dict[str, Param] | None = None,
++               corr_length_km: float | None = None,
++               coupling: float | None = None,
++               n_points: int | None = None) -> Field:
++    """Build one survey.  Pure function of (seed, parameters)."""
++    p = params or default_parameters()
++    L = p["corr_length_km"].value if corr_length_km is None else corr_length_km
++    c = p["coupling"].value if coupling is None else coupling
++    if not 0.0 <= c <= 1.0:
++        raise ValueError("coupling must be in [0, 1]")
++    n = int(p["n_points"].value if n_points is None else n_points)
++
++    rng = np.random.default_rng([SCHEMA_VERSION, int(seed)])
++    coords = rng.uniform(0.0, AREA_KM, size=(n, 2))
++    g_ph, g_moist, g_res = _correlated_fields(coords, L, rng)
++
++    # SOC latent: a unit-variance mix whose correlation with the (pH, moisture)
++    # combination equals `coupling`, plus an independent spatial remainder.
++    combo = (_SOC_W_PH * g_ph + _SOC_W_MOIST * g_moist) / np.hypot(_SOC_W_PH, _SOC_W_MOIST)
++    z_soc = c * combo + np.sqrt(1.0 - c ** 2) * g_res
++
++    ph = p["ph_mean"].value + p["ph_sd"].value * g_ph
++    moisture = np.clip(p["moist_mean"].value + p["moist_sd"].value * g_moist, 0.02, 0.60)
++    soc = p["soc_median"].value * np.exp(p["soc_log_sd"].value * z_soc)
++
++    order = rng.permutation(n)                     # when each point was visited
++    eps = dict(ph=rng.standard_normal(n), moist=rng.standard_normal(n))
++    return Field(coords, order, ph, moisture, soc, z_soc, eps)
++
++
++# ---------------------------------------------------------------------------
++# The measurement model
++# ---------------------------------------------------------------------------
++
++def sensor_readings(f: Field, error_scale: float = 1.0,
++                    params: dict[str, Param] | None = None) -> dict[str, np.ndarray]:
++    """
++    Pass TRUE pH and moisture through the sensors.
++
++    error_scale multiplies every *error* term that can vary between readings or
++    over time - random noise, drift and cross-sensitivity - and leaves the fixed
++    gain and offset alone.  error_scale=0 therefore returns the true values
++    distorted only by a constant bias, which a model can learn away.
++
++    The noise draws are stored on the Field, so a sweep over error_scale reuses
++    the same draws (common random numbers): differences between scales are caused
++    by the scale, not by a new random sample.
++    """
++    p = params or default_parameters()
++    s = float(error_scale)
++    t = f.order / max(len(f.order) - 1, 1)        # 0..1 through the survey
++
++    ph_read = (p["ph_gain"].value * f.ph + p["ph_offset"].value
++               + s * p["ph_drift_total"].value * t
++               + s * p["ph_moist_cross"].value * (f.moisture - p["moist_ref"].value)
++               + s * p["ph_noise_sd"].value * f.eps["ph"])
++    moist_read = (p["moist_gain"].value * f.moisture + p["moist_offset"].value
++                  + s * p["moist_drift_total"].value * t
++                  + s * p["moist_noise_sd"].value * f.eps["moist"])
++    return dict(ph_sensor=ph_read, moisture_sensor=moist_read)
+diff --git a/soil_api.py b/soil_api.py
+index 31f7873..9127f2a 100644
+--- a/soil_api.py
++++ b/soil_api.py
+@@ -48,6 +48,21 @@ def _sha256(path: Path) -> str:
+     return hashlib.sha256(path.read_bytes()).hexdigest()
+ 
+ 
++def _text_hashes(path: Path) -> set[str]:
++    """
++    Hashes of a TEXT file under every common newline convention.
++
++    results.json is plain text, and git/Windows can rewrite its line endings
++    (LF <-> CRLF) without changing a single number.  A hash that only matches one
++    convention makes a fresh clone refuse to start.  Any change to the CONTENT
++    still changes all three hashes, so tamper detection is unaffected.
++    """
++    raw = path.read_bytes()
++    lf = raw.replace(b"\r\n", b"\n")
++    crlf = lf.replace(b"\n", b"\r\n")
++    return {hashlib.sha256(b).hexdigest() for b in (raw, lf, crlf)}
++
++
+ def load_bundle(model_dir: Path) -> dict:
+     files = {n: model_dir / n for n in ("model.joblib", "model_meta.json", "results.json")}
+     missing = [n for n, p in files.items() if not p.is_file()]
+@@ -71,7 +86,7 @@ def load_bundle(model_dir: Path) -> dict:
+         raise BundleError(f"Cannot start: model_meta.json is missing {absent}. "
+                           f"The bundle is from an older/incomplete run; regenerate it.")
+ 
+-    if _sha256(files["results.json"]) != meta["results_sha256"]:
++    if meta["results_sha256"] not in _text_hashes(files["results.json"]):
+         raise BundleError(
+             "Cannot start: results.json does not match the hash recorded in "
+             "model_meta.json. The model and the reported metrics are out of "
+diff --git a/tests/test_bundle_hash.py b/tests/test_bundle_hash.py
+new file mode 100644
+index 0000000..fef75d8
+--- /dev/null
++++ b/tests/test_bundle_hash.py
+@@ -0,0 +1,65 @@
++"""
++tests/test_bundle_hash.py - the results hash must survive a change of line
++endings (Windows <-> git <-> Linux) but must still catch a changed number.
++"""
++import os
++import shutil
++import sys
++from pathlib import Path
++
++import pytest
++
++sys.path.insert(0, str(Path(__file__).parent.parent))
++
++
++@pytest.fixture
++def API(synthetic_export):
++    """soil_api verifies the default bundle at import time, so import it with
++    MODEL_DIR pointed at the freshly produced synthetic export (as test_api does)."""
++    os.environ["MODEL_DIR"] = str(synthetic_export)
++    sys.modules.pop("soil_api", None)
++    import soil_api
++    yield soil_api
++    sys.modules.pop("soil_api", None)
++
++
++def _copy(export, tmp_path):
++    dst = tmp_path / "bundle"
++    shutil.copytree(export, dst)
++    return dst
++
++
++def test_freshly_written_results_are_lf_only(synthetic_export):
++    raw = (Path(synthetic_export) / "results.json").read_bytes()
++    assert b"\r\n" not in raw
++
++
++@pytest.mark.parametrize("to", ["crlf", "lf"])
++def test_bundle_loads_after_line_ending_change(API, synthetic_export, tmp_path, to):
++    dst = _copy(synthetic_export, tmp_path)
++    p = dst / "results.json"
++    lf = p.read_bytes().replace(b"\r\n", b"\n")
++    p.write_bytes(lf.replace(b"\n", b"\r\n") if to == "crlf" else lf)
++    assert API.load_bundle(dst)["meta"]["results_sha256"]
++
++
++def test_changed_content_is_still_refused(API, synthetic_export, tmp_path):
++    dst = _copy(synthetic_export, tmp_path)
++    p = dst / "results.json"
++    p.write_bytes(p.read_bytes().replace(b'"is_real_data"', b'"is_real_data_"', 1))
++    with pytest.raises(API.BundleError, match="does not match the hash"):
++        API.load_bundle(dst)
++
++
++def test_git_version_flags_uncommitted_changes(tmp_path, monkeypatch):
++    """A result must not claim a clean commit when the tree has local edits."""
++    import subprocess
++    import afsis_data as A
++    run = lambda *a: subprocess.run(a, cwd=tmp_path, check=True, capture_output=True)
++    run("git", "init", "-q")
++    run("git", "-c", "user.email=t@t", "-c", "user.name=t", "commit", "-q",
++        "--allow-empty", "-m", "x")
++    monkeypatch.chdir(tmp_path)
++    assert A.git_version() and not A.git_version().endswith("-dirty")
++    (tmp_path / "new.py").write_text("x = 1\n")
++    assert A.git_version().endswith("-dirty")
+diff --git a/tests/test_ph_target.py b/tests/test_ph_target.py
+new file mode 100644
+index 0000000..e290063
+--- /dev/null
++++ b/tests/test_ph_target.py
+@@ -0,0 +1,82 @@
++"""
++tests/test_ph_target.py - pH as a second target (SLR Step 1).
++
++pH must never be its own feature, must not be treated as carbon (no unit
++inference, no carbon bounds), and must not be log-transformed again.
++"""
++import json
++import subprocess
++import sys
++from pathlib import Path
++
++import numpy as np
++import pytest
++
++ROOT = Path(__file__).parent.parent
++sys.path.insert(0, str(ROOT))
++
++import afsis_data as A
++
++CFG = dict(depth=A.DEPTH_TARGET_CM, target_units="auto", lab_dupes="first")
++
++
++@pytest.fixture(scope="module")
++def frame(synthetic_afsis_root):
++    return A.load(synthetic_afsis_root)
++
++
++class TestSchema:
++    def test_default_target_is_still_carbon(self, frame):
++        s = A.detect_schema(frame)
++        assert s.target_kind == "soc"
++        assert "ph" not in s.target.lower().replace("soc", "")
++
++    def test_ph_target_is_a_ph_column(self, frame):
++        s = A.detect_schema(frame, {"target_kind": "ph"})
++        assert s.target_kind == "ph"
++        assert A.find([s.target], r"(^|[^a-z])ph([^a-z]|$)")
++
++    def test_ph_is_never_its_own_feature(self, frame):
++        s = A.detect_schema(frame, {"target_kind": "ph"})
++        assert s.target not in s.features
++        assert not any(A.find([f], r"(^|[^a-z])ph([^a-z]|$)") for f in s.features)
++
++    def test_other_sensor_proxies_remain_features(self, frame):
++        s = A.detect_schema(frame, {"target_kind": "ph"})
++        assert len(s.features) >= 3
++
++    def test_unknown_kind_is_rejected(self, frame):
++        with pytest.raises(ValueError):
++            A.detect_schema(frame, {"target_kind": "nitrogen"})
++
++
++class TestCleaning:
++    def test_ph_target_uses_ph_bounds_and_units(self, frame):
++        s = A.detect_schema(frame, {"target_kind": "ph"})
++        d, log = A.clean(frame, s, CFG)
++        assert len(d) > 0
++        assert d[s.target].between(0, 14).all() and (d[s.target] > 0).all()
++        used = next(l for l in log if "target_units" in l)
++        assert used["target_units"] == "pH units"
++        assert "dimensionless" in used["units_basis"]
++
++    def test_default_cleaning_is_unchanged_for_carbon(self, frame):
++        s = A.detect_schema(frame)
++        _, log = A.clean(frame, s, CFG)
++        used = next(l for l in log if "target_units" in l)
++        assert used["target_units"].startswith(("percent", "g/kg"))
++
++
++class TestEndToEnd:
++    def test_quick_run_on_ph(self, synthetic_afsis_root, tmp_path):
++        res = subprocess.run(
++            [sys.executable, "afsis_experiment.py", "--root", str(synthetic_afsis_root),
++             "--target-kind", "ph", "--quick", "--seeds", "2", "--blocks", "6",
++             "--export", str(tmp_path), "--out", str(tmp_path / "results")],
++            capture_output=True, text=True, cwd=str(ROOT))
++        assert res.returncode == 0, res.stderr[-1500:]
++        r = json.loads((tmp_path / "results.json").read_text())
++        assert r["target"]["kind"] == "ph"
++        assert r["target"]["units"] == "pH units"
++        assert r["target"]["log_transform"] is False
++        assert not any(f.lower().startswith("ph") or " ph" in f.lower() for f in r["features"])
+diff --git a/tests/test_sensor_sim.py b/tests/test_sensor_sim.py
+new file mode 100644
+index 0000000..23d1d2f
+--- /dev/null
++++ b/tests/test_sensor_sim.py
+@@ -0,0 +1,278 @@
++"""
++tests/test_sensor_sim.py - the simulated sensor survey (Part A) must do what the
++proposal says, and must not be able to overstate what it shows.
++
++Each error term is checked in isolation with the others switched off, so a
++failure points at one line of the measurement model.
++"""
++import dataclasses
++import json
++import math
++import sys
++from pathlib import Path
++
++import numpy as np
++import pytest
++
++sys.path.insert(0, str(Path(__file__).parent.parent))
++
++import afsis_validation as V
++import sensor_experiment as E
++import sensor_sim as S
++
++
++def _params(**overrides):
++    """Default parameters with some values replaced (status stays 'assumed')."""
++    p = S.default_parameters()
++    for k, v in overrides.items():
++        p[k] = dataclasses.replace(p[k], value=v)
++    return p
++
++
++# ---------------------------------------------------------------------------
++# Reproducibility
++# ---------------------------------------------------------------------------
++
++class TestDeterminism:
++    def test_same_seed_same_field_and_readings(self):
++        a, b = S.make_field(11), S.make_field(11)
++        assert np.array_equal(a.ph, b.ph) and np.array_equal(a.soc, b.soc)
++        ra, rb = S.sensor_readings(a, 1.0), S.sensor_readings(b, 1.0)
++        assert np.array_equal(ra["ph_sensor"], rb["ph_sensor"])
++
++    def test_different_seed_different_field(self):
++        assert not np.array_equal(S.make_field(1).ph, S.make_field(2).ph)
++
++    def test_noise_draws_are_shared_across_error_scales(self):
++        """Common random numbers: the scale, not a fresh sample, drives the change."""
++        f = S.make_field(5)
++        p = _params(ph_drift_total=0.0, ph_moist_cross=0.0)
++        r1 = S.sensor_readings(f, 1.0, p)["ph_sensor"]
++        r2 = S.sensor_readings(f, 2.0, p)["ph_sensor"]
++        base = p["ph_gain"].value * f.ph + p["ph_offset"].value
++        assert np.allclose(r2 - base, 2.0 * (r1 - base))
++
++
++# ---------------------------------------------------------------------------
++# Each term of the measurement model, in isolation
++# ---------------------------------------------------------------------------
++
++class TestMeasurementModel:
++    def test_perfect_sensor_returns_truth(self):
++        p = _params(ph_gain=1.0, ph_offset=0.0, moist_gain=1.0, moist_offset=0.0)
++        f = S.make_field(3, p)
++        r = S.sensor_readings(f, 0.0, p)
++        assert np.allclose(r["ph_sensor"], f.ph)
++        assert np.allclose(r["moisture_sensor"], f.moisture)
++
++    def test_gain_and_offset_are_not_scaled_by_error_scale(self):
++        f = S.make_field(3)
++        p = S.default_parameters()
++        r0 = S.sensor_readings(f, 0.0, p)["ph_sensor"]
++        assert np.allclose(r0, p["ph_gain"].value * f.ph + p["ph_offset"].value)
++
++    def test_drift_follows_sampling_order(self):
++        p = _params(ph_gain=1.0, ph_offset=0.0, ph_noise_sd=0.0, ph_moist_cross=0.0,
++                    ph_drift_total=0.30)
++        f = S.make_field(8, p)
++        resid = S.sensor_readings(f, 1.0, p)["ph_sensor"] - f.ph
++        expect = 0.30 * f.order / (len(f.order) - 1)
++        assert np.allclose(resid, expect)
++
++    def test_cross_sensitivity_to_moisture(self):
++        p = _params(ph_gain=1.0, ph_offset=0.0, ph_noise_sd=0.0, ph_drift_total=0.0,
++                    ph_moist_cross=2.0)
++        f = S.make_field(9, p)
++        resid = S.sensor_readings(f, 1.0, p)["ph_sensor"] - f.ph
++        assert np.allclose(resid, 2.0 * (f.moisture - p["moist_ref"].value))
++
++    def test_random_noise_has_the_stated_sd(self):
++        p = _params(ph_gain=1.0, ph_offset=0.0, ph_drift_total=0.0, ph_moist_cross=0.0,
++                    ph_noise_sd=0.15)
++        f = S.make_field(10, p, n_points=800)
++        resid = S.sensor_readings(f, 1.0, p)["ph_sensor"] - f.ph
++        assert abs(resid.std() - 0.15) < 0.02
++
++
++# ---------------------------------------------------------------------------
++# The synthetic field
++# ---------------------------------------------------------------------------
++
++class TestField:
++    def test_values_are_physically_plausible(self):
++        f = S.make_field(2)
++        assert (f.soc > 0).all()
++        assert (f.moisture >= 0.02).all() and (f.moisture <= 0.60).all()
++
++    def test_nearby_points_are_more_alike_than_distant_ones(self):
++        """The field is spatially structured: semivariance rises with distance."""
++        f = S.make_field(4, corr_length_km=6.0, n_points=250)
++        d = np.sqrt(((f.coords[:, None] - f.coords[None]) ** 2).sum(-1))
++        sq = (f.ph[:, None] - f.ph[None]) ** 2
++        iu = np.triu_indices(len(f.ph), 1)
++        near = sq[iu][d[iu] < 2.0].mean()
++        far = sq[iu][d[iu] > 10.0].mean()
++        assert near < 0.6 * far
++
++    @pytest.mark.parametrize("c", [0.0, 0.8])
++    def test_coupling_sets_the_soc_correlation_with_ph_and_moisture(self, c):
++        p = S.default_parameters()
++        f = S.make_field(6, p, corr_length_km=0.3, coupling=c, n_points=600)
++        zph = (f.ph - p["ph_mean"].value) / p["ph_sd"].value
++        zm = (f.moisture - p["moist_mean"].value) / p["moist_sd"].value
++        combo = (S._SOC_W_PH * zph + S._SOC_W_MOIST * zm) / math.hypot(S._SOC_W_PH, S._SOC_W_MOIST)
++        r = np.corrcoef(f.z_soc, combo)[0, 1]
++        assert abs(r - c) < 0.15
++
++    @pytest.mark.parametrize("bad", [-0.1, 1.5])
++    def test_coupling_out_of_range_is_rejected(self, bad):
++        with pytest.raises(ValueError):
++            S.make_field(1, coupling=bad)
++
++
++# ---------------------------------------------------------------------------
++# Honest labelling
++# ---------------------------------------------------------------------------
++
++class TestParameterTable:
++    def test_every_parameter_is_labelled_sourced_or_assumed(self):
++        for row in S.parameter_table(S.default_parameters()):
++            assert row["status"] in {"assumed", "sourced"}, row
++
++    def test_a_sourced_parameter_must_name_its_source(self):
++        placeholder = S.Param(0, "", "").source
++        for row in S.parameter_table(S.default_parameters()):
++            if row["status"] == "sourced":
++                assert row["source"] and row["source"] != placeholder, row
++
++    def test_no_parameter_claims_a_datasheet_without_one(self):
++        """Nothing is 'sourced' until a real document is supplied."""
++        rows = S.parameter_table(S.default_parameters())
++        assert all(r["status"] == "assumed" for r in rows)
++
++
++# ---------------------------------------------------------------------------
++# Validation hygiene
++# ---------------------------------------------------------------------------
++
++class TestNoLeakage:
++    def _inputs(self):
++        f = S.make_field(21, n_points=120)
++        X = np.column_stack([*S.sensor_readings(f, 1.0).values()])
++        grp, _ = V.spatial_groups(f.coords, np.arange(len(X)), 6, 21)
++        return f, X, grp
++
++    def test_no_fit_ever_sees_all_rows(self, monkeypatch):
++        from sklearn.pipeline import Pipeline
++        f, X, grp = self._inputs()
++        seen = []
++        real = Pipeline.fit
++
++        def spy(self, Xf, y=None, **kw):
++            seen.append(len(Xf))
++            return real(self, Xf, y, **kw)
++
++        monkeypatch.setattr(Pipeline, "fit", spy)
++        E.cv_two_inputs(X, X, f.soc, grp, V.model_specs()["ridge"], "spatial", 1, True)
++        assert seen and max(seen) < len(X)
++
++    def test_whole_blocks_are_held_out_together(self):
++        f, X, grp = self._inputs()
++        for tr, te in V.outer_splits("spatial", X, f.ph, grp, 1):
++            assert not set(grp[tr]) & set(grp[te])
++
++    def test_folds_do_not_depend_on_noise_level(self):
++        f = S.make_field(21, n_points=120)
++        grp, _ = V.spatial_groups(f.coords, np.arange(120), 6, 21)
++        a = V.outer_splits("spatial", np.zeros((120, 2)), f.ph, grp, 1)
++        b = V.outer_splits("spatial", np.ones((120, 2)), f.ph, grp, 1)
++        assert all(np.array_equal(x[1], y[1]) for x, y in zip(a, b))
++
++    def test_train_clean_arm_is_fitted_on_clean_inputs(self):
++        """Fit on clean, score on noisy must differ from noisy/noisy at scale > 0
++        and match it at scale 0."""
++        f = S.make_field(31, n_points=150)
++        grp, _ = V.spatial_groups(f.coords, np.arange(150), 6, 31)
++        spec = V.model_specs()["ridge"]
++        clean = np.column_stack([*S.sensor_readings(f, 0.0).values()])
++        noisy = np.column_stack([*S.sensor_readings(f, 4.0).values()])
++        r_clean = E.cv_two_inputs(clean, noisy, f.ph, grp, spec, "spatial", 1, False)["r2"]
++        r_noisy = E.cv_two_inputs(noisy, noisy, f.ph, grp, spec, "spatial", 1, False)["r2"]
++        r_same0 = E.cv_two_inputs(clean, clean, f.ph, grp, spec, "spatial", 1, False)["r2"]
++        assert r_clean != pytest.approx(r_noisy)
++        assert r_same0 > r_noisy        # more error cannot help on this field
++
++
++# ---------------------------------------------------------------------------
++# The whole experiment, small
++# ---------------------------------------------------------------------------
++
++def _has_nan(o):
++    if isinstance(o, float):
++        return math.isnan(o)
++    if isinstance(o, dict):
++        return any(_has_nan(v) for v in o.values())
++    if isinstance(o, list):
++        return any(_has_nan(v) for v in o)
++    return False
++
++
++@pytest.fixture(scope="module")
++def quick_result(tmp_path_factory):
++    out = tmp_path_factory.mktemp("part_a")
++    assert E.main(["--quick", "--n-points", "70", "--blocks", "6", "--export", str(out)]) == 0
++    return json.loads((out / "part_a_results.json").read_text()), out
++
++
++class TestExperimentOutput:
++    def test_labelled_as_simulation_and_quick(self, quick_result):
++        r, _ = quick_result
++        assert r["kind"] == "simulation" and r["is_real_data"] is False
++        assert r["experiment_scope"]["quick"] is True
++
++    def test_no_parameter_is_reported_as_sourced(self, quick_result):
++        r, _ = quick_result
++        assert r["n_parameters_sourced"] == 0
++        assert r["n_parameters_assumed"] == len(r["parameters"])
++
++    def test_limitations_are_exported(self, quick_result):
++        r, _ = quick_result
++        text = " ".join(r["limitations"]).lower()
++        assert "assumed" in text and "not how any real" in text
++
++    def test_no_unfilled_nulls_or_nans_in_metrics(self, quick_result):
++        r, _ = quick_result
++        h = dict(r["hypotheses"])
++        h.pop("H3_break_even_error_scale")       # null here means "never reached"
++        assert not _has_nan(h)
++
++    def test_all_three_hypotheses_are_evaluated(self, quick_result):
++        h = quick_result[0]["hypotheses"]
++        for key in ("H1_validation_gap_soc", "H2_noise_curves",
++                    "H3_break_even_error_scale", "H3_soc_skill_vs_coupling"):
++            assert key in h
++
++    def test_break_even_is_never_extrapolated(self, quick_result):
++        be = quick_result[0]["hypotheses"]["H3_break_even_error_scale"]
++        tested = set(be["tested_scales"])
++        assert all(v is None or v in tested for v in be["values"].values())
++
++    def test_shuffled_target_has_no_skill(self, quick_result):
++        ctrl = quick_result[0]["hypotheses"]["control_shuffled_target_r2_mean"]
++        for model, r2 in ctrl.items():
++            assert r2 < 0.15, (model, r2)
++
++    def test_csv_is_written_and_complete(self, quick_result):
++        import pandas as pd
++        _, out = quick_result
++        df = pd.read_csv(out / "part_a_results.csv")
++        assert {"experiment", "target", "model", "scheme", "error_scale", "r2"} <= set(df.columns)
++        assert set(df.experiment) == {"core", "noise", "shuffled_control"}
++
++    def test_same_seed_reproduces_exactly(self, tmp_path):
++        a, b = tmp_path / "a", tmp_path / "b"
++        for d in (a, b):
++            E.main(["--quick", "--n-points", "60", "--blocks", "6", "--export", str(d)])
++        ja = json.loads((a / "part_a_results.json").read_text())["hypotheses"]
++        jb = json.loads((b / "part_a_results.json").read_text())["hypotheses"]
++        assert ja == jb

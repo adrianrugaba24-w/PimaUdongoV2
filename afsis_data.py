@@ -57,6 +57,9 @@ PATTERNS = {
         "clay": [r"(?i)^clay"],
         "sand": [r"(?i)^sand"],
         "silt": [r"(?i)^silt"],
+        # Moisture is a covariate in the proposal.  It is only picked up if the
+        # table really has such a column; the data card lists what was chosen.
+        "moisture": [r"(?i)moist", r"(?i)water.?content"],
     },
     # Never allowed as a feature: anything carbon- or target-like.
     "forbidden_feature": [r"(?i)organic.?c", r"(?i)^t?c$", r"(?i)total.?c",
@@ -91,10 +94,18 @@ def dataset_version(manifest: list[dict]) -> str:
 
 
 def git_version() -> str | None:
+    """Short commit hash, with '-dirty' appended when the working tree has
+    uncommitted changes - so a result can never claim a clean commit that the
+    code which produced it was not actually in."""
     try:
         out = subprocess.run(["git", "rev-parse", "--short", "HEAD"],
                              capture_output=True, text=True, timeout=10)
-        return out.stdout.strip() or None
+        head = out.stdout.strip()
+        if not head:
+            return None
+        status = subprocess.run(["git", "status", "--porcelain"],
+                                capture_output=True, text=True, timeout=10)
+        return head + ("-dirty" if status.stdout.strip() else "")
     except Exception:
         return None
 
@@ -175,6 +186,7 @@ class Schema:
     depth_from: str | None = None
     depth_to: str | None = None
     target: str | None = None
+    target_kind: str = "soc"           # "soc" | "ph" - what the target column is
     features: list[str] = field(default_factory=list)
     origin: dict = field(default_factory=dict)
     unmatched: list[str] = field(default_factory=list)
@@ -188,13 +200,18 @@ def detect_schema(df: pd.DataFrame, overrides: dict | None = None) -> Schema:
     cols = list(df.columns)
     ov = overrides or {}
     s = Schema()
+    s.target_kind = ov.get("target_kind") or "soc"
+    if s.target_kind not in ("soc", "ph"):
+        raise ValueError(f"target_kind must be 'soc' or 'ph', got {s.target_kind!r}")
     for role in ("lat", "lon", "country", "ssn", "site_id", "profile_id",
                  "depth_from", "depth_to", "target"):
         if ov.get(role):
             setattr(s, role, ov[role])
             s.origin[role] = "override"
         else:
-            setattr(s, role, _find_any(cols, PATTERNS[role]))
+            pats = (PATTERNS["feature"]["ph"]
+                    if role == "target" and s.target_kind == "ph" else PATTERNS[role])
+            setattr(s, role, _find_any(cols, pats))
             s.origin[role] = "auto" if getattr(s, role) else "missing"
 
     if ov.get("features"):
@@ -334,18 +351,23 @@ def clean(df: pd.DataFrame, schema: Schema, cfg: dict) -> tuple[pd.DataFrame, li
              "site id, so they cannot leak across folds", removed=0, key=key)
 
     # --- 5. target ----------------------------------------------------------
-    units, how = infer_target_units(pd.to_numeric(d[schema.target], errors="coerce"))
-    if cfg.get("target_units") and cfg["target_units"] != "auto":
-        units = {"percent": "percent (g/100 g)", "g_per_kg": "g/kg"}.get(
-            cfg["target_units"], cfg["target_units"])
-        how = f"forced by --target-units={cfg['target_units']}"
-    lo, hi = BOUNDS["oc_percent"] if units.startswith("percent") else BOUNDS["oc_g_per_kg"]
+    if schema.target_kind == "ph":
+        # pH is dimensionless: there are no units to infer, and no carbon bounds.
+        units, how = "pH units", "target kind = ph (dimensionless; no unit inference)"
+        lo, hi = BOUNDS["ph"]
+    else:
+        units, how = infer_target_units(pd.to_numeric(d[schema.target], errors="coerce"))
+        if cfg.get("target_units") and cfg["target_units"] != "auto":
+            units = {"percent": "percent (g/100 g)", "g_per_kg": "g/kg"}.get(
+                cfg["target_units"], cfg["target_units"])
+            how = f"forced by --target-units={cfg['target_units']}"
+        lo, hi = BOUNDS["oc_percent"] if units.startswith("percent") else BOUNDS["oc_g_per_kg"]
 
     before = len(d)
     d[schema.target] = pd.to_numeric(d[schema.target], errors="coerce")
     d = d[d[schema.target].notna()]
     step("missing_target", before,
-         "target absent; a row with no SOC label cannot be trained on",
+         "target absent; a row with no label cannot be trained on",
          removed=before - len(d))
 
     before = len(d)

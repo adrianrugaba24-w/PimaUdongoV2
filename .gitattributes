@@ -1,0 +1,6 @@
+# The export bundle is hash-verified at API start-up.  Keep text files LF on every
+# OS so a hash recorded on Windows still matches after a clone on Linux/macOS,
+# and keep the model binary untouched.
+export/*.json     text eol=lf
+export/*.joblib   binary
+*.py              text eol=lf

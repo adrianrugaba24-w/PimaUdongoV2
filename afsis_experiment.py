@@ -196,6 +196,9 @@ def main(argv=None):
     ap.add_argument("--data-dir", default="data/afsis_stand_in",
                     help="Where the synthetic stand-in is written (ignored with --root)")
     ap.add_argument("--target"); ap.add_argument("--features", nargs="+")
+    ap.add_argument("--target-kind", dest="target_kind", default="soc", choices=["soc", "ph"],
+                    help="what the target is: soil organic carbon (default) or soil pH. "
+                         "pH is never used as a feature when it is the target.")
     ap.add_argument("--lat-col", dest="lat_col"); ap.add_argument("--lon-col", dest="lon_col")
     ap.add_argument("--country-col", dest="country_col")
     ap.add_argument("--ssn-col", dest="ssn_col"); ap.add_argument("--site-col", dest="site_id")
@@ -254,6 +257,7 @@ def main(argv=None):
         val = getattr(a, attr)
         if val:
             overrides[role] = val
+    overrides["target_kind"] = a.target_kind
     schema = A.detect_schema(df, overrides)
     if a.list_columns:
         print(f"country counts:\n{df[schema.country].value_counts().to_string()}"
@@ -286,9 +290,11 @@ def main(argv=None):
     # SOC is strictly positive and right-skewed at any unit, so the model works
     # on log1p and predictions are returned on the original scale.  If any
     # non-positive value survived cleaning, the log scale is off the table.
-    log_target = bool(np.all(y > 0))
-    print(f"[setup] {X0.shape[0]} rows x {X0.shape[1]} features | units={units} | "
-          f"log-target={log_target} (decided from the inferred units, not tuned)")
+    # pH is already a logarithmic scale, so it is never log-transformed again.
+    log_target = bool(np.all(y > 0)) and schema.target_kind == "soc"
+    print(f"[setup] target={schema.target_kind} | {X0.shape[0]} rows x {X0.shape[1]} features | "
+          f"units={units} | log-target={log_target} (decided from the target kind and "
+          f"units, not tuned)")
 
     seeds = list(range(a.seed0, a.seed0 + max(1, a.seeds)))
     if a.quick:
@@ -575,7 +581,8 @@ def main(argv=None):
             units=units, units_basis=next((l.get("units_basis") for l in log
                                            if "units_basis" in l), None),
         ),
-        target=dict(name=schema.target, units=units, log_transform=bool(log_target),
+        target=dict(name=schema.target, kind=schema.target_kind, units=units,
+                    log_transform=bool(log_target),
                     column_detection=schema.origin.get("target")),
         features=list(schema.features),
         feature_ranges=ranges,
@@ -643,7 +650,9 @@ def main(argv=None):
     payload["training_data_version"] = dversion
 
     results_txt = json.dumps(_jsonable(payload), indent=1)
-    (export_dir / "results.json").write_text(results_txt)
+    # newline="\n": Python's text mode would write CRLF on Windows, git would then
+    # store LF, and the recorded hash would no longer match a fresh clone.
+    (export_dir / "results.json").write_text(results_txt, newline="\n")
     # Hash the file exactly as written, so the API can detect any drift between
     # the model and the numbers it is supposed to report.
     results_sha = hashlib.sha256((export_dir / "results.json").read_bytes()).hexdigest()
@@ -662,7 +671,7 @@ def main(argv=None):
         model_params=_jsonable(final_params), model_seed=int(seeds[0]),
         sklearn_version=A.package_versions()["scikit-learn"],
         fitted_at_utc=payload["generated_at_utc"],
-    )), indent=1))
+    )), indent=1), newline="\n")
 
     _plot(out_prefix, main_rows, noise_rows, block_rows, interval, base_rmse, gap_rows,
           part_summary)

@@ -73,6 +73,50 @@ Useful flags: `--root <AfSIS dir>` (real data), `--synthetic`, `--countries`,
 `experiment_scope.quick = true` in the output, so a quick artefact can never be
 mistaken for a reported one.
 
+## Part A — simulated sensor survey (`sensor_experiment.py`)
+
+The proposal has two parts that are **never combined**: Part B (the AfSIS
+experiment above) and Part A, a *simulated* field survey read through a
+low-cost-sensor measurement model.
+
+```bash
+python sensor_experiment.py            # full run  -> export/part_a_results.{json,csv}
+python sensor_experiment.py --quick    # smoke run (flagged quick, not reportable)
+```
+
+* `sensor_sim.py` builds a spatially correlated field of true pH, moisture and
+  SOC and reads pH and moisture through sensors with **gain, offset, random
+  noise, calibration drift (basis: sampling order) and cross-sensitivity of the
+  pH reading to moisture**.
+* **No parameter is sourced.** All are marked `assumed` in `parameters[]`
+  because no datasheet or bench test has been supplied. The "baseline" error
+  setting is therefore exploratory until real values replace them.
+* Inputs: the two sensor channels. Targets: true pH and true SOC (standing in for
+  laboratory values). Models: mean baseline, ridge, random forest, gradient
+  boosting, on the same spatial folds as Part B (hyperparameters fixed, no nested
+  tuning, to keep the sweep affordable).
+* **The assumptions that could decide the answer are swept, not fixed:** spatial
+  correlation length (H1), SOC coupling to pH/moisture (H3) and error scale
+  (H2/H3). Read H1 and H3 as functions of those, not as single numbers.
+* "Useful skill" for H3 is fixed in advance as spatial R² >= 0.5. A break-even
+  error scale is the largest *tested* scale that still meets it; `null` means it
+  was never met and nothing is extrapolated.
+* Both noise arms are run: fit on clean readings / score on noisy ones, and
+  fit and score on noisy ones.
+* Output is labelled `kind: "simulation"`, `is_real_data: false`. It says how
+  models respond to the stated sensor errors, **not** how any real probe, soil or
+  farm behaves.
+
+## pH as a second target
+
+`python afsis_experiment.py --root <AfSIS dir> --target-kind ph`
+
+pH is dimensionless, so there is no unit inference, the bounds are 0-14, it is
+**not** log-transformed again, and the pH column is never used as a feature when
+it is the target. Moisture is picked up as a covariate only if the table really
+has a moisture column; the data card lists exactly which features were chosen
+(override with `--features`).
+
 ## Start the API and the demo
 
 ```powershell
