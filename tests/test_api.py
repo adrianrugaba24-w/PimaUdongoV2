@@ -282,9 +282,20 @@ class TestIndexPage:
         assert r.status_code == 200
         assert "text/html" in r.headers["content-type"]
 
-    def test_index_carries_the_banner_and_no_baked_numbers(self, client):
-        html = client.get("/").text
-        assert "Not validated on field sensors or Ugandan farms" in html
-        assert "soil health" not in html.lower()
-        # the page must fetch its numbers; it may not contain them
-        assert "fetch(" in html
+    def test_researcher_page_200(self, client):
+        r = client.get("/researcher")
+        assert r.status_code == 200
+        assert "text/html" in r.headers["content-type"]
+
+    def test_every_page_carries_the_banner_and_no_baked_numbers(self, client):
+        # "/" is the entry gate, "/researcher" is the dashboard this class was
+        # written for, and "/farmer" is the plain-language view.  The three
+        # constraints hold on all of them.
+        for route in ("/", "/researcher", "/farmer"):
+            r = client.get(route)
+            assert r.status_code == 200, route
+            html = r.text
+            assert "Not validated on field sensors or Ugandan farms" in html, route
+            assert "soil health" not in html.lower(), route
+            # the page must fetch its numbers; it may not contain them
+            assert "fetch(" in html, route

@@ -1,0 +1,122 @@
+<!doctype html>
+<html lang="en" data-theme="light">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Soil carbon demo</title>
+<style>
+  :root{
+    --bg:#f7f7f5; --card:#fff; --ink:#1c1c1a; --muted:#5c5c56; --line:#e2e2dc;
+    --accent:#2f6b4f; --accent-ink:#fff; --red:#b3261e;
+  }
+  @media (prefers-color-scheme: dark){
+    :root{ --bg:#16171a; --card:#1e2024; --ink:#eceae5; --muted:#a9a69f;
+           --line:#33363c; --red:#f28b82; }
+  }
+  [data-theme="dark"]{ --bg:#16171a; --card:#1e2024; --ink:#eceae5; --muted:#a9a69f;
+    --line:#33363c; --red:#f28b82; }
+  *{box-sizing:border-box}
+  body{margin:0;min-height:100vh;display:flex;align-items:center;justify-content:center;
+       padding:24px 20px;font:16px/1.6 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+       background:var(--bg);color:var(--ink)}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:16px;
+        padding:26px;max-width:620px;width:100%}
+  .tag{display:inline-block;font-size:12px;font-weight:700;letter-spacing:.04em;
+       text-transform:uppercase;color:var(--accent);border:1px solid currentColor;
+       border-radius:999px;padding:3px 9px;margin-bottom:12px}
+  h1{font-size:27px;line-height:1.25;margin:0 0 10px}
+  .lead{font-size:17px;margin:0 0 10px}
+  .note{color:var(--muted);font-size:14px;margin:0 0 20px}
+  .choices{display:grid;gap:12px;margin-top:18px}
+  .choice{display:block;width:100%;text-align:left;font:inherit;cursor:pointer;
+          color:inherit;border:1px solid var(--line);border-radius:12px;
+          padding:14px 18px;background:var(--bg)}
+  .choice:hover{border-color:var(--accent)}
+  .choice:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+  .choice-title{display:block;font-weight:650;font-size:17px;color:var(--accent)}
+  .choice-note{display:block;font-size:14px;color:var(--muted);margin-top:3px}
+  .row{display:flex;flex-direction:column;gap:5px;margin:0 0 14px}
+  .row label{font-weight:600;font-size:15px}
+  .row input{font:inherit;padding:11px 13px;border:1px solid var(--line);border-radius:9px;
+             background:var(--bg);color:var(--ink)}
+  .row input:focus-visible{outline:2px solid var(--accent);outline-offset:1px}
+  .banner{margin:20px 0 0;padding-top:14px;border-top:1px solid var(--line);
+          font-size:13px;color:var(--muted)}
+  [hidden]{display:none !important}
+</style>
+</head>
+<body>
+<!-- login:begin -->
+<main>
+  <div class="card">
+    <span class="tag" id="label"></span>
+    <h1 id="title"></h1>
+    <p class="lead" id="lead"></p>
+    <p class="note" id="body"></p>
+    <form id="signin" autocomplete="off">
+      <div class="row">
+        <label for="username" id="username-label"></label>
+        <input id="username" name="username" type="text" autocomplete="off" spellcheck="false">
+      </div>
+      <div class="row">
+        <label for="password" id="password-label"></label>
+        <input id="password" name="password" type="password" autocomplete="off">
+      </div>
+      <div class="choices">
+        <button class="choice" type="submit" data-view="farmer">
+          <span class="choice-title" id="farmer-action"></span>
+          <span class="choice-note" id="farmer-note"></span>
+        </button>
+        <button class="choice" type="submit" data-view="researcher">
+          <span class="choice-title" id="researcher-action"></span>
+          <span class="choice-note" id="researcher-note"></span>
+        </button>
+      </div>
+    </form>
+    <p class="banner" id="banner">Not validated on field sensors or Ugandan farms.</p>
+  </div>
+</main>
+
+<script>
+(function(){
+  "use strict";
+  var DEST = null;
+
+  function $(id){ return document.getElementById(id); }
+
+  fetch("/api/login").then(function(res){ return res.json(); }).then(function(j){
+    var L = j.login;
+    DEST = L;
+    $("label").textContent = L.label;
+    $("title").textContent = L.title;
+    $("lead").textContent = L.lead;
+    $("body").textContent = L.body;
+    $("username-label").textContent = L.username_label;
+    $("password-label").textContent = L.password_label;
+    $("farmer-action").textContent = L.farmer_action;
+    $("farmer-note").textContent = L.farmer_note;
+    $("researcher-action").textContent = L.researcher_action;
+    $("researcher-note").textContent = L.researcher_note;
+  }).catch(function(){
+    // The destinations fall back to the two routes below; nothing else is lost.
+    DEST = { farmer_href: "/farmer", researcher_href: "/researcher" };
+  });
+
+  // The form never submits.  Nothing typed here leaves the browser: there is no
+  // request, no storage and no check, which is what the page says in words.
+  $("signin").addEventListener("submit", function(ev){
+    ev.preventDefault();
+    if ($("username").value.trim() === "") { $("username").focus(); return; }
+    if ($("password").value === "") { $("password").focus(); return; }
+    var which = (ev.submitter && ev.submitter.getAttribute("data-view")) || "farmer";
+    var to = which === "researcher" ? DEST.researcher_href : DEST.farmer_href;
+    window.location.assign(to);
+  });
+})();
+</script>
+<noscript><p style="max-width:620px;margin:18px 0 0;font-size:14px">The form needs
+  scripts. These two links do not: <a href="/farmer">the farmer view</a>,
+  <a href="/researcher">the researcher view</a>.</p></noscript>
+<!-- login:end -->
+</body>
+</html>

@@ -293,9 +293,26 @@ def _add_noise(X: np.ndarray, sd: np.ndarray, level: float, rng) -> np.ndarray:
 # ---------------------------------------------------------------------------
 
 
+def _summarise_folds(rows: list[dict]) -> dict:
+    """Mean and SD across folds of the per-fold metrics for one CV cell.
+
+    Used for TRAIN-fold scores, where pooling across folds is not meaningful:
+    each fold's training rows are fitted by a model that never saw the other
+    folds, so the per-fold values are averaged rather than concatenated.
+    """
+    out = dict(n_folds=len(rows), per_fold=rows)
+    for m in ("r2", "rmse", "mae", "rpiq"):
+        v = np.array([r[m] for r in rows], float)
+        v = v[np.isfinite(v)]
+        out[f"{m}_mean"] = float(v.mean()) if len(v) else float("nan")
+        out[f"{m}_sd"] = float(v.std(ddof=1)) if len(v) > 1 else 0.0
+    return out
+
+
 def run_cv(X, y, row_groups, spec: ModelSpec, scheme: str, seed: int,
            log_target: bool, params: dict | None = None, tune: bool = True,
-           noise_level: float = 0.0, arm: str = "train_clean") -> dict:
+           noise_level: float = 0.0, arm: str = "train_clean",
+           collect_train: bool = False) -> dict:
     """
     Score one model under one validation scheme.
 
@@ -303,10 +320,16 @@ def run_cv(X, y, row_groups, spec: ModelSpec, scheme: str, seed: int,
     the parameters each fold selected.  tune=False uses `params` as given.
     Noise is drawn per fold from training-fold SD (see _nan_sd), so no test
     statistic ever enters the fit.
+
+    collect_train=True additionally scores each fitted fold on its OWN training
+    rows and returns them under the "train" key.  Comparing that with the
+    out-of-fold score is what separates "underfits everything" from "memorised
+    the places it was trained on".  Off by default: it costs a second predict
+    per fold and no existing caller needs it.
     """
     X = np.asarray(X, float); y = np.asarray(y, float)
     oof = np.full(len(y), np.nan)
-    chosen, fold_rows = [], []
+    chosen, fold_rows, train_rows = [], [], []
     for k, (tr, te) in enumerate(outer_splits(scheme, X, y, row_groups, seed)):
         rng = np.random.default_rng([seed, k, int(round(noise_level * 1000)),
                                      0 if arm == "train_clean" else 1])
@@ -329,9 +352,16 @@ def run_cv(X, y, row_groups, spec: ModelSpec, scheme: str, seed: int,
             best = pipe.fit(Xtr, y[tr])
         oof[te] = best.predict(Xte)
         fold_rows.append(dict(fold=k, n_test=int(len(te)), **metrics(y[te], oof[te])))
+        if collect_train:
+            # Same fold, same fitted object, scored on the rows it was fitted on.
+            train_rows.append(dict(fold=k, n_train=int(len(tr)),
+                                   **metrics(y[tr], best.predict(Xtr))))
 
-    return dict(metrics=metrics(y, oof), per_fold=fold_rows, chosen_params=chosen,
-                oof=oof.tolist())
+    out = dict(metrics=metrics(y, oof), per_fold=fold_rows, chosen_params=chosen,
+               oof=oof.tolist())
+    if collect_train:
+        out["train"] = _summarise_folds(train_rows)
+    return out
 
 
 # ---------------------------------------------------------------------------

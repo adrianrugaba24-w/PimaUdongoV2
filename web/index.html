@@ -1,272 +1,814 @@
 <!DOCTYPE html>
 <html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Predicted soil organic carbon - research prototype</title>
+<title>Predicted soil carbon - research prototype</title>
 <style>
-:root{--bg:#f4f6f3;--card:#fff;--ink:#1c2a22;--muted:#66756c;--line:#dde4df;--a:#26734d;--o:#c5671a;--bad:#a12b1f}
-@media (prefers-color-scheme:dark){:root{--bg:#111713;--card:#1b231e;--ink:#eef5ee;--muted:#a3b1a6;--line:#344238;--a:#79d39c;--o:#f0a34b;--bad:#ff8f7a}}
-*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.5 system-ui,sans-serif}
-main{max-width:1000px;margin:0 auto;padding:20px}h1{font-size:21px;margin:0 0 4px}h2{font-size:15px;margin:0 0 6px}
-.sub{color:var(--muted);font-size:13px;margin:0 0 12px}
-.grid{display:grid;grid-template-columns:1fr 1fr;gap:14px}@media(max-width:800px){.grid{grid-template-columns:1fr}}
-.card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:14px}
-.banner{border-radius:8px;padding:9px 11px;font-size:13px;margin-bottom:10px;border:1px solid}
+:root{--bg:#f4f6f3;--card:#fff;--ink:#1c2a22;--muted:#66756c;--line:#dde4df;--a:#26734d;--o:#c5671a;--bad:#a12b1f;--slate:#5a6b60;--tint:#eef2ee}
+[data-theme=dark]{--bg:#111713;--card:#1b231e;--ink:#eef5ee;--muted:#a3b1a6;--line:#344238;--a:#79d39c;--o:#f0a34b;--bad:#ff8f7a;--slate:#9aa8a0;--tint:#18211c}
+@media (prefers-color-scheme:dark){:root:not([data-theme=light]){--bg:#111713;--card:#1b231e;--ink:#eef5ee;--muted:#a3b1a6;--line:#344238;--a:#79d39c;--o:#f0a34b;--bad:#ff8f7a;--slate:#9aa8a0;--tint:#18211c}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.5 system-ui,-apple-system,Segoe UI,sans-serif}
+.pad{max-width:1100px;margin:0 auto;padding:16px 20px}
+h1{font-size:20px;margin:0 0 3px;letter-spacing:-.01em}
+h2{font-size:14.5px;margin:0 0 3px}
+h3{font-size:12px;margin:0;color:var(--muted);font-weight:600;text-transform:uppercase;letter-spacing:.04em}
+p{margin:6px 0}
+.sub{color:var(--muted);font-size:13px;margin:0}
+.note{font-size:12.5px;color:var(--muted);margin:6px 0 0}
+code,.mono{font-family:ui-monospace,Consolas,monospace;font-size:12px}
+header.top{border-bottom:1px solid var(--line);background:var(--card);position:sticky;top:0;z-index:20}
+.head{display:flex;gap:14px;align-items:flex-start;justify-content:space-between;flex-wrap:wrap}
+.headright{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.chip{font:12px ui-monospace,Consolas,monospace;border:1px solid var(--line);border-radius:99px;padding:3px 10px;color:var(--muted);white-space:nowrap}
+.chip-real{border-color:var(--a);color:var(--a);font-weight:700}
+.chip-syn{border-color:var(--bad);color:var(--bad);font-weight:700}
+.chip-ok{border-color:var(--line);color:var(--muted)}
+.chip-bad{border-color:var(--o);color:var(--o);font-weight:700}
+button{font:inherit;cursor:pointer;border-radius:8px;border:0;background:var(--a);color:var(--card);padding:9px 14px;font-weight:600}
+button.ghost{background:transparent;color:var(--muted);border:1px solid var(--line);font-weight:500}
+button.tiny{padding:2px 8px;font-size:11px;border-radius:99px}
+button:focus-visible,input:focus-visible,summary:focus-visible{outline:2px solid var(--o);outline-offset:2px}
+.banner{border-radius:8px;padding:9px 11px;font-size:13px;margin:10px 0;border:1px solid}
 .b-warn{background:#fdf3e3;color:#6b4a14;border-color:#e3c98a}
 .b-bad{background:#fdecea;color:#7d1d14;border-color:#e5b3ab}
-@media (prefers-color-scheme:dark){.b-warn{background:#3a2e12;color:#f0c674;border-color:#6b5320}.b-bad{background:#3a1712;color:#ff9b8a;border-color:#6b2d24}}
-label{display:block;font-size:13px;color:var(--muted);margin-top:8px}
-input{width:100%;padding:8px;border:1px solid var(--line);border-radius:8px;background:var(--bg);color:var(--ink);font:inherit}
-button{margin-top:12px;padding:9px 14px;border:0;border-radius:8px;background:var(--a);color:var(--card);font:inherit;font-weight:600;cursor:pointer}
-.big{font-size:30px;font-weight:700}svg{width:100%;height:auto}.note{font-size:12.5px;color:var(--muted)}
-table{width:100%;border-collapse:collapse;font-size:13px}th,td{text-align:left;padding:4px 6px;border-bottom:1px solid var(--line)}
-th{color:var(--muted);font-weight:600}td.num{text-align:right;font-variant-numeric:tabular-nums}
-.pill{display:inline-block;padding:1px 7px;border-radius:99px;font-size:11.5px;border:1px solid var(--line);color:var(--muted)}
+[data-theme=dark] .b-warn{background:#3a2e12;color:#f0c674;border-color:#6b5320}
+[data-theme=dark] .b-bad{background:#3a1712;color:#ff9b8a;border-color:#6b2d24}
+@media (prefers-color-scheme:dark){:root:not([data-theme=light]) .b-warn{background:#3a2e12;color:#f0c674;border-color:#6b5320}:root:not([data-theme=light]) .b-bad{background:#3a1712;color:#ff9b8a;border-color:#6b2d24}}
+.cards{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin:14px 0}
+.card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:14px}
+.metric h3{margin-bottom:6px}
+.metric .v{font-size:26px;font-weight:700;letter-spacing:-.02em}
+.metric .k{font-size:12px;color:var(--muted);margin-top:2px}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.grid2-wide{display:grid;grid-template-columns:1.05fr .95fr;gap:14px}
+section.card{margin-bottom:14px}
+@media(max-width:920px){.cards{grid-template-columns:repeat(2,1fr)}.grid2,.grid2-wide{grid-template-columns:1fr}}
+@media(max-width:520px){.cards{grid-template-columns:1fr}}
+.field{margin-top:10px}
+.flab{display:flex;align-items:baseline;gap:8px;justify-content:space-between;margin-bottom:3px}
+.flab label{font-size:13px;font-weight:600}
+.unit{font-size:11.5px;color:var(--muted);font-family:ui-monospace,Consolas,monospace}
+input[type=number]{width:100%;padding:8px;border:1px solid var(--line);border-radius:8px;background:var(--bg);color:var(--ink);font:inherit}
+.hint{font-size:11.5px;color:var(--muted);margin-top:3px}
+.row{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-top:12px}
+table{width:100%;border-collapse:collapse;font-size:13px}
+th,td{text-align:left;padding:5px 7px;border-bottom:1px solid var(--line);vertical-align:top}
+thead th{color:var(--muted);font-weight:600;font-size:12px}
+td.num,th.num{text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap}
+tr.fail td{background:color-mix(in srgb,var(--o) 8%,transparent)}
+td.muted{color:var(--muted);font-size:12px}
+.big{font-size:32px;font-weight:700;letter-spacing:-.02em}
 .err{color:var(--bad);font-size:13px;white-space:pre-wrap}
 ul{margin:6px 0;padding-left:18px;font-size:13px;color:var(--muted)}
-</style></head><body><main>
-<h1>Predicted soil organic carbon (SOC) from sensor-type readings</h1>
-<p class="sub">Research prototype. Every number on this page is read from
-<code>results.json</code>, produced by <code>python afsis_experiment.py</code>. Nothing here is hard-coded.</p>
+ul li{margin:3px 0}
+svg{display:block;width:100%;height:auto}
+.wide{max-height:340px}
+svg .ax{stroke:var(--line);stroke-width:1}
+svg .grid{stroke:var(--line);stroke-width:.7;stroke-dasharray:2 3;opacity:.7}
+svg .zero{stroke:var(--slate);stroke-width:1;stroke-dasharray:5 3}
+svg .tk{fill:var(--muted);font-size:10px;font-family:ui-monospace,Consolas,monospace}
+svg .lab{fill:var(--ink);font-size:11.5px;font-weight:600}
+svg .vk{fill:var(--ink);font-size:10.5px;font-family:ui-monospace,Consolas,monospace}
+svg .conn{stroke:var(--line);stroke-width:2.4}
+svg .dot-r{fill:var(--card);stroke:var(--a);stroke-width:2}
+svg .dot-s{fill:var(--a)}
+svg .clipmark{fill:var(--o)}
+svg .s{fill:none;stroke:var(--a);stroke-width:2.2;stroke-linejoin:round}
+svg .dash{stroke:var(--o);stroke-dasharray:6 4}
+.multi{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
+@media(max-width:820px){.multi{grid-template-columns:1fr}}
+.mini-wrap{border:1px solid var(--line);border-radius:10px;padding:8px;background:var(--bg)}
+.minicap{font-size:11.5px;color:var(--muted);margin-top:4px}
+.steps{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:8px}
+.step{background:var(--bg);border:1px solid var(--line);border-radius:10px;padding:9px}
+.step.cut{border-color:color-mix(in srgb,var(--o) 45%,var(--line))}
+.step.fin{border-color:var(--a)}
+.step .sv{font-size:19px;font-weight:700}
+.step .sl{font-size:10.5px;color:var(--muted);text-transform:uppercase;letter-spacing:.03em}
+.step .sd{font-size:11.5px;color:var(--muted);margin-top:3px}
+details{margin-top:10px;font-size:13px}
+summary{cursor:pointer;color:var(--muted);font-size:12.5px}
+.prov{font-size:11.5px;color:var(--muted);font-family:ui-monospace,Consolas,monospace;margin-top:10px;border-top:1px solid var(--line);padding-top:8px;word-break:break-word}
+@media print{
+ body{background:#fff;color:#000}
+ header.top{position:static}
+ button,.headright button{display:none}
+ .card,.step,.mini-wrap{break-inside:avoid;border-color:#bbb}
+ .banner{border-color:#888}
+ details{display:block}
+ details>summary{display:none}
+}
+</style></head>
+<body>
+
+<header class="top"><div class="pad head">
+  <div>
+    <h1 id="h1">Predicted soil carbon from five soil measurements</h1>
+    <p class="sub">Research prototype. Every figure below is read from the API for the bundle it is
+    serving — this page contains no numbers of its own.</p>
+  </div>
+  <div class="headright">
+    <span id="chip" class="chip">bundle: loading</span>
+    <button id="theme" class="ghost" type="button" aria-label="Switch colour theme">Theme</button>
+  </div>
+</div></header>
+
+<main class="pad" id="main" aria-busy="true">
 
 <div class="banner b-warn"><b>Research prototype. Not validated on field sensors or Ugandan farms.
 Not for agronomic decisions.</b></div>
 <div id="kindbanner"></div>
 <div id="loaderr"></div>
 
-<div class="grid">
- <section class="card"><h2>Predicted SOC</h2>
-  <div id="form"></div><button id="go">Predict</button><div id="out" class="note" style="margin-top:10px"></div>
- </section>
- <section class="card"><h2>How this model scores (spatial CV first)</h2>
-  <p class="note">Spatial CV holds out whole geographic blocks; random CV does not.
-  The gap is the point of the study, not an error.</p>
-  <div id="cvtable"></div>
-  <p class="note" id="baseline"></p>
- </section>
- <section class="card"><h2>Accuracy vs input noise</h2>
-  <p class="note">Noise is Gaussian error as a fraction of each feature's spread
-  (measured on training folds only). Solid: clean training data, noisy test.
-  Dashed: noisy training and noisy test.</p>
-  <svg id="nz" viewBox="0 0 640 250"></svg>
-  <p class="note" id="be"></p></section>
- <section class="card"><h2>Prediction interval and controls</h2>
-  <div id="interval"></div>
-  <p class="note">Sensitivity of spatial CV R2 to the number of spatial blocks:</p>
-  <svg id="blk" viewBox="0 0 640 190"></svg>
-  <p class="note" id="partnote"></p>
- </section>
- <section class="card" style="grid-column:1/-1"><h2>Limitations - what this prototype does not show</h2>
-  <ul id="limits"></ul><p class="note" id="prov"></p></section>
+<section class="cards" id="metrics" aria-label="Headline metrics"></section>
+
+<div class="grid2-wide">
+  <section class="card">
+    <h2 id="predhead">Predicted value</h2>
+    <p class="note" id="predsub">Inputs are the five features the model was fitted on. Ranges shown are
+    the 5th–95th percentiles of the training bundle.</p>
+    <div id="form"></div>
+    <div class="row">
+      <button id="go" type="button">Predict</button>
+      <button id="reset" class="ghost" type="button">Reset to example values</button>
+      <span id="texsum" class="chip chip-ok"></span>
+    </div>
+    <div id="texwarn"></div>
+    <div id="out" class="note" role="status" aria-live="polite" aria-atomic="true" style="margin-top:12px">
+      <p class="note">The inputs are pre-filled with the training median so the form is usable
+      immediately. Those are example values, not a measurement — replace them before reading anything
+      into the output.</p>
+    </div>
+  </section>
+
+  <section class="card">
+    <h2>How this model scores, spatial CV first</h2>
+    <p class="note">Spatially blocked CV holds out whole geographic blocks; random CV does not.
+    The gap between the two is the object of study, not an error to be minimised away.</p>
+    <div id="cvtable"></div>
+    <p class="note" id="baseline"></p>
+    <div id="scorechart" style="margin-top:10px"></div>
+  </section>
 </div>
 
+<section class="card">
+  <h2>Data cleaning ledger</h2>
+  <p class="note">Every row that leaves the pipeline leaves with a logged reason and a count.
+  Steps that removed nothing are collapsed; the full list is underneath.</p>
+  <div id="ledgerbody"></div>
+</section>
+
+<section class="card">
+  <h2>Accuracy against input noise</h2>
+  <p class="note">Gaussian error added as a fraction of each feature's spread, measured on training
+  folds only. <b>Solid</b>: clean training data, noisy test. <b>Dashed</b>: noisy training and noisy
+  test. Each model is drawn on its own vertical scale, with its own extremes printed, because a
+  shared axis would flatten every model except the worst one.</p>
+  <div id="noisebody"></div>
+  <p class="note" id="be"></p>
+</section>
+
+<div class="grid2">
+  <section class="card">
+    <h2>Spatial block-count sensitivity</h2>
+    <div id="blockbody"></div>
+  </section>
+  <section class="card">
+    <h2>Block-boundary sensitivity</h2>
+    <p class="note">The table above holds one partition fixed. Here the learner seed is held constant
+    and the partition is redrawn two ways.</p>
+    <div id="partbody"></div>
+  </section>
+</div>
+
+<section class="card">
+  <h2>Prediction interval</h2>
+  <div id="intervalbody"></div>
+</section>
+
+<section class="card">
+  <h2>Limitations — what this prototype does not show</h2>
+  <ul id="limits"></ul>
+  <p class="prov" id="prov"></p>
+</section>
+
+<noscript><div class="banner b-bad">This page needs JavaScript to fetch the results; it has no numbers
+baked in, so nothing is shown without it.</div></noscript>
+
+<footer class="card">
+  <p class="prov">This is the research view. The plain-language view, built for
+  someone holding a soil sample, is at <a href="/farmer">the soil carbon demo</a>.
+  Both views start from <a href="/">the entry page</a>.</p>
+</footer>
+</main>
+
 <script>
-var R=null, MI=null;
-function el(t,a,p){var e=document.createElementNS("http://www.w3.org/2000/svg",t);
- for(var k in a)e.setAttribute(k,a[k]);if(p)p.appendChild(e);return e}
+var R=null, MI=null, H={}, FELEM={}, FUNIT={}, ECUNIT={}, MEDIAN={};
+
+// Mirrors afsis_data.clean(): clay+sand above this is treated as a recording error.
+var TEXTURE_SUM_MAX=100.5;
+
+var LABELS={"pH_H2O":"Soil pH (water)","EC":"Electrical conductivity",
+ "Clay percent":"Clay","Sand percent":"Sand","Silt percent":"Silt",
+ "Total carbon":"Total carbon","SOC":"SOC"};
+
+function $(id){return document.getElementById(id)}
 function fmt(v,d){if(v===null||v===undefined||!isFinite(v))return "n/a";return (+v).toFixed(d===undefined?3:d)}
-function esc(s){return String(s).replace(/[&<>]/g,function(c){return({"&":"&amp;","<":"&lt;",">":"&gt;"})[c]})}
+function pct(v,d){return (v===null||v===undefined||!isFinite(v))?"n/a":(v*100).toFixed(d===undefined?1:d)+"%"}
+function esc(s){return String(s===null||s===undefined?"":s).replace(/[&<>"]/g,function(c){
+ return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]})}
+function nice(n){return LABELS[n]||String(n).replace(/_/g," ")}
+function svgEl(t,a,p){var e=document.createElementNS("http://www.w3.org/2000/svg",t);
+ for(var k in a)e.setAttribute(k,a[k]);if(p)p.appendChild(e);return e}
+function median(a){var b=a.slice().sort(function(x,y){return x-y});var m=b.length>>1;
+ return b.length%2?b[m]:(b[m-1]+b[m])/2}
 
 function boot(){
- return Promise.all([fetch("/results").then(function(r){return r.json()}),
-                     fetch("/model-info").then(function(r){return r.json()})])
-  .then(function(j){R=j[0];MI=j[1];render()})
-  .catch(function(e){
-   document.getElementById("loaderr").innerHTML='<div class="banner b-bad"><b>No results to show.</b> '+
-    'This page deliberately contains no sample numbers. Generate them with '+
-    '<code>python afsis_experiment.py</code> (add <code>--root</code> for real AfSIS files), '+
-    'then serve the folder through the API: <code>uvicorn soil_api:app</code> and open '+
-    'http://127.0.0.1:8000/.</div>';
-  });
+ Promise.all([
+  fetch("/results").then(function(r){if(!r.ok)throw new Error("/results "+r.status);return r.json()}),
+  fetch("/model-info").then(function(r){if(!r.ok)throw new Error("/model-info "+r.status);return r.json()}),
+  fetch("/health").then(function(r){return r.ok?r.json():{}}).catch(function(){return {}})
+ ]).then(function(j){R=j[0];MI=j[1];H=j[2]||{};render();$("main").removeAttribute("aria-busy")})
+ .catch(function(e){
+  $("main").removeAttribute("aria-busy");
+  $("loaderr").innerHTML='<div class="banner b-bad"><b>No results to show.</b> '+esc(e.message)+
+   '<br>The API refuses to start unless model.joblib, model_meta.json and results.json are present '+
+   'and hash-consistent. Generate them with <code>python afsis_experiment.py</code>, then serve with '+
+   '<code>uvicorn soil_api:app</code>.</div>';
+ });
+}
+
+function themeInit(){
+ var b=$("theme");
+ // The button announces the mode it will switch to, not the mode it is in.
+ var explicit=document.documentElement.getAttribute("data-theme");
+ var isDark=explicit==="dark"||(!explicit&&window.matchMedia("(prefers-color-scheme:dark)").matches);
+ b.textContent=isDark?"Light":"Dark";
+ b.setAttribute("aria-pressed",isDark?"true":"false");
+ b.addEventListener("click",function(){
+  var cur=document.documentElement.getAttribute("data-theme");
+  var next=cur==="dark"?"light":cur==="light"?"dark":
+   (window.matchMedia("(prefers-color-scheme:dark)").matches?"light":"dark");
+  document.documentElement.setAttribute("data-theme",next);
+  b.textContent=next==="dark"?"Light":"Dark";
+  b.setAttribute("aria-pressed",next==="dark"?"true":"false");
+ });
 }
 
 function render(){
- if(!R.data.is_real_data){
-  document.getElementById("kindbanner").innerHTML='<div class="banner b-bad"><b>SYNTHETIC STAND-IN DATA ('+
-   esc(R.data.kind)+').</b> These numbers test the pipeline only. They are not measurements of African soils '+
-   'and must not be quoted as results.</div>';
+ var d=R.data||{}, dc=d.data_card||{}, real=!!d.is_real_data;
+
+ $("h1").textContent="Predicted "+(MI.target||"soil carbon")+" from five soil measurements";
+ document.title="Predicted "+(MI.target||"soil carbon")+" - research prototype";
+
+ var chip=$("chip");
+ chip.className="chip "+(real?"chip-real":"chip-syn");
+ chip.textContent=(real?"REAL DATA":"SYNTHETIC STAND-IN")+" · "+(d.dataset_version||"?")+
+  " · "+(MI.model_version||"?").replace("sha256:","sha256:")+
+  (H.model_dir?" · "+H.model_dir:"");
+
+ if(!real){
+  $("kindbanner").innerHTML='<div class="banner b-bad"><b>Synthetic stand-in data ('+
+   esc(d.kind)+').</b> These numbers exercise the pipeline. They are not measurements of African '+
+   'soils and must not be quoted as results.</div>';
  }
- document.getElementById("limits").innerHTML=(R.limitations||[]).map(function(t){return"<li>"+esc(t)+"</li>"}).join("");
- document.getElementById("prov").textContent=
-  "Dataset version "+R.data.dataset_version+" | model "+MI.model_version+
-  " | "+R.data.cleaning_log[R.data.cleaning_log.length-1].n_after+" rows | units: "+MI.units+
-  " | licence: "+(R.data.licence||"");
- form(); cvtable(); noiseCurve(); intervalPanel(); blockPanel();
+
+ metrics(dc);
+ form();
+ cvTable();
+ scoreChart();
+ ledger();
+ noise();
+ blocks();
+ partTable();
+ intervalPanel();
+ limits();
+ prov(d);
 }
 
-function rows(model){return (R.results.validation_gap||[]).filter(function(r){return r.model===model})[0]}
+/* ---------------------------------------------------------------- metrics */
 
-function cvtable(){
- var g=(R.results.validation_gap||[]).slice().sort(function(a,b){return (b.r2_spatial||-9)-(a.r2_spatial||-9)});
- var h="<table><tr><th>model</th><th>R2 spatial</th><th>RMSE spatial</th><th>R2 random</th><th>gap</th></tr>";
- g.forEach(function(r){h+="<tr><td>"+esc(r.model.replace(/_/g," "))+"</td><td class='num'>"+fmt(r.r2_spatial)+
-  "</td><td class='num'>"+fmt(r.rmse_spatial,3)+"</td><td class='num'>"+fmt(r.r2_random)+
-  "</td><td class='num'>"+fmt(r.gap_mean,3)+"</td></tr>"});
- document.getElementById("cvtable").innerHTML=h+"</table>";
- var bl=R.results.baseline_rmse||{};
- document.getElementById("baseline").textContent="Field-mean baseline RMSE: spatial "+fmt(bl.spatial,3)+
-  ", random "+fmt(bl.random,3)+" ("+MI.units+"). A model that does not beat this line has learned nothing useful.";
+function metric(h3,v,k){
+ return '<div class="card metric"><h3>'+esc(h3)+'</h3><div class="v">'+v+
+  '</div><div class="k">'+k+'</div></div>';
 }
 
-function pick(model,cv,noise,arm){return (R.results.noise_sweep||[]).filter(function(r){
- return r.model===model&&r.cv===cv&&Math.abs(r.noise-noise)<1e-9&&r.arm===arm})[0]}
+function metrics(dc){
+ var g=gapRows(), box=$("metrics");
+ if(!g.length){box.innerHTML="";return}
+ var lead=g[0];
+ var it=(R.results&&R.results.interval)||{};
+ var nC=dc.countries?Object.keys(dc.countries).length:null;
+ var rows=dc.n_rows||lastRows();
+ var h="";
+ h+=metric("Leading model, spatial",
+   fmt(lead.r2_spatial), esc(nice(lead.model))+" · RMSE "+fmt(lead.rmse_spatial)+" "+(MI.units||""));
+ h+=metric("Validation gap",
+   fmt(lead.gap_mean)+' <span style="font-size:13px;font-weight:500;color:var(--muted)">± '+fmt(lead.gap_sd)+'</span>',
+   "random "+fmt(lead.r2_random)+" vs spatial "+fmt(lead.r2_spatial));
+ h+=metric("Interval coverage",
+   pct(it.empirical_coverage), "nominal "+pct(it.nominal,0)+" · width "+fmt(it.mean_width,2));
+ h+=metric("Evidence",
+   esc(rows)+" rows", esc(dc.n_sites||(R.validation&&R.validation.blocking_diagnostics&&
+     R.validation.blocking_diagnostics.n_sites)||"n/a")+" sites · "+
+   (nC===null?"n/a":nC+" countries"));
+ box.innerHTML=h;
+}
 
-function noiseCurve(){
- var s=document.getElementById("nz");s.innerHTML="";
- var lv=[];(R.validation.noise_levels||[]).forEach(function(n){lv.push(n)});
- if(!lv.length){s.innerHTML="";return}
- // series come from whatever the run actually swept - never from a fixed list
- var keys=[];(R.results.noise_sweep||[]).forEach(function(r){
-  var k=r.model+"|"+r.cv;if(keys.indexOf(k)<0)keys.push(k)});
- keys.sort();
- var series=[],vals=[];
- keys.forEach(function(k){
-  var m=k.split("|");
-  ["train_clean","train_noisy"].forEach(function(arm){
-   var pts=[];lv.forEach(function(n){var r=pick(m[0],m[1],n,arm);if(r&&isFinite(r.r2_mean)){
-    pts.push([n,r.r2_mean]);vals.push(r.r2_mean)}});
-   if(pts.length)series.push({pts:pts,arm:arm,key:m[0].replace(/_/g," ")+" ("+m[1]+" CV)"});
-  });});
- if(!series.length){s.innerHTML="<text x='55' y='40' font-size='12'>no noise sweep in this run</text>";return}
- var lo=Math.min.apply(0,vals.concat([0])),hi=Math.max.apply(0,vals.concat([0.1]));
- var X=function(n){return 55+n/(lv[lv.length-1]||1)*530},Y=function(v){return 215-(v-lo)/(hi-lo||1)*175};
- el("line",{x1:55,y1:215,x2:585,y2:215,stroke:"currentColor","stroke-opacity":.35},s);
- el("line",{x1:55,y1:25,x2:55,y2:215,stroke:"currentColor","stroke-opacity":.35},s);
- var zy=Y(0);el("line",{x1:55,y1:zy,x2:585,y2:zy,stroke:"#888","stroke-dasharray":"4 3"},s);
- el("text",{x:588,y:zy+3,"font-size":10,fill:"currentColor"},s).textContent="R2=0";
- lv.forEach(function(n){el("text",{x:X(n),y:232,"text-anchor":"middle","font-size":11,fill:"currentColor"},s)
-  .textContent=n});
- el("text",{x:320,y:248,"text-anchor":"middle","font-size":11,fill:"currentColor"},s)
-  .textContent="input noise (x feature SD)";
- var cols=["var(--a)","var(--o)","#4a6cf0"];
- series.forEach(function(se,i){
-  var p=se.pts.map(function(q){return X(q[0])+","+Y(q[1])}).join(" ");
-  el("polyline",{points:p,fill:"none",stroke:cols[i%3],"stroke-width":2.2,
-   "stroke-dasharray":se.arm==="train_noisy"?"6 4":""},s);
-  el("text",{x:62,y:22+i*13,"font-size":10.5,fill:cols[i%3]},s)
-   .textContent=se.key+" / "+(se.arm==="train_clean"?"clean train":"noisy train");
+function lastRows(){
+ var log=(R.data&&R.data.cleaning_log)||[];
+ return log.length?log[log.length-1].n_after:"n/a";
+}
+
+function gapRows(){
+ var g=((R.results&&R.results.validation_gap)||[]).slice();
+ g.sort(function(a,b){
+  var x=isFinite(a.r2_spatial)?a.r2_spatial:-9, y=isFinite(b.r2_spatial)?b.r2_spatial:-9;
+  return y-x});
+ return g;
+}
+
+/* ------------------------------------------------------------ model table */
+
+function cvTable(){
+ var g=gapRows();
+ if(!g.length){$("cvtable").innerHTML='<p class="note">No model comparison in this run.</p>';return}
+ var h='<table><thead><tr><th>model</th><th class="num">R² spatial</th><th class="num">R² random</th>'+
+  '<th class="num">gap</th><th class="num">RMSE spatial</th><th>beats field mean</th></tr></thead><tbody>';
+ g.forEach(function(r){
+  var beat=r.spatial_beats_baseline;
+  h+='<tr'+(beat===false?' class="fail"':'')+'><td>'+esc(nice(r.model))+'</td>'+
+   '<td class="num">'+fmt(r.r2_spatial)+'</td>'+
+   '<td class="num">'+fmt(r.r2_random)+'</td>'+
+   '<td class="num">'+fmt(r.gap_mean)+' ± '+fmt(r.gap_sd)+'</td>'+
+   '<td class="num">'+fmt(r.rmse_spatial)+'</td>'+
+   '<td>'+(beat===true?"yes":beat===false?"no":"n/a")+'</td></tr>';
  });
- var be=R.headline&&R.headline.break_even_noise||{};
- var bm=(be.model||"the swept model").replace(/_/g," ");
- var k="train_clean|spatial";
- document.getElementById("be").textContent=be[k]===null||be[k]===undefined?
-  bm+" stays better than the field mean at every noise level tested ("+lv.join(", ")+
-  " x feature SD); the sweep did not reach its break-even."
-  :"Break-even: "+bm+" stops beating the field mean at noise "+be[k]+" x feature SD (tested levels only).";
+ h+='</tbody></table>';
+ $("cvtable").innerHTML=h;
+
+ var bl=(R.results&&R.results.baseline_rmse)||{};
+ $("baseline").textContent="Field-mean baseline RMSE: spatial "+fmt(bl.spatial,3)+", random "+
+  fmt(bl.random,3)+" ("+(MI.units||"units")+"). A model that does not beat that line has learned "+
+  "nothing about this target, whatever its R² looks like under random CV.";
 }
+
+function scoreChart(){
+ var box=$("scorechart"), g=gapRows();
+ if(!g.length){box.innerHTML="";return}
+ var vals=[];
+ g.forEach(function(r){
+  if(isFinite(r.r2_random))vals.push(r.r2_random);
+  if(isFinite(r.r2_spatial))vals.push(r.r2_spatial);
+ });
+ if(!vals.length){box.innerHTML="";return}
+ var lo=Math.min.apply(0,vals.concat([0]))-0.06;
+ var hi=Math.max.apply(0,vals.concat([1]));
+ if(lo<-0.55)lo=-0.55;
+
+ var W=640,L=150,Rr=590,T=22,rowH=30,HH=T+g.length*rowH+16;
+ var X=function(v){return L+(Math.max(lo,Math.min(hi,v))-lo)/((hi-lo)||1)*(Rr-L)};
+ var Y=function(i){return T+i*rowH+rowH/2-4};
+
+ box.innerHTML="";
+ var s=svgEl("svg",{"viewBox":"0 0 "+W+" "+HH,class:"wide",
+  role:"img","aria-label":"Random versus spatially blocked R squared for each model"});
+
+ var step=(hi-lo)>1.2?0.25:0.2;
+ for(var t=Math.ceil(lo/step)*step;t<=hi+1e-9;t+=step){
+  var x=X(t);
+  svgEl("line",{x1:x,y1:T,x2:x,y2:HH-14,class:"grid"},s);
+  var tx=svgEl("text",{x:x,y:HH-2,class:"tk","text-anchor":"middle"},s);
+  tx.textContent=Math.abs(t)<1e-9?"0":t.toFixed(2);
+ }
+
+ g.forEach(function(r,i){
+  var y=Y(i);
+  svgEl("text",{x:"8",y:y+4,class:"lab"},s).textContent=nice(r.model);
+  var vr=r.r2_random, vs=r.r2_spatial;
+  var xr=isFinite(vr)?X(vr):null, xs=isFinite(vs)?X(vs):null;
+  if(xr!==null&&xs!==null)
+   svgEl("line",{x1:xr,y1:y,x2:xs,y2:y,class:"conn"},s);
+  if(xr!==null)svgEl("circle",{cx:xr,cy:y,r:4.5,class:"dot-r"},s);
+  if(xs!==null)svgEl("circle",{cx:xs,cy:y,r:4.5,class:"dot-s"},s);
+  var lx=xs===null?xr:xs;
+  if(lx===null)return;
+  if(isFinite(vs)&&vs<lo){
+   svgEl("path",{d:"M"+(lx-10)+" "+(y-4)+" l0 8 l-7 -4 z",class:"clipmark"},s);
+   svgEl("text",{x:lx+8,y:y+4,class:"vk"},s).textContent=fmt(vs);
+  } else {
+   svgEl("text",{x:lx+8,y:y+4,class:"vk","text-anchor":(lx>Rr-52?"end":"start")},s)
+    .textContent=fmt(vs);
+  }
+ });
+ box.appendChild(s);
+
+ var p=document.createElement("p");
+ p.className="note";
+ p.textContent="Hollow dot: random CV. Filled dot: spatially blocked CV. The printed value is the "+
+  "spatial R². Where a spatial score falls below the axis floor it is pinned to the left edge with "+
+  "its true value printed beside it, so no model drops out of the comparison.";
+ box.appendChild(p);
+}
+
+/* ---------------------------------------------------------------- ledger */
+
+function stepCard(v,label,detail,cls){
+ return '<div class="step '+(cls||"")+'"><div class="sv">'+esc(v)+'</div>'+
+  '<div class="sl">'+esc(label)+'</div><div class="sd">'+esc(detail)+'</div></div>';
+}
+
+function ledger(){
+ var log=(R.data&&R.data.cleaning_log)||[], box=$("ledgerbody");
+ if(!log.length){box.innerHTML='<p class="note">No cleaning ledger in this run.</p>';return}
+ var first=log[0], last=log[log.length-1];
+ var cuts=log.filter(function(r){return (r.n_removed||0)>0});
+
+ var h='<div class="steps">';
+ h+=stepCard(first.n_before,"rows in","after the georeference and laboratory merge");
+ if(cuts.length){
+  cuts.forEach(function(r){
+   h+=stepCard("−"+r.n_removed,r.step.replace(/_/g," ")+(r.n_removed===1?" row":" rows"),
+    (r.reason||"")+" → "+r.n_after+" left","cut");
+  });
+ } else {
+  h+=stepCard("0","rows removed",log.length+" ledger steps ran and none removed a row");
+ }
+ h+=stepCard(last.n_after,"final usable rows","what every score on this page was computed on","fin");
+ h+='</div>';
+
+ var t='<details><summary>Full ledger, all '+log.length+' steps</summary>'+
+  '<table><thead><tr><th>step</th><th class="num">before</th><th class="num">removed</th>'+
+  '<th class="num">after</th><th>reason</th></tr></thead><tbody>';
+ log.forEach(function(r){
+  t+='<tr><td>'+esc(r.step.replace(/_/g," "))+'</td><td class="num">'+r.n_before+
+   '</td><td class="num">'+r.n_removed+'</td><td class="num">'+r.n_after+
+   '</td><td class="muted">'+esc(r.reason||"")+'</td></tr>';
+ });
+ t+='</tbody></table></details>';
+ box.innerHTML=h+t;
+}
+
+/* ----------------------------------------------------------------- noise */
+
+function noise(){
+ var sw=(R.results&&R.results.noise_sweep)||[];
+ var lv=(R.validation&&R.validation.noise_levels)||[];
+ var box=$("noisebody");
+ if(!sw.length||!lv.length){
+  box.innerHTML='<p class="note">No noise sweep in this run.</p>';
+  $("be").textContent="";return;
+ }
+ var seen=[];
+ sw.forEach(function(r){var k=r.model+"|"+r.cv;if(seen.indexOf(k)<0)seen.push(k)});
+ seen.sort();
+
+ var html='<div class="multi">';
+ seen.forEach(function(k){
+  var parts=k.split("|");
+  html+=miniNoise(parts[0],parts[1],sw,lv);
+ });
+ html+='</div>';
+ box.innerHTML=html;
+
+ var be=(R.headline&&R.headline.break_even_noise)||{};
+ var key="train_clean|spatial";
+ var bm=nice((be.model||"the swept model").replace(/_/g," "));
+ $("be").textContent=(be[key]===null||be[key]===undefined)
+  ?bm+" stays ahead of the field-mean baseline at every noise level tested ("+lv.join(", ")+
+   " × feature spread); the sweep never reached its break-even."
+  :"Break-even: "+bm+" stops beating the field-mean baseline at noise "+be[key]+" × feature spread, "+
+   "at the levels tested here.";
+}
+
+function miniNoise(model,cv,rows,lv){
+ var ser={train_clean:[],train_noisy:[]}, all=[];
+ rows.forEach(function(r){
+  if(r.model===model&&r.cv===cv&&isFinite(r.r2_mean)){
+   if(!ser[r.arm])ser[r.arm]=[];
+   ser[r.arm].push([r.noise,r.r2_mean]);
+   all.push(r.r2_mean);
+  }
+ });
+ if(!all.length)return "";
+
+ var lo=Math.min.apply(0,all.concat([0]))-0.02;
+ var hi=Math.max.apply(0,all.concat([0]))+0.02;
+ var W=320,HH=150,L=42,Rr=W-8,T=12,B=HH-24;
+ var xmax=Math.max.apply(0,lv)||1;
+ var X=function(n){return L+(n/xmax)*(Rr-L)};
+ var Y=function(v){return B-((v-lo)/((hi-lo)||1))*(B-T)};
+
+ var s=svgEl("svg",{"viewBox":"0 0 "+W+" "+HH,role:"img",
+  "aria-label":model+" R squared against input noise"});
+ svgEl("line",{x1:L,y1:B,x2:Rr,y2:B,class:"ax"},s);
+ svgEl("line",{x1:L,y1:T,x2:L,y2:B,class:"ax"},s);
+ if(0>=lo&&0<=hi){
+  svgEl("line",{x1:L,y1:Y(0),x2:Rr,y2:Y(0),class:"zero"},s);
+  svgEl("text",{x:L-4,y:Y(0)+3,class:"tk","text-anchor":"end"},s).textContent="0";
+ }
+ svgEl("text",{x:L-4,y:Y(hi)+4,class:"tk","text-anchor":"end"},s).textContent=fmt(hi,2);
+ svgEl("text",{x:L-4,y:B,class:"tk","text-anchor":"end"},s).textContent=fmt(lo,2);
+
+ ["train_clean","train_noisy"].forEach(function(arm,i){
+  var pts=(ser[arm]||[]).slice().sort(function(a,b){return a[0]-b[0]});
+  if(!pts.length)return;
+  svgEl("polyline",{class:"s"+(i?" dash":""),
+   points:pts.map(function(p){return X(p[0])+","+Y(p[1])}).join(" ")},s);
+ });
+ lv.forEach(function(n){
+  svgEl("text",{x:X(n),y:B+13,class:"tk","text-anchor":"middle"},s).textContent=n;
+ });
+ svgEl("text",{x:(L+Rr)/2,y:HH-2,class:"tk","text-anchor":"middle"},s)
+  .textContent="input noise (× feature spread)";
+
+ var w=document.createElement("div");
+ w.className="mini-wrap";
+ w.appendChild(s);
+ var c=document.createElement("div");
+ c.className="minicap";
+ c.textContent=nice(model)+" · "+cv+" CV · solid: clean train, dashed: noisy train";
+ w.appendChild(c);
+ var holder=document.createElement("div");
+ holder.appendChild(w);
+ var tmp=document.createElement("div");
+ tmp.appendChild(holder);
+ return tmp.innerHTML;
+}
+
+/* ---------------------------------------------------------------- blocks */
+
+function blocks(){
+ var rows=(R.results&&R.results.block_sensitivity)||[], box=$("blockbody");
+ if(!rows.length){box.innerHTML='<p class="note">No block-count sweep in this run.</p>';return}
+ var models=[],counts=[];
+ rows.forEach(function(r){
+  if(models.indexOf(r.model)<0)models.push(r.model);
+  if(counts.indexOf(r.blocks)<0)counts.push(r.blocks);
+ });
+ models.sort();counts.sort(function(a,b){return a-b});
+
+ var h='<table><thead><tr><th>blocks</th>'+
+  models.map(function(m){return '<th class="num">'+esc(nice(m))+'</th>'}).join("")+'</tr></thead><tbody>';
+ counts.forEach(function(b){
+  h+='<tr><th>'+b+'</th>';
+  models.forEach(function(m){
+   var r=rows.filter(function(x){return x.model===m&&x.blocks===b})[0];
+   h+='<td class="num">'+fmt(r?r.r2_mean:null)+'</td>';
+  });
+  h+='</tr>';
+ });
+ h+='</tbody></table><p class="note">Spatial R² at each block count. Fewer blocks means larger '+
+  'regions held out. The block count is part of the study design, not something to tune for a '+
+  'better number.</p>';
+ box.innerHTML=h;
+}
+
+function partTable(){
+ var ps=(R.results&&R.results.partition_sensitivity)||[], box=$("partbody");
+ if(!ps.length){box.innerHTML='<p class="note">No partition sensitivity in this run.</p>';return}
+ var h='<table><thead><tr><th>partition family</th><th>model</th><th class="num">R² mean ± sd</th>'+
+  '<th class="num">range</th><th class="num">distinct</th></tr></thead><tbody>';
+ ps.forEach(function(p){
+  h+='<tr><td>'+esc(String(p.method).replace(/_/g," "))+'</td><td>'+esc(nice(p.model))+'</td>'+
+   '<td class="num">'+fmt(p.r2_mean)+' ± '+fmt(p.r2_sd||0)+'</td>'+
+   '<td class="num">'+fmt(p.r2_min)+' – '+fmt(p.r2_max)+'</td>'+
+   '<td class="num">'+p.distinct_partitions+" / "+p.n_partitions+'</td></tr>';
+ });
+ h+='</tbody></table><p class="note">"Distinct" counts how many redraws actually produced a '+
+  'differently placed partition. Spread across redraws is fold-placement uncertainty in the spatial '+
+  'estimate itself, which is why a single spatial number is not quoted alone.</p>';
+ box.innerHTML=h;
+}
+
+/* --------------------------------------------------------------- interval */
 
 function intervalPanel(){
- var it=R.results.interval||{};
- var cov=it.empirical_coverage, nom=it.nominal;
- var bad=cov!==null&&cov!==undefined&&cov<nom-0.02;
- var h="<table><tr><th>nominal level</th><td class='num'>"+fmt(nom*100,0)+"%</td></tr>"+
-  "<tr><th>empirical coverage (spatial CV)</th><td class='num'>"+fmt(cov*100,1)+"%</td></tr>"+
-  "<tr><th>mean width</th><td class='num'>"+fmt(it.mean_width,3)+" "+esc(MI.units)+"</td></tr>"+
-  "<tr><th>shuffled-target control R2</th><td class='num'>"+
-  fmt((R.results.shuffled_control||[]).length?Math.max.apply(0,R.results.shuffled_control.map(function(r){
-   return r.r2_mean||-9})):null,3)+"</td></tr></table>";
- h+="<p class='note'>"+esc(it.method||"no interval computed")+"</p>";
- if(bad)h+="<div class='banner b-bad' style='margin-top:8px'><b>The "+fmt(nom*100,0)+
-  "% interval only covers "+fmt(cov*100,1)+"% of held-out regions.</b> It is optimistic outside the "+
-  "training area; this is reported rather than hidden.</div>";
- else if(cov!==null&&cov!==undefined)h+="<div class='banner b-warn' style='margin-top:8px'>Coverage "+
-  fmt(cov*100,1)+"% against a nominal "+fmt(nom*100,0)+"% level.</div>";
- h+="<p class='note'>A shuffled-target control scores R2 near 0, which is what it must do: it confirms "+
-  "the pipeline is not reading signal out of the split design.</p>";
- document.getElementById("interval").innerHTML=h;
+ var it=(R.results&&R.results.interval)||{}, box=$("intervalbody");
+ if(it.nominal===undefined&&it.empirical_coverage===undefined){
+  box.innerHTML='<p class="note">No calibrated interval in this run.</p>';return}
+
+ var ratio=(isFinite(it.mean_width)&&isFinite(it.median_target)&&it.median_target)
+  ?it.mean_width/it.median_target:null;
+ function row(k,v){return '<tr><th>'+esc(k)+'</th><td class="num">'+v+'</td></tr>'}
+
+ var h='<table><tbody>'+
+  row("nominal level",pct(it.nominal,0))+
+  row("empirical coverage under spatial CV",pct(it.empirical_coverage))+
+  row("coverage SD across folds",pct(it.coverage_sd))+
+  row("mean interval width",fmt(it.mean_width,2)+" "+(MI.units||""))+
+  row("median measured value",fmt(it.median_target,2)+" "+(MI.units||""))+
+  row("width ÷ median measured value",ratio===null?"n/a":ratio.toFixed(1)+"×")+
+  '</tbody></table>';
+
+ if(ratio!==null){
+  h+='<p class="note">An interval '+(ratio>=3?"several times":"")+' wider than the median it '+
+   'surrounds is honest but not discriminating: it describes the uncertainty the design actually '+
+   'achieves, not the precision a reader would want.</p>';
+ }
+ if(isFinite(it.empirical_coverage)&&isFinite(it.nominal)){
+  if(it.empirical_coverage<it.nominal){
+   h+='<div class="banner b-warn" style="margin-top:8px"><b>Coverage is below nominal.</b> A '+
+    pct(it.nominal,0)+'% band covers '+pct(it.empirical_coverage)+'% of held-out regions. It is '+
+    'optimistic outside the training area; this is reported rather than hidden.</div>';
+  }
+ }
+ if(it.method)h+='<p class="note">'+esc(it.method)+'</p>';
+ box.innerHTML=h;
 }
 
-function blockPanel(){
- var s=document.getElementById("blk");s.innerHTML="";
- var bs=(R.results.block_sensitivity||[]);
- if(!bs.length)return;
- var byModel={};bs.forEach(function(r){(byModel[r.model]=byModel[r.model]||[]).push(r)});
- var xs=[];bs.forEach(function(r){if(xs.indexOf(r.blocks)<0)xs.push(r.blocks)});xs.sort(function(a,b){return a-b});
- var ys=bs.map(function(r){return r.r2_mean});var lo=Math.min.apply(0,ys),hi=Math.max.apply(0,ys);
- var X=function(v,i){return 55+i*(530/Math.max(xs.length-1,1))},Y=function(v){return 160-(v-lo)/((hi-lo)||1)*130};
- el("line",{x1:55,y1:160,x2:585,y2:160,stroke:"currentColor","stroke-opacity":.35},s);
- xs.forEach(function(b,i){el("text",{x:X(b,i),y:177,"text-anchor":"middle","font-size":11,fill:"currentColor"},s)
-  .textContent=b});
- el("text",{x:320,y:190,"text-anchor":"middle","font-size":11,fill:"currentColor"},s).textContent="spatial blocks";
- Object.keys(byModel).forEach(function(m,i){
-  var pts=xs.map(function(b,j){var r=byModel[m].filter(function(x){return x.blocks===b})[0];
-   return r?[X(b,j),Y(r.r2_mean)]:null}).filter(Boolean);
-  el("polyline",{points:pts.map(function(p){return p[0]+","+p[1]}).join(" "),fill:"none",
-   stroke:i?"var(--o)":"var(--a)","stroke-width":2.2},s);
-  el("text",{x:62,y:22+i*13,"font-size":11,fill:i?"var(--o)":"var(--a)"},s).textContent=m.replace(/_/g," ");
- });
- partitionNote();
-}
-
-function partitionNote(){
- var el2=document.getElementById("partnote");if(!el2)return;
- var ps=(R.results.partition_sensitivity||[]);
- if(!ps.length){el2.textContent="";return}
- var moved=ps.some(function(p){return (p.r2_sd||0)>0});
- var head="The model table above holds ONE block partition fixed, so its SD across seeds "
-  +"is learner randomness only (0.000 for deterministic models). Partitions redrawn two "
-  +"ways with the learner seed held constant - 'kmeans seed' varies the reported blocking "
-  +"scheme's seed, 'grid offset' rotates and shifts a rectangular grid so the boundaries "
-  +"really move: ";
- var body=ps.map(function(p){return p.method.replace(/_/g," ")+" ("+p.model.replace(/_/g," ")
-  +") R2 "+fmt(p.r2_mean,3)+" +/- "+fmt(p.r2_sd||0,3)+" [range "+fmt(p.r2_min,3)+"-"
-  +fmt(p.r2_max,3)+"; "+p.distinct_partitions+" of "+p.n_partitions+" seeds gave a "
-  +"differently placed partition]"}).join("; ");
- var tail=moved
-  ?". Boundary placement moves the spatial score by about that much, which is the honest "
-  +"uncertainty of the spatial estimate. Where a family reports 0.000, its seeds changed "
-  +"neither the blocks nor the score."
-  :". No redraw moved the score, so the spatial estimate is insensitive to boundary "
-  +"placement in this data. That is a measured null, not a claim of certainty: the block "
-  +"COUNT does move it (chart above), and so does the choice of split scheme (table above).";
- el2.textContent=head+body+tail;
-}
+/* ------------------------------------------------------------- prediction */
 
 function form(){
- var f=document.getElementById("form");f.innerHTML="";
- MI.features.forEach(function(n){
-  var r=(MI.feature_ranges||{})[n]||{}, u=(R.feature_units||{})[n]||"";
-  f.insertAdjacentHTML("beforeend",'<label>'+esc(n)+' <span class="note">('+esc(u)+
-   ', typical '+fmt(r.p5,2)+' to '+fmt(r.p95,2)+')</span><input data-f="'+esc(n)+
-   '" type="number" step="any" value="'+fmt(r.median,2)+'"></label>');
+ var f=$("form"), ranges=MI.feature_ranges||{}, units=R.feature_units||{};
+ var feats=MI.features||[];
+ f.innerHTML="";FELEM={};FUNIT={};ECUNIT={};MEDIAN={};
+
+ feats.forEach(function(n,i){
+  var r=ranges[n]||{}, u=units[n]||"";
+  var id="f"+i;
+  FELEM[n]=id;FUNIT[n]=u;ECUNIT[n]=1;
+  MEDIAN[n]=r.median;
+  var isEC=(u==="dS/m");
+
+  var h='<div class="field"><div class="flab"><label for="'+id+'">'+esc(nice(n))+'</label>'+
+   '<span class="unit">'+esc(u)+'</span>';
+  if(isEC)h+='<button type="button" class="ghost tiny" data-ec="'+esc(n)+'">enter in µS/cm</button>';
+  h+='</div><input id="'+id+'" type="number" step="any" value="'+
+   (isFinite(r.median)?fmt(r.median,3):"")+'" data-f="'+esc(n)+'">'+
+   '<div class="hint">training p5–p95: '+fmt(r.p5,2)+' to '+fmt(r.p95,2)+' · median '+fmt(r.median,3)+' (example value)</div></div>';
+  f.insertAdjacentHTML("beforeend",h);
  });
+
+ Array.prototype.forEach.call(f.querySelectorAll("input[data-f]"),function(inp){
+  inp.addEventListener("input",texture);
+ });
+ Array.prototype.forEach.call(f.querySelectorAll("button[data-ec]"),function(b){
+  b.addEventListener("click",function(){toggleUnit(b.getAttribute("data-ec"),b)});
+ });
+
+ $("go").addEventListener("click",predict);
+ $("reset").addEventListener("click",function(){
+  feats.forEach(function(n){
+   var r=ranges[n]||{};
+   ECUNIT[n]=1;
+   $(FELEM[n]).value=isFinite(r.median)?fmt(r.median,3):"";
+  });
+  Array.prototype.forEach.call(f.querySelectorAll("button[data-ec]"),function(b){
+   b.textContent="enter in µS/cm";
+  });
+  texture();
+ });
+ texture();
+}
+
+function toggleUnit(n,btn){
+ var inp=$(FELEM[n]);
+ var v=parseFloat(inp.value);if(!isFinite(v))v=0;
+ if(ECUNIT[n]===1000){
+  inp.value=(v/1000).toFixed(3);ECUNIT[n]=1;btn.textContent="enter in µS/cm";
+ } else {
+  inp.value=String(Math.round(v*1000));ECUNIT[n]=1000;btn.textContent="enter in dS/m";
+ }
+ texture();
+}
+
+function texture(){
+ var names=(MI.features||[]).filter(function(n){return /clay|sand|silt/i.test(n)});
+ var box=$("texsum"), warn=$("texwarn");
+ if(!box)return;
+ if(names.length<2){box.textContent="";if(warn)warn.innerHTML="";return}
+ var sum=0, missing=0;
+ names.forEach(function(n){
+  var v=parseFloat($(FELEM[n]).value);
+  if(isFinite(v))sum+=v;else missing++;
+ });
+ box.textContent="texture sum "+sum.toFixed(1)+"%";
+ if(!missing&&sum>TEXTURE_SUM_MAX){
+  box.className="chip chip-bad";
+  warn.innerHTML='<div class="banner b-warn" style="margin:8px 0 0"><b>Physically impossible '+
+   'texture.</b> Clay + sand + silt is '+sum.toFixed(1)+'%, above the '+TEXTURE_SUM_MAX+
+   '% the cleaning pass treats as a recording error. Rows like this were removed from training, '+
+   'not learned from.</div>';
+ } else {
+  box.className="chip chip-ok";
+  warn.innerHTML="";
+ }
 }
 
 function predict(){
- var v={};document.querySelectorAll("[data-f]").forEach(function(i){v[i.dataset.f]=parseFloat(i.value)});
- var o=document.getElementById("out");
+ var vals={}, bad=[];
+ (MI.features||[]).forEach(function(n){
+  var v=parseFloat($(FELEM[n]).value);
+  if(!isFinite(v)){bad.push(n);return}
+  vals[n]=v/(ECUNIT[n]||1);
+ });
+ var o=$("out");
+ if(bad.length){
+  o.innerHTML='<div class="err"><b>Enter a number for:</b> '+esc(bad.map(nice).join(", "))+'</div>';
+  return;
+ }
+ o.innerHTML='<p class="note">Sending POST /predict …</p>';
+
  fetch("/predict",{method:"POST",headers:{"Content-Type":"application/json"},
-  body:JSON.stringify({values:v})}).then(function(r){
-   return r.json().then(function(j){return {code:r.status,body:j}});
-  }).then(function(res){
-  if(res.code!==200){var d=res.body.detail||{};var m=d.message||JSON.stringify(d);
-   o.innerHTML='<div class="err"><b>Rejected ('+res.code+'). '+(d.error||"input_invalid")+
-   '</b><br>'+esc(m)+'</div>';return}
-  var j=res.body, g=rows(j.model_name)||{};
-  var h='<div class="big">'+fmt(j.prediction,2)+' <span style="font-size:15px">'+esc(j.units)+
-   '</span></div><div class="note">predicted SOC - an estimate of carbon content, '
-   'not a soil-quality rating and not a carbon stock</div>';
-  h+='<table style="margin-top:8px"><tr><th>'+fmt(j.interval_level*100,0)+'% interval</th><td class="num">'+
-   fmt(j.low,2)+' to '+fmt(j.high,2)+'</td></tr>'+
-   '<tr><th>coverage achieved in held-out regions</th><td class="num">'+fmt(j.interval_empirical_coverage*100,1)+
-   '%</td></tr>'+
-   '<tr><th>spatial CV R2 / RMSE of this model</th><td class="num">'+fmt(g.r2_spatial)+' / '+fmt(g.rmse_spatial,3)+
-   '</td></tr><tr><th>random CV R2 (optimistic)</th><td class="num">'+fmt(g.r2_random)+'</td></tr>'+
-   '<tr><th>model version</th><td class="num">'+esc(j.model_version)+'</td></tr>'+
-   '<tr><th>training data version</th><td class="num">'+esc(j.training_data_version)+'</td></tr></table>';
-  if(j.out_of_domain){
-   h+='<div class="banner b-bad" style="margin-top:9px"><b>Out of domain.</b> '+
-    j.out_of_domain_features.map(function(x){return esc(x.feature)+"="+fmt(x.value,2)+
-     " (training 5-95%: "+fmt(x.training_p5,2)+" to "+fmt(x.training_p95,2)+")"}).join("; ")+
-    '<br>The prediction is an extrapolation; it has not been verified for inputs like this.</div>';
+  body:JSON.stringify({values:vals})})
+ .then(function(r){return r.json().then(function(j){return {code:r.status,body:j}})})
+ .then(function(res){
+  if(res.code!==200){
+   var d=res.body.detail||{};
+   var m=d.message||JSON.stringify(d);
+   var extra="";
+   if(d.offending&&d.offending.length){
+    extra="<br>"+esc(d.offending.map(function(x){
+     return Object.keys(x).map(function(k){
+      var e=x[k];
+      return k+"="+e.given+" (physically valid: "+(e.physically_valid_range||[]).join(" to ")+")";
+     }).join(" ");
+    }).join("; "));
+   }
+   o.innerHTML='<div class="err"><b>Rejected ('+res.code+'). '+
+    esc(d.error||"input_invalid")+'</b><br>'+esc(m)+extra+'</div>';
+   return;
   }
-  if(!j.data_is_real)h+='<div class="banner b-bad" style="margin-top:9px"><b>Synthetic stand-in model.</b> '+
-   'This prediction comes from a simulation, not from real soils.</div>';
-  h+='<p class="note">'+esc(j.accuracy_context[0]?("Spatial CV numbers shown first; see the table beside this "+
-   "panel for every model."):"")+'</p>';
-  o.innerHTML=h;
- }).catch(function(){o.innerHTML='<div class="err">Request failed. Is the API running?</div>'});
+  renderPrediction(res.body);
+ })
+ .catch(function(){
+  o.innerHTML='<div class="err">Request failed. Is the API running?</div>';
+ });
 }
 
+function renderPrediction(j){
+ var g=gapRows().filter(function(r){return r.model===j.model_name})[0]||{};
+ var target=j.target||MI.target||"the target";
+ var r2=g.r2_spatial;
+
+ var skill;
+ if(r2===null||r2===undefined||!isFinite(r2)){
+  skill="This run did not report a spatial score for the model that served the prediction.";
+ } else if(r2<=0){
+  skill="In regions held out of training this model is no better than predicting that region's "+
+   "average, so the number above carries no skill across new areas.";
+ } else {
+  skill="In regions held out of training this model explains "+(r2*100).toFixed(1)+
+   "% of the variance in "+target+".";
+ }
+
+ var h='<div class="big">'+fmt(j.prediction,2)+
+  ' <span style="font-size:15px">'+esc(j.units)+'</span></div>'+
+  '<div class="note"><b>Predicted '+esc(target)+'</b> — a laboratory-scale measurement, not a '+
+  'carbon stock and not a rating of soil quality.</div>';
+
+ h+='<table style="margin-top:8px"><tbody>'+
+  '<tr><th>'+fmt(j.interval_level*100,0)+'% interval</th><td class="num">'+
+   fmt(j.low,2)+' to '+fmt(j.high,2)+'</td></tr>'+
+  '<tr><th>coverage achieved in held-out regions</th><td class="num">'+
+   pct(j.interval_empirical_coverage)+'</td></tr>'+
+  '<tr><th>spatial CV R² / RMSE</th><td class="num">'+fmt(g.r2_spatial)+' / '+
+   fmt(g.rmse_spatial,3)+'</td></tr>'+
+  '<tr><th>random CV R², optimistic</th><td class="num">'+fmt(g.r2_random)+'</td></tr>'+
+  '<tr><th>model version</th><td class="num">'+esc(j.model_version)+'</td></tr>'+
+  '<tr><th>training data version</th><td class="num">'+esc(j.training_data_version)+'</td></tr>'+
+  '</tbody></table>';
+
+ h+='<p class="note"><b>What the score means.</b> '+esc(skill)+'</p>';
+ if(j.interval_warning)h+='<p class="note"><b>About the interval.</b> '+esc(j.interval_warning)+'</p>';
+
+ if(j.out_of_domain){
+  h+='<div class="banner b-bad" style="margin-top:9px"><b>Out of domain.</b> '+
+   j.out_of_domain_features.map(function(x){
+    return esc(nice(x.feature))+"="+fmt(x.value,2)+" (training 5th–95th percentile: "+
+     fmt(x.training_p5,2)+" to "+fmt(x.training_p95,2)+")";
+   }).join("; ")+
+   '<br>The prediction is an extrapolation beyond what the model was fitted on, and is unverified '+
+   'there.</div>';
+ }
+ if(!j.data_is_real){
+  h+='<div class="banner b-bad" style="margin-top:9px"><b>Synthetic stand-in model.</b> '+
+   'This prediction comes from a simulation, not from measurements of real soil.</div>';
+ }
+ $("out").innerHTML=h;
+}
+
+/* -------------------------------------------------------------- remaining */
+
+function limits(){
+ var l=(MI.limitations&&MI.limitations.length?MI.limitations:(R.limitations||[]));
+ $("limits").innerHTML=l.map(function(t){return "<li>"+esc(t)+"</li>"}).join("");
+}
+
+function prov(d){
+ var parts=[
+  "dataset "+(d.dataset_version||"n/a"),
+  "model "+(MI.model_version||"n/a"),
+  esc(lastRows())+" rows",
+  "target "+esc(MI.target||"n/a"),
+  "units "+esc(MI.units||"n/a"),
+  "served from "+esc(H.model_dir||"n/a"),
+  "licence "+(d.licence||"n/a")
+ ];
+ $("prov").textContent=parts.join(" | ");
+ $("predhead").textContent="Predicted "+(MI.target||"soil carbon");
+}
+
+themeInit();
 boot();
-document.getElementById("go").addEventListener("click",function(){
- if(R)predict(); else document.getElementById("out").innerHTML='<div class="err">No model loaded.</div>';});
 </script></body></html>

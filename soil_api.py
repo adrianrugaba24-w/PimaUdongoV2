@@ -31,6 +31,10 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse, JSONResponse
 from pydantic import BaseModel, Field
 
+import farmer_view
+import metrics_view
+import reliability
+
 MODEL_DIR = Path(os.environ.get("MODEL_DIR", "export"))
 WEB_DIR = Path(__file__).parent / "web"
 
@@ -118,6 +122,22 @@ def load_bundle(model_dir: Path) -> dict:
                 model_path=files["model.joblib"])
 
 
+def _optional_json(path: Path) -> dict | None:
+    """
+    An additive artefact, or None.
+
+    cv_supplement.json and bands.json are written by cv_supplement.py, which is
+    a separate pass.  A bundle that predates that pass is still a valid bundle,
+    so a missing or unreadable file must never stop the service: the /api
+    routes report the gap instead.  The hashes above still gate the three files
+    the model's numbers actually come from.
+    """
+    try:
+        return json.loads(path.read_text())
+    except (OSError, json.JSONDecodeError):
+        return None
+
+
 BUNDLE = load_bundle(MODEL_DIR)
 MODEL, META, R = BUNDLE["model"], BUNDLE["meta"], BUNDLE["results"]
 FEATURES = list(META["feature_names"])
@@ -125,6 +145,18 @@ UNITS = META["target_units"]
 RANGES = R.get("feature_ranges", {})
 BOUNDS = R.get("feature_bounds", {})          # physical limits -> 422 when violated
 INTERVAL = R.get("results", {}).get("interval", {})
+SUPPLEMENT = _optional_json(MODEL_DIR / "cv_supplement.json")
+BANDS = _optional_json(MODEL_DIR / "bands.json")
+
+# The /api views are composed once at start-up, from files that are already on
+# disk.  If composition fails, /predict must still serve, so the error is kept
+# and returned by /api/metrics rather than raised here.
+try:
+    METRICS = metrics_view.build_metrics(R, META, supplement=SUPPLEMENT,
+                                         bands=BANDS, model_dir=str(MODEL_DIR))
+    METRICS_ERROR = None
+except Exception as _ex:                                        # pragma: no cover
+    METRICS, METRICS_ERROR = None, f"{type(_ex).__name__}: {_ex}"
 
 app = FastAPI(
     title="PimaUdongo SOC prototype",
@@ -332,9 +364,132 @@ def results_json():
     return R
 
 
+# ---------------------------------------------------------------------------
+# /api/* - additive views for the dashboard.  /predict above is unchanged.
+# ---------------------------------------------------------------------------
+
+@app.get("/api/metrics")
+def api_metrics():
+    """Every number the interface displays, copied from files already on disk."""
+    if METRICS is None:                                         # pragma: no cover
+        raise HTTPException(500, {"error": "metrics_unavailable",
+                                 "message": METRICS_ERROR})
+    return METRICS
+
+
+@app.post("/api/predict")
+def api_predict(q: Query):
+    """The same prediction as /predict, with the band placement attached.
+
+    The interval here is the split-conformal band exactly as calibrated: it is
+    not re-derived from the RMSE, and the spatial RMSE is reported beside it as
+    an accuracy figure rather than folded into the width.  `low` is left
+    unclamped at zero - clipping an endpoint would shorten the band without
+    changing the coverage that was measured for the unclipped one.
+    """
+    return _api_prediction(q.values)
+
+
+def _api_prediction(values: dict) -> dict:
+    x = _validate(values)
+    raw = float(MODEL.predict(x)[0])
+    pred = max(0.0, raw)                      # SOC cannot be negative
+    half = INTERVAL.get("half_width")
+    low = pred - half if half is not None else None
+    high = pred + half if half is not None else None
+
+    bands = (METRICS or {}).get("bands")
+    placement = reliability.gate(values, pred, low, high,
+                                 feature_ranges=RANGES, bands=bands)
+    interval_model = INTERVAL.get("model")
+    spatial_rmse = next(
+        (row.get("rmse_spatial") for row in R.get("results", {}).get("validation_gap", [])
+         if row.get("model") == interval_model), None)
+
+    return {
+        "schema_version": 1,
+        "target": {"name": META["target_name"], "unit": UNITS},
+        "prediction": pred,
+        "prediction_unclamped": raw,
+        "interval": {
+            "low": low, "high": high,
+            "below_zero": bool(low is not None and low < 0.0),
+            "nominal": INTERVAL.get("nominal"),
+            "empirical_coverage": INTERVAL.get("empirical_coverage"),
+            "coverage_sd": INTERVAL.get("coverage_sd"),
+            "mean_width": INTERVAL.get("mean_width"),
+            "half_width": half,
+            "method": INTERVAL.get("method"),
+            "model": interval_model,
+            "note": INTERVAL.get("honest_note"),
+        },
+        "band": placement,
+        # Reported separately on purpose: an RMSE is not a width to add and
+        # subtract, and the calibrated band already carries its own coverage.
+        "accuracy": {
+            "spatial_rmse": spatial_rmse,
+            "interval_model": interval_model,
+        },
+        "model_version": META["model_version"],
+        "training_data_version": META["training_data_version"],
+        "data_is_real": bool(R.get("data", {}).get("is_real_data", False)),
+    }
+
+
+# ---------------------------------------------------------------------------
+# /api/farmer - the same answer, said in plain words.  Every string in this
+# payload is written in farmer_view.py and checked there against a banned-terms
+# list, so the page renders words it was given rather than words it chose.
+# ---------------------------------------------------------------------------
+
+@app.get("/api/farmer")
+def api_farmer():
+    """The farmer screens that do not depend on a submitted sample."""
+    if METRICS is None:                                         # pragma: no cover
+        raise HTTPException(500, {"error": "metrics_unavailable",
+                                 "message": METRICS_ERROR})
+    return farmer_view.build(METRICS)
+
+
+@app.post("/api/farmer/predict")
+def api_farmer_predict(q: Query):
+    """One farmer result screen for one submitted sample."""
+    if METRICS is None:                                         # pragma: no cover
+        raise HTTPException(500, {"error": "metrics_unavailable",
+                                 "message": METRICS_ERROR})
+    return farmer_view.build(METRICS, _api_prediction(q.values))
+
+
+@app.get("/api/login")
+def api_login():
+    """The entry gate's wording.  It is a chooser: nothing is stored or checked."""
+    return farmer_view.build_login()
+
+
 @app.get("/")
 def index():
-    page = WEB_DIR / "index.html"
-    if not page.is_file():
-        raise HTTPException(404, "web/index.html not found")
-    return FileResponse(page)
+    """The entry gate: one choice for a soil sample, one for the research view."""
+    return _page(WEB_DIR / "login.html")
+
+
+@app.get("/login")
+def login_page():
+    return _page(WEB_DIR / "login.html")
+
+
+@app.get("/farmer")
+def farmer_page():
+    """The plain-language view for someone holding a soil sample."""
+    return _page(WEB_DIR / "farmer.html")
+
+
+@app.get("/researcher")
+def researcher_page():
+    """The technical view: every chart and table from the previous front page."""
+    return _page(WEB_DIR / "index.html")
+
+
+def _page(path: Path):
+    if not path.is_file():
+        raise HTTPException(404, f"{path.name} not found")
+    return FileResponse(path)

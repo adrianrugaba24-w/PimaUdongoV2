@@ -1,0 +1,279 @@
+<!doctype html>
+<html lang="en" data-theme="light">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Soil carbon - demo</title>
+<style>
+  :root{
+    --bg:#f7f7f5; --card:#fff; --ink:#1c1c1a; --muted:#5c5c56; --line:#e2e2dc;
+    --accent:#2f6b4f; --accent-ink:#fff; --green:#2e7d32; --amber:#a86400;
+    --red:#b3261e; --track:#ecece6;
+  }
+  @media (prefers-color-scheme: dark){
+    :root{ --bg:#16171a; --card:#1e2024; --ink:#eceae5; --muted:#a9a69f; --line:#33363c;
+           --track:#33363c; --green:#7bc47f; --amber:#e0a54a; --red:#f28b82; }
+  }
+  [data-theme="dark"]{ --bg:#16171a; --card:#1e2024; --ink:#eceae5; --muted:#a9a69f;
+    --line:#33363c; --track:#33363c; --green:#7bc47f; --amber:#e0a54a; --red:#f28b82; }
+  *{box-sizing:border-box}
+  body{margin:0;font:16px/1.6 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+       background:var(--bg);color:var(--ink)}
+  .skip{position:absolute;left:-999px}
+  .skip:focus{left:8px;top:8px;background:var(--card);padding:8px;z-index:20}
+  header{display:flex;flex-wrap:wrap;gap:10px;align-items:center;
+         padding:14px 20px;border-bottom:1px solid var(--line);background:var(--card)}
+  .brand{display:flex;align-items:center;gap:9px;font-weight:650;font-size:17px}
+  .dot{width:11px;height:11px;border-radius:50%;background:var(--accent)}
+  .banner{margin-left:auto;font-size:13px;color:var(--muted);max-width:46ch}
+  main{max-width:760px;margin:0 auto;padding:22px 20px 60px}
+  h2{font-size:26px;line-height:1.25;margin:8px 0 10px}
+  .lead{font-size:17px;margin:0 0 18px}
+  .note{color:var(--muted);font-size:14px}
+  .tabs{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:20px}
+  .tabs button{border:1px solid var(--line);background:var(--card);color:var(--ink);
+    padding:9px 14px;border-radius:999px;font:inherit;font-size:14px;cursor:pointer}
+  .tabs button[aria-selected="true"]{background:var(--accent);color:var(--accent-ink);
+    border-color:var(--accent)}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:14px;
+        padding:20px;margin:0 0 16px}
+  .fields{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:14px}
+  .field{display:flex;flex-direction:column;gap:4px}
+  .lab{font-weight:600}
+  input{font:inherit;padding:10px 12px;border:1px solid var(--line);border-radius:9px;
+        background:var(--bg);color:var(--ink)}
+  .hint{font-size:13px;color:var(--muted)}
+  button.primary{font:inherit;font-weight:600;background:var(--accent);color:var(--accent-ink);
+    border:0;border-radius:10px;padding:12px 18px;cursor:pointer;margin-top:16px}
+  .light{display:inline-flex;align-items:center;gap:9px;font-weight:650;
+    padding:8px 13px;border-radius:999px;border:1px solid currentColor;margin:6px 0 14px}
+  .light .ico{font-size:17px;line-height:1}
+  .light.green{color:var(--green)}
+  .light.amber{color:var(--amber)}
+  .light.red{color:var(--red)}
+  .track{position:relative;height:26px;border-radius:8px;background:var(--track);margin:14px 0 6px}
+  .fill{position:absolute;top:0;bottom:0;background:var(--accent);opacity:.35;border-radius:8px}
+  .pin{position:absolute;top:-5px;bottom:-5px;width:3px;background:var(--ink);border-radius:2px}
+  .ends{display:flex;justify-content:space-between;font-size:13px;color:var(--muted)}
+  .step h3{margin:0 0 8px;font-size:17px}
+  .step p{margin:0 0 10px}
+  footer{margin-top:26px;padding-top:14px;border-top:1px solid var(--line);
+         display:flex;flex-wrap:wrap;gap:12px;align-items:center;font-size:14px;color:var(--muted)}
+  footer a{color:var(--accent);font-weight:600}
+  [hidden]{display:none !important}
+</style>
+</head>
+<body>
+<!-- farmer:begin -->
+<a class="skip" href="#main">Skip to the answer</a>
+
+<header>
+  <div class="brand"><span class="dot" aria-hidden="true"></span><span id="brand"></span></div>
+  <div class="banner" role="note">Not validated on field sensors or Ugandan farms.</div>
+</header>
+
+<main id="main" aria-busy="true">
+  <div class="tabs" role="tablist" aria-label="Screens">
+    <button type="button" role="tab" id="tab-form" aria-selected="true">The soil test</button>
+    <button type="button" role="tab" id="tab-result" aria-selected="false">The answer</button>
+    <button type="button" role="tab" id="tab-sensor" aria-selected="false">My sensor</button>
+  </div>
+
+  <section id="screen-form" aria-labelledby="tab-form">
+    <div class="card">
+      <h2 id="form-title"></h2>
+      <p class="note" id="form-hint"></p>
+      <div class="fields" id="form-fields"></div>
+      <button class="primary" id="go" type="button"></button>
+    </div>
+    <p class="note" id="explainer"></p>
+  </section>
+
+  <section id="screen-result" hidden aria-labelledby="tab-result">
+    <div class="card">
+      <h2 id="r-headline"></h2>
+      <p class="lead" id="r-sub"></p>
+      <div id="light" class="light"></div>
+      <div class="track" id="track" role="img">
+        <span class="fill" id="fill"></span><span class="pin" id="pin"></span>
+      </div>
+      <div class="ends"><span id="end-low"></span><span id="end-high"></span></div>
+      <p class="note" id="bar-caption"></p>
+      <p class="note" id="r-caveat"></p>
+    </div>
+    <div class="card step">
+      <h3 id="step-title"></h3>
+      <p id="step-body"></p>
+      <p id="step-read"></p>
+      <p class="note" id="step-lab"></p>
+    </div>
+  </section>
+
+  <section id="screen-sensor" hidden aria-labelledby="tab-sensor">
+    <div class="card">
+      <h2 id="s-title"></h2>
+      <p class="lead" id="s-headline"></p>
+      <p id="s-body"></p>
+      <p><strong id="s-value"></strong></p>
+    </div>
+  </section>
+
+  <div class="card" id="learn" hidden>
+    <h3 id="learn-title"></h3>
+    <p id="learn-body"></p>
+  </div>
+
+  <footer>
+    <a id="researcher-link" href="/researcher"></a>
+    <a id="start-link" href="/"></a>
+    <span id="data-notice"></span>
+  </footer>
+</main>
+
+<script>
+(function(){
+  "use strict";
+  var V = null;
+
+  function $(id){ return document.getElementById(id); }
+  function esc(s){
+    return String(s === null || s === undefined ? "" : s)
+      .replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;")
+      .replace(/"/g,"&quot;").replace(/'/g,"&#39;");
+  }
+  function num(v, dp){
+    if (v === null || v === undefined) { return ""; }
+    var f = Number(v);
+    return isFinite(f) ? f.toFixed(dp === undefined ? 2 : dp) : "";
+  }
+
+  function show(which){
+    ["form","result","sensor"].forEach(function(k){
+      $("screen-" + k).hidden = (k !== which);
+      $("tab-" + k).setAttribute("aria-selected", k === which ? "true" : "false");
+    });
+  }
+
+  function drawChrome(){
+    $("brand").textContent = V.target.label;
+    $("explainer").textContent = V.target.explainer;
+    $("data-notice").textContent = V.target.notice;
+    $("researcher-link").textContent = V.nav.researcher;
+    $("researcher-link").setAttribute("href", V.nav.researcher_href);
+    $("start-link").textContent = V.nav.start;
+    $("start-link").setAttribute("href", V.nav.start_href);
+
+    var f = V.form;
+    $("form-title").textContent = f.title;
+    $("form-hint").textContent = f.hint;
+    $("go").textContent = f.submit;
+    var h = "";
+    f.fields.forEach(function(x){
+      var id = "in-" + x.name.replace(/[^A-Za-z0-9_-]/g, "_");
+      h += '<label class="field" for="' + id + '">' +
+           '<span class="lab">' + esc(x.label) + "</span>" +
+           '<input id="' + id + '" data-name="' + esc(x.name) + '" inputmode="decimal" ' +
+           'placeholder="' + esc(x.placeholder) + '"' +
+           (x.lowest === null || x.lowest === undefined ? "" : ' min="' + esc(x.lowest) + '"') +
+           (x.highest === null || x.highest === undefined ? "" : ' max="' + esc(x.highest) + '"') +
+           ' aria-describedby="hint-' + id + '">' +
+           '<span class="hint" id="hint-' + id + '">' + esc(x.hint) + "</span>" +
+           "</label>";
+    });
+    $("form-fields").innerHTML = h;
+
+    var s = V.sensor;
+    $("s-title").textContent = s.title;
+    $("s-headline").textContent = s.headline;
+    $("s-body").textContent = s.body;
+    var line = "";
+    if (s.value !== null && s.value !== undefined) {
+      line = num(s.value, 2) + " " + s.unit_words;
+    } else if (s.low !== null && s.low !== undefined) {
+      line = num(s.low, 2) + " " + s.unit_words;
+    }
+    $("s-value").textContent = line;
+
+    var l = V.learn_more;
+    $("learn").hidden = !l.visible;
+    if (l.visible) {
+      $("learn-title").textContent = l.title;
+      $("learn-body").textContent = l.reason;
+    }
+  }
+
+  function drawResult(){
+    var r = V.result;
+    if (!r) { return; }
+    $("r-headline").textContent = r.headline;
+    $("r-sub").textContent = r.sub;
+    $("r-caveat").textContent = r.caveat;
+
+    var L = r.light;
+    $("light").className = "light " + L.key;
+    $("light").innerHTML = '<span class="ico" aria-hidden="true">' + esc(L.icon) +
+                           '</span><span class="word">' + esc(L.words) + "</span>";
+
+    var b = r.bar;
+    if (b) {
+      $("fill").style.left = b.low_pct + "%";
+      $("fill").style.width = Math.max(0, b.high_pct - b.low_pct) + "%";
+      $("pin").style.left = b.estimate_pct + "%";
+      $("end-low").textContent = num(b.low, 2) + " " + r.unit_words;
+      $("end-high").textContent = num(b.high, 2) + " " + r.unit_words;
+      $("track").setAttribute("aria-label",
+        b.aria_template
+          .split("{low}").join(num(b.low, 2))
+          .split("{high}").join(num(b.high, 2))
+          .split("{unit}").join(r.unit_words)
+          .split("{estimate}").join(num(b.estimate, 2)));
+      $("bar-caption").textContent = b.caption;
+    }
+
+    $("step-title").textContent = r.next_step.title;
+    $("step-body").textContent = r.next_step.body;
+    $("step-read").textContent = r.next_step.how_to_read;
+    $("step-lab").textContent = r.next_step.lab_note;
+  }
+
+  function submit(){
+    var vals = {};
+    var inputs = $("form-fields").querySelectorAll("input");
+    for (var i = 0; i < inputs.length; i++) {
+      var raw = inputs[i].value.trim();
+      if (raw === "") { inputs[i].focus(); return; }
+      var v = Number(raw);
+      if (!isFinite(v)) { inputs[i].focus(); return; }
+      vals[inputs[i].getAttribute("data-name")] = v;
+    }
+    $("go").disabled = true;
+    fetch("/api/farmer/predict", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ values: vals })
+    }).then(function(res){ return res.json(); }).then(function(j){
+      V = j;
+      drawResult();
+      show("result");
+    }).catch(function(){
+      $("r-headline").textContent = V.failure.headline;
+      $("r-sub").textContent = V.failure.sub;
+      show("result");
+    }).then(function(){ $("go").disabled = false; });
+  }
+
+  $("tab-form").addEventListener("click", function(){ show("form"); });
+  $("tab-result").addEventListener("click", function(){ show("result"); });
+  $("tab-sensor").addEventListener("click", function(){ show("sensor"); });
+  $("go").addEventListener("click", submit);
+
+  fetch("/api/farmer").then(function(res){ return res.json(); }).then(function(j){
+    V = j;
+    drawChrome();
+    $("main").setAttribute("aria-busy", "false");
+  });
+})();
+</script>
+<!-- farmer:end -->
+</body>
+</html>
