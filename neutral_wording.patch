@@ -1,0 +1,148 @@
+diff --git a/README.md b/README.md
+index ea9d5e5..25a4013 100644
+--- a/README.md
++++ b/README.md
+@@ -16,7 +16,7 @@ README is read out of `export/results.json`, which one command regenerates.
+ ## STATUS — read this before quoting anything
+ 
+ The only data in this repository right now is a **labelled synthetic stand-in**
+-(`synthetic_afsis.py`). No real AfSIS files have been downloaded, no low-cost
++(`synthetic_afsis.py`). No real AfSIS files have been downloaded, no field
+ sensor has been measured, and no Ugandan soil has been sampled by this project.
+ Every result below therefore describes a **simulation that was designed to
+ contain a random-vs-spatial gap**, and it is evidence about the *pipeline*, not
+@@ -77,7 +77,7 @@ mistaken for a reported one.
+ 
+ The proposal has two parts that are **never combined**: Part B (the AfSIS
+ experiment above) and Part A, a *simulated* field survey read through a
+-low-cost-sensor measurement model.
++field-sensor measurement model.
+ 
+ ```bash
+ python sensor_experiment.py            # full run  -> export/part_a_results.{json,csv}
+@@ -94,7 +94,7 @@ python sensor_experiment.py --quick    # smoke run (flagged quick, not reportabl
+ * Inputs: the two sensor channels. Targets: true pH and true SOC (standing in for
+   laboratory values). Models: mean baseline, ridge, random forest, gradient
+   boosting, on the same spatial folds as Part B (hyperparameters fixed, no nested
+-  tuning, to keep the sweep affordable).
++  tuning, to keep the sweep fast).
+ * **The assumptions that could decide the answer are swept, not fixed:** spatial
+   correlation length (H1), SOC coupling to pH/moisture (H3) and error scale
+   (H2/H3). Read H1 and H3 as functions of those, not as single numbers.
+@@ -308,7 +308,7 @@ be done before any of this is claimed about soils.
+   on a rescaled target). RPIQ = IQR(y)/RMSE (Bellon-Maurel et al. 2010).
+ - **Why some SDs are 0.000.** The main comparison deliberately fixes one spatial
+   partition across seeds, which makes `R²_random − R²_spatial` a paired
+-  comparison; the cost is that a spatial cell's SD across seeds measures learner
++  comparison; the trade-off is that a spatial cell's SD across seeds measures learner
+   randomness only and is exactly 0.000 for deterministic models (ridge, PLS).
+   Redrawing the k-means partition does not escape this, because the k-means seed
+   turns out not to move any boundary (5 seeds → 1 distinct partition). The
+@@ -343,7 +343,7 @@ asserts same-seed → same metrics). Parallel grid search affects wall-clock onl
+   random-vs-spatial gap is therefore *not* a measurement of African soils, and
+   the earlier version of this stand-in produced a gap of ≈ 0 — a bug in the
+   generator, not a finding, fixed before these numbers were reported.
+-- **No low-cost sensor data.** The features are laboratory wet-chemistry values
++- **No field-sensor data.** The features are laboratory wet-chemistry values
+   that a sensor could in principle proxy. Nothing has been measured with the
+   planned hardware, so the noise sweep is a *model of* sensor error, not a
+   measurement of it.
+@@ -360,7 +360,7 @@ asserts same-seed → same metrics). Parallel grid search affects wall-clock onl
+ - **The spatial score depends on the blocking scheme, and one scheme is
+   reported.** Rotated rectangular blocks gave spatial R² 0.03–0.07 *higher* than
+   the k-means blocks used for the headline, and moving the rectangular boundaries
+-  from seed to seed costs ±0.034 R² (random forest). The headline is one
++  from seed to seed changes R² by ±0.034 (random forest). The headline is one
+   defensible choice, not a scheme-averaged estimate; `results.partition_sensitivity`
+   and `results.block_sensitivity` hold the spread and should be quoted beside any
+   spatial number.
+diff --git a/afsis_data.py b/afsis_data.py
+index 583200c..60e1240 100644
+--- a/afsis_data.py
++++ b/afsis_data.py
+@@ -50,7 +50,7 @@ PATTERNS = {
+     # AfSIS reports total carbon; --target lets you pin the exact column.
+     "target": [r"(?i)^soc$", r"(?i)organic.?c(?!l)", r"(?i)^t(otal)?_?c$",
+                r"(?i)^c$"],
+-    # Features: properties a low-cost sensor could plausibly proxy.
++    # Features: properties a field sensor could plausibly proxy.
+     "feature": {
+         "ph": [r"(^|[^a-z])ph([^a-z]|$)"],
+         "ec": [r"(?i)^ec($|[^a-z])", r"(?i)electrical"],
+diff --git a/afsis_experiment.py b/afsis_experiment.py
+index e901bcf..888dd68 100644
+--- a/afsis_experiment.py
++++ b/afsis_experiment.py
+@@ -49,7 +49,7 @@ SYNTHETIC_LICENCE = ("No third-party data in this run: the input CSVs are genera
+                      "(downloaded from s3://afsis, AWS Open Data) is licensed ODbL / "
+                      "ODC-By; that licence is NOT inherited by these numbers.")
+ LIMITATIONS = [
+-    "No low-cost sensor data: features are laboratory wet-chemistry values that "
++    "No field-sensor data: features are laboratory wet-chemistry values that "
+     "a sensor could in principle proxy. Nothing here has been measured with the "
+     "planned hardware.",
+     "No Ugandan field validation: predictions have not been checked against any "
+@@ -372,7 +372,7 @@ def main(argv=None):
+ 
+     # ---------- 3. noise sweep, both arms ----------------------------------
+     # Spatial CV only: the question is how the headline (new-area) skill degrades
+-    # with sensor error, and doubling the schemes would double the cost without
++    # with sensor error, and doubling the schemes would double the run time without
+     # changing the conclusion.
+     print(f"[E2] sensor-noise sweep on {list(noise_models)} "
+           f"(clean-train/noisy-test and noisy-train/noisy-test), spatial CV ...")
+@@ -402,7 +402,7 @@ def main(argv=None):
+ 
+     # ---------- 5b. partition / boundary sensitivity ----------------------
+     # E1 deliberately uses ONE partition for every model and seed: that is what
+-    # makes R2_random - R2_spatial a paired comparison.  The price is that the
++    # makes R2_random - R2_spatial a paired comparison.  The trade-off is that the
+     # seed-to-seed SD of a spatial cell measures learner randomness only, so it
+     # is exactly 0.000 for deterministic models.  Two blocking families are
+     # redrawn here, with the learner seed held constant so nothing but the
+diff --git a/afsis_validation.py b/afsis_validation.py
+index f5196c8..e1377c5 100644
+--- a/afsis_validation.py
++++ b/afsis_validation.py
+@@ -33,7 +33,7 @@ from sklearn.preprocessing import StandardScaler
+ FOLDS = 5
+ INNER_FOLDS = 3
+ # Parallelism is a RUNTIME concern, not a modelling choice: it cannot change any
+-# number, only how long the run takes.  Learners whose fits are cheap (ridge,
++# number, only how long the run takes.  Learners whose fits are fast (ridge,
+ # PLS, mean) stay in-process; the two tree learners, whose grid is the bulk of
+ # the wall clock, fork into at most GRID_JOBS worker processes.  Nested pools
+ # (grid n_jobs AND learner n_jobs both -1) oversubscribe badly on Windows and
+@@ -177,7 +177,7 @@ class ModelSpec:
+     scale: bool = False
+     target_transform: bool = True                 # False for the mean baseline
+     default_params: dict = field(default_factory=dict)
+-    grid_jobs: int = 1                            # 1 = tune in-process (cheap learners)
++    grid_jobs: int = 1                            # 1 = tune in-process (fast learners)
+ 
+ 
+ def build_pipeline(spec: ModelSpec, log_target: bool = False, seed: int = 0):
+diff --git a/sensor_experiment.py b/sensor_experiment.py
+index cb5ca3c..ae748fd 100644
+--- a/sensor_experiment.py
++++ b/sensor_experiment.py
+@@ -57,7 +57,7 @@ LIMITATIONS = [
+     "One device and one survey geometry per replicate; gain and offset are fixed "
+     "per run, so device-to-device variation is not modelled.",
+     "Hyperparameters are fixed at the learners' defaults here (no nested tuning), "
+-    "to keep the sweep affordable; the public-data experiment tunes by nested CV.",
++    "to keep the sweep fast; the public-data experiment tunes by nested CV.",
+ ]
+ 
+ 
+diff --git a/sensor_sim.py b/sensor_sim.py
+index daa7851..74ec4e6 100644
+--- a/sensor_sim.py
++++ b/sensor_sim.py
+@@ -1,5 +1,5 @@
+ """
+-Part A - simulated field survey with a low-cost sensor measurement model.
++Part A - simulated field survey with a field-sensor measurement model.
+ 
+ Implements Step 2 of the SLR (Section IX): a synthetic field with spatially
+ correlated pH, SOC and moisture is surveyed at a fixed number of points, and each

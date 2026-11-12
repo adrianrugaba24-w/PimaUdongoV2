@@ -8,7 +8,7 @@ would move. Nothing here is a proposal.
 
 | Item | Value at the time of writing |
 |---|---|
-| Test suite | `349 passed` (4 min 14 s), 9 test files |
+| Test suite | `349 passed`, 9 test files, 4–5 minutes (the session fixture runs the experiment once) |
 | Bundle served | `export_afsis_real/` (`MODEL_DIR`), real AfSIS Phase I |
 | `model_version` | `sha256:57ae8583074e476a` |
 | `dataset_version` | `afsis-2f-ddd215cc66b5` |
@@ -118,25 +118,28 @@ a template error. There is no catch-all route and no static mount, so an unknown
 
 ```
 export_afsis_real/
-  model.joblib ─┐
-  model_meta.json ├─► soil_api import-time provenance gate ─┐
-  results.json  ─┘   (missing / unreadable / edited after     │
-                      the run / wrong sklearn minor ⇒        │
-                      BundleError, no server)                │
-  cv_supplement.json ──┐                                     │
-  bands.json ──────────┼─► _optional_json() ─► METRICS ──────┼─► GET /api/metrics
-  sites.json ──────────┘     (absent ⇒ None)   (metrics_view)│
-                                                             │
+  model.joblib, model_meta.json, results.json
+      └─► load_bundle(): six provenance checks, else BundleError
+          (no server starts in a bad state) ─► META, MODEL, R
+
+  cv_supplement.json ─┐
+  bands.json ─────────┴─► _optional_json() ─► build_metrics() ─► METRICS ─► GET /api/metrics
+                          (absent or stale ⇒ None)
+
+  sites.json ─► written by the supplement pass, read by nothing (§8.1)
+
+
 POST /api/predict ─► _validate ─► MODEL.predict ─► pred, low, high
-                                                   │         │
-                                    reliability.gate(…, bands)│
-                                                   │         │
-                                    ┌──────────────┴───┐     │
-                         POST /api/farmer/predict   GET /api/farmer
-                              (farmer_view.build)   (farmer_view.build)
                                         │
-                                  banned-term guard
-                                  (raises before it can be served)
+                         reliability.gate(…, bands)  ─► placement
+                                        │
+        ┌───────────────────────────────┴────────────────────┐
+POST /api/farmer/predict                            GET /api/farmer
+build(METRICS, placement)                           build(METRICS), no result
+        │                                                    │
+        └────────────► banned-term guard ◄───────────────────┘
+                       raises rather than serve a payload
+                       that contains a word it forbids
 ```
 
 Two properties matter for review:
@@ -237,8 +240,10 @@ it. Before writing anything it asserts:
 | `bands.json` | `method`, `label_source`, `not_tuned`, `target`, `unit`, `n`, `observed_range`, `cuts` (2), `bands` (3, with `key` and `label`), `derived_from` |
 | `sites.json` | `n = 926`, four parallel arrays `site`, `lon`, `lat`, `fold`; `fold_labels 0–9`, `fold_sizes`, plus `purpose` (location is not an input) and `alignment` (the element-for-element check) |
 
-`sites.json` is columnar on purpose: a panel can read `lon`, `lat` and `fold` without transposing, and
-the arrays cannot get out of step because there is only one index space.
+`sites.json` is columnar on purpose: a future panel can read `lon`, `lat` and `fold` without
+transposing, and the arrays cannot get out of step because there is only one index space. Nothing in
+the serving tree reads it today — `grep sites.json` over `soil_api.py`, `metrics_view.py`,
+`farmer_view.py` and both pages returns nothing.
 
 ### 5.5 The pages
 
@@ -323,7 +328,7 @@ touching the test file.
 | 1 | The sample map (decision 11) | `UI_UX_REFERENCE.md` §13.8 | `sites.json` exists and is fold-verified, but no panel reads it. The researcher view still has the schematic |
 | 2 | The researcher view reading `/api/metrics` | §9.1 below | Bands, train-vs-test scores, the composed label and the break-even label are served and tested but not displayed |
 | 3 | A real login | `UI_UX_REFERENCE.md` §14.6 | Any credentials open it; no accounts, no session, no check |
-| 4 | Learned-monotonic or sensor-calibrated modelling | out of scope | Not measured; no sensor exists |
+| 4 | Monotonic constraints and sensor calibration in the model | earlier brief, marked out of scope | Neither can be evaluated here: no sensor has been characterised, so there is nothing to calibrate against |
 | 5 | The `sites.json` fold-coloured plot legend/basemap | `UI_UX_REFERENCE.md` §13.8 | No basemap by decision; the pin was rejected because the model does not use location |
 
 ---
