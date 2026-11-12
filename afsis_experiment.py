@@ -176,6 +176,28 @@ def _tidy(rows: list[dict]) -> pd.DataFrame:
     return pd.DataFrame(recs)
 
 
+def apply_feature_ablation(schema, names):
+    """Remove named features from a detected schema, refusing silent typos.
+
+    Dropping a feature makes a *different experiment*, not a different dataset,
+    so the removal is recorded in the bundle.  An unknown name is an error and
+    never a no-op: 'Clay' passing silently where the column is 'Clay percent'
+    would report a number for an experiment that was never run.
+    """
+    if not names:
+        return []
+    unknown = [n for n in names if n not in schema.features]
+    if unknown:
+        raise SystemExit(f"--drop-features {unknown} are not features of this run. "
+                         f"Features: {schema.features}")
+    remaining = [c for c in schema.features if c not in names]
+    if len(remaining) < 2:
+        raise SystemExit(f"--drop-features would leave {len(remaining)} feature(s); "
+                         f"at least 2 are needed to fit anything.")
+    schema.features = remaining
+    return list(names)
+
+
 # ---------------------------------------------------------------------------
 # Main
 # ---------------------------------------------------------------------------
@@ -196,6 +218,12 @@ def main(argv=None):
     ap.add_argument("--data-dir", default="data/afsis_stand_in",
                     help="Where the synthetic stand-in is written (ignored with --root)")
     ap.add_argument("--target"); ap.add_argument("--features", nargs="+")
+    ap.add_argument("--drop-features", dest="drop_features", nargs="+", default=None,
+                    metavar="COL",
+                    help="Ablation: remove these feature columns after detection "
+                         "(e.g. the three texture fractions). The removal is written "
+                         "into results.json and model_meta.json, so an ablated run "
+                         "cannot be mistaken for the headline run.")
     ap.add_argument("--target-kind", dest="target_kind", default="soc", choices=["soc", "ph"],
                     help="what the target is: soil organic carbon (default) or soil pH. "
                          "pH is never used as a feature when it is the target.")
@@ -218,6 +246,10 @@ def main(argv=None):
     ap.add_argument("--out", default=None, help="Prefix for csv/png (default <export>/results)")
     ap.add_argument("--quick", action="store_true",
                     help="Fewer seeds/levels - for tests only, never for reported numbers")
+    ap.add_argument("--gain-sweep", dest="gain_sweep", action="store_true",
+                    help="Also sweep SYSTEMATIC gain error (one multiplier per channel per "
+                         "fold) beside the random noise sweep. Opt-in, because a default "
+                         "results.json must stay byte-identical.")
     ap.add_argument("--list-columns", action="store_true")
     a = ap.parse_args(argv)
     t_start = time.time()
@@ -259,6 +291,15 @@ def main(argv=None):
             overrides[role] = val
     overrides["target_kind"] = a.target_kind
     schema = A.detect_schema(df, overrides)
+    if not schema.target:
+        # Without this, clean() fails deep inside pandas with "KeyError: None".
+        guess = A._find_any(list(df.columns), A.PATTERNS["target"])
+        sys.exit(f"No target column detected for target-kind {a.target_kind!r}. "
+                 f"Pass --target <column> (auto-detect would have tried {guess!r}).")
+    dropped = apply_feature_ablation(schema, a.drop_features)
+    if dropped:
+        print(f"[ablation] dropped {dropped} | {len(schema.features)} feature(s) remain: "
+              f"{schema.features}")
     if a.list_columns:
         print(f"country counts:\n{df[schema.country].value_counts().to_string()}"
               if schema.country else "(no country column)")
@@ -380,6 +421,19 @@ def main(argv=None):
     noise_rows = V.sweep(X0, y, row_groups, sweep_specs, ["spatial"], noise_seeds,
                          log_target, params_by_key, tune=False, label="noise",
                          noise_levels=noise_levels, arms=V.ARMS)
+
+    # ---------- 3b. systematic gain error (opt-in) -------------------------
+    # Random noise redraws every row; a bad calibration does not.  Here each
+    # channel keeps ONE factor for the whole fold, and the two arms separate the
+    # two real cases: the same instrument in fit and deployment, and a clean fit
+    # meeting a drifted device.
+    gain_rows = []
+    if a.gain_sweep:
+        print(f"[E2b] systematic gain sweep on {list(noise_models)} "
+              f"(drifted deployment / same device), spatial CV ...")
+        gain_rows = V.sweep(X0, y, row_groups, sweep_specs, ["spatial"], noise_seeds,
+                            log_target, params_by_key, tune=False, label="gain_sweep",
+                            gains=V.GAIN_LEVELS, arms=V.GAIN_ARMS)
 
     # ---------- 4. shuffled-target control ---------------------------------
     print("[E3] shuffled-target control (must land near R2 = 0) ...")
@@ -542,7 +596,8 @@ def main(argv=None):
     # ---------- 8. write artefacts ----------------------------------------
     out_prefix = Path(a.out) if a.out else Path(a.export) / "results"
     out_prefix.parent.mkdir(parents=True, exist_ok=True)
-    tidy = _tidy(main_rows + noise_rows + shuffle_rows + block_rows + part_rows + grid_rows)
+    tidy = _tidy(main_rows + noise_rows + shuffle_rows + block_rows + part_rows
+                 + grid_rows + gain_rows)
     summary = tidy[tidy["seed"].isna()].copy()
     runs = tidy[tidy["seed"].notna()].copy()
     summary.to_csv(out_prefix.with_name(out_prefix.name + "_summary.csv"), index=False)
@@ -634,6 +689,13 @@ def main(argv=None):
         limitations=LIMITATIONS,
         model_version=None,      # filled in below, after the model bytes exist
     )
+    # Opt-in only: nothing is added to results.json unless it was measured, so a
+    # default re-run still reproduces the published bundle byte for byte.
+    if gain_rows:
+        payload["results"]["gain_sweep"] = [
+            {k: v for k, v in r.items() if k != "per_seed"} for r in gain_rows]
+        payload["validation"]["gain_levels"] = list(V.GAIN_LEVELS)
+        payload["validation"]["gain_arms"] = list(V.GAIN_ARMS)
 
     # ---------- 9. the deployed model + its metadata -----------------------
     export_dir = Path(a.export)
@@ -645,6 +707,11 @@ def main(argv=None):
     buf = io.BytesIO()
     joblib.dump(final, buf)
     model_bytes = buf.getvalue()
+    if dropped:
+        payload["feature_ablation"] = dict(
+            dropped=dropped, remaining=list(schema.features),
+            note=("These features were removed on purpose: the numbers below describe "
+                  "a reduced model, not the headline run."))
     payload["model_version"] = "sha256:" + hashlib.sha256(model_bytes).hexdigest()[:16]
     payload["model_file"] = "model.joblib"
     payload["training_data_version"] = dversion
@@ -657,7 +724,7 @@ def main(argv=None):
     # the model and the numbers it is supposed to report.
     results_sha = hashlib.sha256((export_dir / "results.json").read_bytes()).hexdigest()
     (export_dir / "model.joblib").write_bytes(model_bytes)
-    (export_dir / "model_meta.json").write_text(json.dumps(_jsonable(dict(
+    meta = dict(
         model_version=payload["model_version"],
         model_kind=type(final.named_steps["model"] if hasattr(final, "named_steps")
                         else final).__name__,
@@ -671,7 +738,13 @@ def main(argv=None):
         model_params=_jsonable(final_params), model_seed=int(seeds[0]),
         sklearn_version=A.package_versions()["scikit-learn"],
         fitted_at_utc=payload["generated_at_utc"],
-    )), indent=1), newline="\n")
+    )
+    # Only an ablated run carries this key, so a default re-run still reproduces
+    # the existing bundle byte for byte.
+    if dropped:
+        meta["feature_ablation"] = dict(dropped=dropped, remaining=list(schema.features))
+    (export_dir / "model_meta.json").write_text(
+        json.dumps(_jsonable(meta), indent=1), newline="\n")
 
     _plot(out_prefix, main_rows, noise_rows, block_rows, interval, base_rmse, gap_rows,
           part_summary)
@@ -694,6 +767,16 @@ def main(argv=None):
           f"{ {k: round(v, 3) for k, v in sc.items()} }  (must be near 0)")
     print(f"  break-even noise ({break_even.get('model', 'n/a')}): "
           f"{ {k: v for k, v in break_even.items() if k != 'model'} }")
+    if gain_rows:
+        print("  systematic gain error (spatial CV); 'drift' = clean fit, drifted "
+              "deployment, 'same device' = the factor is in training too:")
+        for r in gain_rows:
+            if "rmse_mean" not in r:
+                continue
+            arm = "drift" if r["arm"] == "train_clean" else "same device"
+            print(f"    {r['model']:18s} gain={r['gain']:.2f} {arm:12s} "
+                  f"R2={r['r2_mean']:+.3f}  RMSE={r['rmse_mean']:.3f}  "
+                  f"beats field mean: {r['rmse_mean'] < base_rmse['spatial']}")
     for p in part_summary:
         sd = f"+/-{p['r2_sd']:.3f}" if p["r2_sd"] else "+/-0.000"
         print(f"  partition sensitivity ({p['model']}, {p['method']}, "

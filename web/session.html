@@ -1,0 +1,587 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>One soil sample, start to finish - research prototype</title>
+<style>
+:root{--bg:#f4f6f3;--card:#fff;--ink:#1c2a22;--muted:#66756c;--line:#dde4df;--a:#26734d;--o:#c5671a;--bad:#a12b1f;--slate:#5a6b60;--tint:#eef2ee}
+[data-theme=dark]{--bg:#111713;--card:#1b231e;--ink:#eef5ee;--muted:#a3b1a6;--line:#344238;--a:#79d39c;--o:#f0a34b;--bad:#ff8f7a;--slate:#9aa8a0;--tint:#18211c}
+@media (prefers-color-scheme:dark){:root:not([data-theme=light]){--bg:#111713;--card:#1b231e;--ink:#eef5ee;--muted:#a3b1a6;--line:#344238;--a:#79d39c;--o:#f0a34b;--bad:#ff8f7a;--slate:#9aa8a0;--tint:#18211c}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.5 system-ui,-apple-system,Segoe UI,sans-serif}
+.pad{max-width:880px;margin:0 auto;padding:16px 20px}
+h1{font-size:20px;margin:0 0 3px;letter-spacing:-.01em}
+h2{font-size:14.5px;margin:0 0 3px}
+h3{font-size:12px;margin:0;color:var(--muted);font-weight:600;text-transform:uppercase;letter-spacing:.04em}
+p{margin:6px 0}
+.sub{color:var(--muted);font-size:13px;margin:0}
+.note{font-size:12.5px;color:var(--muted);margin:6px 0 0}
+code,.mono{font-family:ui-monospace,Consolas,monospace;font-size:12px}
+header.top{border-bottom:1px solid var(--line);background:var(--card);position:sticky;top:0;z-index:20}
+.head{display:flex;gap:14px;align-items:flex-start;justify-content:space-between;flex-wrap:wrap}
+.headright{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.chip{font:12px ui-monospace,Consolas,monospace;border:1px solid var(--line);border-radius:99px;padding:3px 10px;color:var(--muted);white-space:nowrap}
+.chip-on{text-decoration:none;color:var(--a);border-color:var(--a)}
+.chip-real{border-color:var(--a);color:var(--a);font-weight:700}
+.chip-syn{border-color:var(--bad);color:var(--bad);font-weight:700}
+.chip-bad{border-color:var(--o);color:var(--o);font-weight:700}
+button{font:inherit;cursor:pointer;border-radius:8px;border:0;background:var(--a);color:var(--card);padding:9px 14px;font-weight:600}
+button.ghost{background:transparent;color:var(--muted);border:1px solid var(--line);font-weight:500}
+button:focus-visible,input:focus-visible,select:focus-visible,summary:focus-visible{outline:2px solid var(--o);outline-offset:2px}
+.banner{border-radius:8px;padding:9px 11px;font-size:13px;margin:10px 0;border:1px solid}
+.b-warn{background:#fdf3e3;color:#6b4a14;border-color:#e3c98a}
+.b-bad{background:#fdecea;color:#7d1d14;border-color:#e5b3ab}
+[data-theme=dark] .b-warn{background:#3a2e12;color:#f0c674;border-color:#6b5320}
+[data-theme=dark] .b-bad{background:#3a1712;color:#ff9b8a;border-color:#6b2d24}
+@media (prefers-color-scheme:dark){:root:not([data-theme=light]) .b-warn{background:#3a2e12;color:#f0c674;border-color:#6b5320}:root:not([data-theme=light]) .b-bad{background:#3a1712;color:#ff9b8a;border-color:#6b2d24}}
+.card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:14px;margin-bottom:14px}
+.stepnum{display:inline-block;font:11px ui-monospace,Consolas,monospace;border:1px solid var(--line);border-radius:99px;padding:1px 8px;color:var(--muted);margin-right:8px;vertical-align:2px}
+.field{margin-top:10px}
+.flab{display:flex;align-items:baseline;gap:8px;justify-content:space-between;margin-bottom:3px}
+.flab label{font-size:13px;font-weight:600}
+.unit{font-size:11.5px;color:var(--muted);font-family:ui-monospace,Consolas,monospace}
+input[type=text],input[type=number],select{width:100%;padding:8px;border:1px solid var(--line);border-radius:8px;background:var(--bg);color:var(--ink);font:inherit}
+.hint{font-size:11.5px;color:var(--muted);margin-top:3px}
+.row{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-top:12px}
+table{width:100%;border-collapse:collapse;font-size:13px}
+th,td{text-align:left;padding:5px 7px;border-bottom:1px solid var(--line);vertical-align:top}
+thead th{color:var(--muted);font-weight:600;font-size:12px}
+td.num,th.num{text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap}
+td.muted{color:var(--muted);font-size:12px}
+.big{font-size:30px;font-weight:700;letter-spacing:-.02em}
+.err{color:var(--bad);font-size:13px;white-space:pre-wrap}
+ul{margin:6px 0;padding-left:18px;font-size:13px;color:var(--muted)}
+ul li{margin:3px 0}
+.tl{display:flex;gap:10px;align-items:flex-start;border:1px solid var(--line);border-radius:10px;padding:10px 12px;background:var(--bg)}
+.tl .ico{font-size:18px;line-height:1.1}
+.tl .who{font-weight:700;font-size:13px}
+.tl.high{border-color:var(--a)}.tl.med{border-color:var(--o)}.tl.low{border-color:var(--bad)}
+details{margin-top:10px;font-size:13px}
+summary{cursor:pointer;color:var(--muted);font-size:12.5px}
+.prov{font-size:11.5px;color:var(--muted);font-family:ui-monospace,Consolas,monospace;margin-top:10px;border-top:1px solid var(--line);padding-top:8px;word-break:break-word}
+svg{display:block;width:100%;height:auto}
+svg .ax{stroke:var(--line);stroke-width:1}
+svg .grid{stroke:var(--line);stroke-width:.7;stroke-dasharray:2 3;opacity:.7}
+svg .zero{stroke:var(--slate);stroke-width:1;stroke-dasharray:5 3}
+svg .tk{fill:var(--muted);font-size:10px;font-family:ui-monospace,Consolas,monospace}
+svg .s{fill:none;stroke:var(--a);stroke-width:2.2;stroke-linejoin:round}
+svg .dash{stroke:var(--o);stroke-dasharray:6 4;fill:none;stroke-width:2.2}
+svg .dot-s{fill:var(--a)}
+svg .dot-r{fill:var(--card);stroke:var(--o);stroke-width:2}
+@media print{
+ body{background:#fff;color:#000}
+ header.top{position:static}
+ button,.headright button{display:none}
+ .card{break-inside:avoid;border-color:#bbb}
+ .banner{border-color:#888}
+ details{display:block}
+ details>summary{display:none}
+}
+</style></head>
+<body>
+
+<header class="top"><div class="pad head">
+  <div>
+    <h1>A soil sample, start to finish</h1>
+    <p class="sub" id="h1sub">Target and units are read from the bundle this server is serving.</p>
+  </div>
+  <div class="headright">
+    <span id="chip" class="chip">bundle: loading</span>
+    <a class="chip chip-on" href="/researcher" title="Every chart and table for this bundle">research view →</a>
+    <button id="theme" class="ghost" type="button" aria-label="Switch colour theme">Theme</button>
+  </div>
+</div></header>
+
+<main class="pad" id="main" aria-busy="true">
+
+<div class="banner b-warn"><b>Research prototype. Not validated on field sensors or Ugandan farms.
+Not for agronomic decisions.</b></div>
+<div id="kindbanner"></div>
+<div id="loaderr"></div>
+
+<!-- 1. SESSION -->
+<section class="card">
+  <h3><span class="stepnum">1</span>Session record</h3>
+  <p class="sub">Two labels, kept for the printed sheet. Neither is sent to the model:
+  the model reads five soil values and nothing else.</p>
+
+  <div class="field">
+    <div class="flab"><label for="s-label">Sample label</label><span class="unit">text</span></div>
+    <input type="text" id="s-label" placeholder="e.g. plot 4, north corner" autocomplete="off">
+    <p class="hint">Printed on the session sheet as a name only.</p>
+  </div>
+
+  <div class="field">
+    <div class="flab"><label for="s-site">Site label</label><span class="unit">label only</span></div>
+    <select id="s-site">
+      <option value="">Not recorded</option>
+      <option>Mukono</option>
+      <option>Jinja</option>
+      <option>Wakiso</option>
+      <option>Masaka</option>
+      <option>Other</option>
+    </select>
+    <p class="hint">A place name for the record. Location is not a model input, and this
+    page draws no map: the validation never held a region out against a Ugandan one.</p>
+  </div>
+
+  <p class="note">Readings below are typed by hand. No instrument is connected to this page,
+  and it cannot read one: there is no serial or Bluetooth access in a browser.</p>
+</section>
+
+<!-- 2. MEASUREMENTS -->
+<section class="card">
+  <h3><span class="stepnum">2</span>The five measurements</h3>
+  <p class="sub" id="fsub">Fields, units and ranges are read from the bundle.</p>
+  <div id="fields"></div>
+  <div class="row">
+    <span id="texchip" class="chip">texture sum: n/a</span>
+    <span class="note" id="texnote">Percentages of the fine fraction, as reported by the laboratory.</span>
+  </div>
+  <div class="row">
+    <button type="button" id="btn-estimate">Estimate from these values</button>
+    <button type="button" class="ghost" id="btn-reset">Reset to training medians</button>
+  </div>
+  <p class="note">Filled with the training median so the page is usable on first load. A median
+  is a statistic, not a measurement: replace each value with what was actually recorded.</p>
+</section>
+
+<!-- 3. ESTIMATE -->
+<section class="card">
+  <h3><span class="stepnum">3</span>Estimate and its placement</h3>
+  <div id="est" role="status" aria-live="polite" aria-atomic="true">
+    <p class="note">No sample submitted yet.</p>
+  </div>
+</section>
+
+<!-- 4. WHAT THE READING SUPPORTS -->
+<section class="card">
+  <h3><span class="stepnum">4</span>What this reading can support</h3>
+  <p class="sub">The three experiments below are what the model was tested against. Each panel
+  reads its own rows out of this bundle and states nothing the bundle does not contain.</p>
+  <div id="evidence"></div>
+</section>
+
+<!-- 5. SHEET -->
+<section class="card">
+  <h3><span class="stepnum">5</span>Session sheet</h3>
+  <div id="sheet"><p class="note">Complete a reading to fill the sheet.</p></div>
+  <div class="row" id="sheet-actions"></div>
+</section>
+
+</main>
+
+<script>
+var MI = null, R = null, H = {};
+var TEXTURE_SUM_MAX = 100.5;   // mirrors afsis_data.clean(), not a measurement
+
+function $(id){ return document.getElementById(id); }
+function fmt(v, d){
+  if (v === null || v === undefined || v === "") return "n/a";
+  var n = Number(v);
+  return isFinite(n) ? n.toFixed(d === undefined ? 2 : d) : "n/a";
+}
+function pct(v, d){
+  if (v === null || v === undefined) return "n/a";
+  var n = Number(v);
+  return isFinite(n) ? (n * 100).toFixed(d === undefined ? 1 : d) + "%" : "n/a";
+}
+function esc(s){
+  return String(s === null || s === undefined ? "" : s)
+    .replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+}
+function must(r, what){
+  if (!r.ok) throw new Error(what + " returned " + r.status);
+  return r.json();
+}
+
+// ---------------------------------------------------------------- boot
+Promise.all([
+  fetch("/results").then(function(r){ return must(r, "/results"); }),
+  fetch("/model-info").then(function(r){ return must(r, "/model-info"); }),
+  fetch("/health").then(function(r){ return r.ok ? r.json() : {}; }).catch(function(){ return {}; })
+]).then(function(x){
+  R = x[0]; MI = x[1]; H = x[2] || {};
+  renderHeader();
+  renderFields();
+  renderEvidence();
+  $("main").setAttribute("aria-busy", "false");
+}).catch(function(e){
+  $("main").setAttribute("aria-busy", "false");
+  $("loaderr").innerHTML = '<div class="banner b-bad"><b>The bundle could not be read.</b><br>' +
+    esc(e.message) + '<br>Start the server pointing at a bundle, for example ' +
+    '<code>MODEL_DIR=export_afsis_real python soil_api.py</code>, then reload.</div>';
+});
+
+function renderHeader(){
+  var real = R && R.data && R.data.is_real_data;
+  var chip = $("chip");
+  chip.className = "chip " + (real ? "chip-real" : "chip-syn");
+  chip.textContent = (real ? "REAL DATA" : "SYNTHETIC STAND-IN") + " \u00b7 " +
+    ((R.data && R.data.dataset_version) || "?") + " \u00b7 " +
+    (MI.model_version || "?") + " \u00b7 " + (H.model_dir || "?");
+  chip.title = (R.data && R.data.kind) || "";
+
+  $("h1sub").textContent = "Target: " + (MI.target || "soil carbon") +
+    " (" + (MI.units || "?") + "), " + (MI.n_training_rows || "?") +
+    " training rows. Every figure on this page is read from this bundle.";
+
+  if (!real){
+    $("kindbanner").innerHTML = '<div class="banner b-bad"><b>Synthetic stand-in bundle.</b> ' +
+      'These rows were generated to exercise the pipeline. Nothing here is a measurement of any soil.</div>';
+  }
+}
+
+// ------------------------------------------------------------ measurement form
+function renderFields(){
+  var box = $("fields");
+  var units = (R && R.feature_units) || {};
+  var ranges = MI.feature_ranges || {};
+  box.innerHTML = "";
+  (MI.features || []).forEach(function(name, i){
+    var rng = ranges[name] || {};
+    var d = document.createElement("div");
+    d.className = "field";
+    d.innerHTML =
+      '<div class="flab"><label for="f' + i + '">' + esc(name) + '</label>' +
+      '<span class="unit">' + esc(units[name] || "") + '</span></div>' +
+      '<input type="number" step="any" id="f' + i + '" data-name="' + esc(name) +
+      '" value="' + (rng.median === undefined ? "" : rng.median) + '">' +
+      '<p class="hint">Training p5\u2013p95: ' + fmt(rng.p5, 3) + ' \u2013 ' + fmt(rng.p95, 3) +
+      ' \u00b7 median ' + fmt(rng.median, 3) + '. Values outside this range are still sent, ' +
+      'and the answer says so.</p>';
+    box.appendChild(d);
+  });
+  box.addEventListener("input", updateTexture);
+  updateTexture();
+}
+
+function fields(){
+  return Array.prototype.slice.call(document.querySelectorAll("#fields input"));
+}
+function valuesFromForm(){
+  var out = {}, missing = [];
+  fields().forEach(function(el){
+    var v = el.value.trim();
+    if (v === "") { missing.push(el.getAttribute("data-name")); return; }
+    out[el.getAttribute("data-name")] = Number(v);   // numbers, not strings
+  });
+  return { values: out, missing: missing };
+}
+
+function textureFields(){
+  var units = (R && R.feature_units) || {};
+  return (MI.features || []).filter(function(n){
+    return String(units[n] || "").indexOf("percent") !== -1;
+  });
+}
+function updateTexture(){
+  var names = textureFields(), sum = 0, seen = 0, missing = false;
+  fields().forEach(function(el){
+    if (names.indexOf(el.getAttribute("data-name")) === -1) return;
+    seen++;
+    if (el.value.trim() === "") { missing = true; return; }
+    sum += Number(el.value);
+  });
+  var chip = $("texchip");
+  if (!seen){ chip.className = "chip"; chip.textContent = "texture sum: not used"; return; }
+  if (missing){ chip.className = "chip"; chip.textContent = "texture sum: n/a"; return; }
+  var bad = sum > TEXTURE_SUM_MAX;
+  chip.className = "chip" + (bad ? " chip-bad" : "");
+  chip.textContent = "texture sum: " + fmt(sum, 1) + (bad ? " over " + TEXTURE_SUM_MAX : "");
+}
+
+function resetMedians(){
+  var ranges = MI.feature_ranges || {};
+  fields().forEach(function(el){
+    var rng = ranges[el.getAttribute("data-name")] || {};
+    el.value = rng.median === undefined ? "" : rng.median;
+  });
+  updateTexture();
+}
+
+$("btn-reset").addEventListener("click", resetMedians);
+$("btn-estimate").addEventListener("click", submit);
+$("theme").addEventListener("click", function(){
+  var dark = document.documentElement.getAttribute("data-theme") === "dark";
+  document.documentElement.setAttribute("data-theme", dark ? "light" : "dark");
+  this.setAttribute("aria-pressed", dark ? "false" : "true");
+  this.textContent = dark ? "Dark" : "Light";
+});
+
+// ---------------------------------------------------------------- submit
+function submit(){
+  var got = valuesFromForm();
+  if (got.missing.length){
+    $("est").innerHTML = '<div class="banner b-bad"><b>Not sent.</b> Missing: ' +
+      esc(got.missing.join(", ")) + '.</div>';
+    return;
+  }
+  $("est").innerHTML = '<p class="note">Sending one reading to the model\u2026</p>';
+  fetch("/api/predict", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ values: got.values })
+  }).then(function(r){
+    return r.json().then(function(body){ return { ok: r.ok, status: r.status, body: body }; });
+  }).then(function(res){
+    if (!res.ok) { renderRefusal(res); return; }
+    renderResult(res.body, got.values);
+  }).catch(function(e){
+    $("est").innerHTML = '<div class="banner b-bad"><b>No answer.</b> ' + esc(e.message) + '</div>';
+  });
+}
+
+function renderRefusal(res){
+  var det = res.body.detail || res.body || {};
+  var lines = [];
+  (det.offending || []).forEach(function(o){
+    var f = Object.keys(o)[0], v = o[f] || {};
+    lines.push(esc(f) + ": given " + esc(v.given) + ", physically valid " +
+      esc(JSON.stringify(v.physically_valid_range)));
+  });
+  $("est").innerHTML = '<div class="banner b-bad"><b>Refused (' + res.status + ').</b> ' +
+    esc(det.message || "") + (lines.length ? "<br>" + lines.join("<br>") : "") +
+    '<br>No estimate is shown for a physically impossible reading.</div>';
+  $("sheet").innerHTML = '<p class="note">Refused reading. Nothing to print as an estimate.</p>';
+  $("sheet-actions").innerHTML = "";
+}
+
+function lightFor(conf){
+  if (conf === "High")   return { cls: "high", ico: "\u25cf" };
+  if (conf === "Medium") return { cls: "med",  ico: "\u25d0" };
+  return { cls: "low", ico: "\u25cb" };
+}
+
+function renderResult(d, sent){
+  var b = d.band || {};
+  var tl = lightFor(b.confidence);
+  var unit = (d.target && d.target.unit) || (MI.units || "");
+  var lead = leadingRow();
+  var html = "";
+
+  if (!d.data_is_real){
+    html += '<div class="banner b-bad"><b>Synthetic stand-in.</b> This number came from a model ' +
+      'trained on generated rows. It is a pipeline check, not a soil measurement.</div>';
+  }
+
+  html += '<div class="tl ' + tl.cls + '">' +
+    '<span class="ico" aria-hidden="true">' + tl.ico + '</span>' +
+    '<span><span class="who">Placement: ' + esc(b.confidence || "Low") + '</span><br>' +
+    esc(b.message || "No placement was returned.") +
+    (b.band ? '<br><b>Band: ' + esc(b.band) + '</b>' : "") + '</span></div>';
+
+  html += '<p class="big" style="margin:12px 0 0">' + fmt(d.prediction, 2) +
+    ' <span class="unit">' + esc(unit) + '</span></p>';
+  html += '<p class="note">Predicted ' + esc((d.target && d.target.name) || MI.target) +
+    ', with a ' + pct(d.interval && d.interval.nominal, 0) + ' interval of ' +
+    fmt(d.interval && d.interval.low, 2) + ' to ' + fmt(d.interval && d.interval.high, 2) +
+    ' ' + esc(unit) + '. This is an estimate of a laboratory value, not of a stock or a quality rating.</p>';
+
+  html += '<table><thead><tr><th>Field</th><th class="num">Value</th></tr></thead><tbody>' +
+    '<tr><td>Interval half-width (one width for all inputs)</td><td class="num">' +
+      fmt(d.interval && d.interval.half_width, 3) + ' ' + esc(unit) + '</td></tr>' +
+    '<tr><td>Measured coverage at ' + pct(d.interval && d.interval.nominal, 0) + ' nominal</td>' +
+      '<td class="num">' + pct(d.interval && d.interval.empirical_coverage) +
+      ' \u00b1 ' + (d.interval && d.interval.coverage_sd !== undefined ?
+        fmt(d.interval.coverage_sd * 100, 2) + " pp" : "n/a") + '</td></tr>' +
+    '<tr><td>Mean interval width on the calibration folds</td><td class="num">' +
+      fmt(d.interval && d.interval.mean_width, 2) + ' ' + esc(unit) + '</td></tr>' +
+    '<tr><td>Spatial RMSE of the interval model</td><td class="num">' +
+      fmt(d.accuracy && d.accuracy.spatial_rmse, 3) + ' ' + esc(unit) + '</td></tr>' +
+    (lead ? '<tr><td>Leading model under spatial CV</td><td class="num">' +
+      fmt(lead.r2_spatial, 3) + ' R\u00b2</td></tr>' +
+      '<tr><td>Same model under random CV</td><td class="num">' +
+      fmt(lead.r2_random, 3) + ' R\u00b2</td></tr>' : '') +
+    '</tbody></table>';
+
+  if (b.out_of_range && b.out_of_range.length){
+    html += '<div class="banner b-bad"><b>Outside the training range.</b><ul>' +
+      b.out_of_range.map(function(o){
+        return '<li>' + esc(o.feature) + ': ' + fmt(o.value, 3) + ' against a training range of ' +
+          fmt(o.training_p5, 3) + ' \u2013 ' + fmt(o.training_p95, 3) + '</li>';
+      }).join("") + '</ul>The estimate is shown so the failure is visible, not to be used.</div>';
+  }
+
+  html += '<details><summary>How this placement was reached (rules that fired)</summary>' +
+    '<p class="mono">' + esc((b.rules || []).join(", ") || "none") + '</p>' +
+    '<p class="mono">' + esc((b.flags || []).join(", ") || "no flags") + '</p>' +
+    '<p class="note">' + esc((d.interval && d.interval.note) || "") + '</p>' +
+    '<p class="note">Interval method: ' + esc((d.interval && d.interval.method) || "n/a") + '</p>' +
+    '</details>';
+
+  $("est").innerHTML = html;
+  renderSheet(d, sent);
+}
+
+function leadingRow(){
+  var rows = ((R.results || {}).validation_gap) || [];
+  var best = null;
+  rows.forEach(function(r){
+    if (r.r2_spatial === null || r.r2_spatial === undefined) return;
+    if (!best || Number(r.r2_spatial) > Number(best.r2_spatial)) best = r;
+  });
+  return best;
+}
+
+// ------------------------------------------------- evidence from this bundle
+function renderEvidence(){
+  var lead = leadingRow();
+  var html = "";
+
+  // (a) noise: what the model does when readings get noisier
+  var sweep = (R.results || {}).noise_sweep || [];
+  if (lead && sweep.length){
+    var rows = sweep.filter(function(r){
+      return r.model === lead.model && r.cv === "spatial";
+    }).sort(function(a, b){ return a.noise - b.noise; });
+    var arms = [];
+    rows.forEach(function(r){ if (arms.indexOf(r.arm) === -1) arms.push(r.arm); });
+    var be = (R.headline && R.headline.break_even_noise) || {};
+    html += '<div class="card" style="margin:12px 0 0">' +
+      '<h3>Noise sweep, ' + esc(lead.model) + ', spatial CV</h3>' +
+      '<p class="note">Additive noise in feature standard deviations. Both arms named: ' +
+      esc(arms.join(" and ")) + '. The field-mean baseline is ' +
+      fmt((R.results.baseline_rmse || {}).spatial, 3) + ' RMSE spatially.</p>' +
+      sweepChart(rows, arms) +
+      '<p class="note">Break-even noise (train_clean|spatial): ' +
+      (be["train_clean|spatial"] === null ? 'the sweep never reached it' :
+        fmt(be["train_clean|spatial"], 2)) + '.</p>' +
+      '<details><summary>Rows</summary><table><thead><tr><th>Arm</th><th class="num">Noise</th>' +
+      '<th class="num">R\u00b2 mean</th><th class="num">R\u00b2 sd</th><th class="num">RMSE</th></tr></thead><tbody>' +
+      rows.map(function(r){
+        return '<tr><td>' + esc(r.arm) + '</td><td class="num">' + fmt(r.noise, 2) +
+          '</td><td class="num">' + fmt(r.r2_mean, 3) + '</td><td class="num">' +
+          fmt(r.r2_sd, 3) + '</td><td class="num">' + fmt(r.rmse_mean, 3) + '</td></tr>';
+      }).join("") + '</tbody></table></details></div>';
+  } else {
+    html += '<div class="card" style="margin:12px 0 0"><h3>Noise sweep</h3>' +
+      '<p class="note">No noise sweep in this run.</p></div>';
+  }
+
+  // (b) systematic gain error, when the bundle carries the sweep
+  var gains = (R.results || {}).gain_sweep || [];
+  if (lead && gains.length){
+    var g = gains.filter(function(r){ return r.model === lead.model && r.cv === "spatial"; })
+      .sort(function(a, b){ return a.gain - b.gain; });
+    html += '<div class="card" style="margin:12px 0 0"><h3>Gain error sweep, ' +
+      esc(lead.model) + ', spatial CV</h3>' +
+      '<p class="note">Each channel multiplied by 1 + g\u00b7u, one u per channel per fold. ' +
+      'train_gain applies the same factor in fit and deployment; train_clean does not.</p>' +
+      '<table><thead><tr><th class="num">Gain</th><th>Arm</th><th class="num">R\u00b2 mean</th>' +
+      '<th class="num">RMSE</th></tr></thead><tbody>' +
+      g.map(function(r){
+        return '<tr><td class="num">' + fmt(r.gain, 2) + '</td><td>' + esc(r.arm) +
+          '</td><td class="num">' + fmt(r.r2_mean, 3) + '</td><td class="num">' +
+          fmt(r.rmse_mean, 3) + '</td></tr>';
+      }).join("") + '</tbody></table></div>';
+  } else {
+    html += '<div class="card" style="margin:12px 0 0"><h3>Gain error sweep</h3>' +
+      '<p class="note">No gain sweep in this run. It is opt-in: add <code>--gain-sweep</code> ' +
+      'to the experiment command and serve that bundle.</p></div>';
+  }
+
+  // (c) feature ablation, when this bundle was trained without some features
+  var ab = R.feature_ablation;
+  if (ab && ab.dropped && ab.dropped.length){
+    html += '<div class="banner b-warn"><b>Reduced model.</b> This bundle was trained without ' +
+      esc(ab.dropped.join(", ")) + ', leaving ' + esc((ab.remaining || []).join(", ")) +
+      '. Its scores describe that reduced model, not the headline run. ' + esc(ab.note || "") + '</div>';
+  }
+
+  $("evidence").innerHTML = html;
+}
+
+// Own scale, zero drawn, extremes printed: index.html's chart contract, applied here.
+function sweepChart(rows, arms){
+  if (!rows.length) return "";
+  var W = 560, Hh = 150, L = 44, Rr = 10, T = 12, B = 26;
+  var xs = [], ys = [];
+  rows.forEach(function(r){ xs.push(Number(r.noise)); ys.push(Number(r.r2_mean)); });
+  var xmin = Math.min.apply(null, xs), xmax = Math.max.apply(null, xs);
+  ys.push(0);
+  var ymin = Math.min.apply(null, ys), ymax = Math.max.apply(null, ys);
+  if (ymax === ymin) ymax = ymin + 1;
+  var pad = (ymax - ymin) * 0.08;
+  ymin -= pad; ymax += pad;
+  function X(v){ return L + (xmax === xmin ? 0 : (v - xmin) / (xmax - xmin)) * (W - L - Rr); }
+  function Y(v){ return T + (1 - (v - ymin) / (ymax - ymin)) * (Hh - T - B); }
+
+  var parts = [];
+  [ymin, 0, ymax].forEach(function(v, i){
+    parts.push('<line class="' + (i === 1 ? 'zero' : 'grid') + '" x1="' + L + '" x2="' + (W - Rr) +
+      '" y1="' + Y(v).toFixed(1) + '" y2="' + Y(v).toFixed(1) + '"/>');
+    parts.push('<text class="tk" x="' + (L - 6) + '" y="' + (Y(v) + 3).toFixed(1) + '" text-anchor="end">' +
+      v.toFixed(2) + '</text>');
+  });
+  xs.forEach(function(v, i){
+    if (xs.indexOf(v) === i){
+      parts.push('<text class="tk" x="' + X(v).toFixed(1) + '" y="' + (Hh - 8) +
+        '" text-anchor="middle">' + v.toFixed(2) + '</text>');
+    }
+  });
+  arms.forEach(function(arm, ai){
+    var pts = rows.filter(function(r){ return r.arm === arm; })
+      .sort(function(a, b){ return a.noise - b.noise; });
+    parts.push('<polyline class="' + (ai ? 'dash' : 's') + '" points="' +
+      pts.map(function(r){ return X(Number(r.noise)).toFixed(1) + ',' + Y(Number(r.r2_mean)).toFixed(1); })
+        .join(" ") + '"/>');
+    pts.forEach(function(r){
+      parts.push('<circle class="' + (ai ? 'dot-r' : 'dot-s') + '" cx="' + X(Number(r.noise)).toFixed(1) +
+        '" cy="' + Y(Number(r.r2_mean)).toFixed(1) + '" r="3"/>');
+    });
+  });
+  parts.push('<text class="tk" x="' + L + '" y="' + (T - 2) + '">R\u00b2 by noise level (zero dashed)</text>');
+  return '<svg viewBox="0 0 ' + W + ' ' + Hh + '" role="img" aria-label="R squared against noise level, ' +
+    esc(arms.join(" and ")) + ', from ' + ymin.toFixed(2) + ' to ' + ymax.toFixed(2) + '">' +
+    parts.join("") + '</svg>';
+}
+
+// ------------------------------------------------------------- session sheet
+function sheetRows(d, sent){
+  var unit = (MI.units || "");
+  var rows = [
+    ["Sample label", $("s-label").value || "not recorded"],
+    ["Site label", $("s-site").value || "not recorded"],
+    ["Printed at", new Date().toISOString()]
+  ];
+  (MI.features || []).forEach(function(n){
+    rows.push([n + " (" + ((R.feature_units || {})[n] || "") + ")", fmt(sent[n], 3)]);
+  });
+  rows.push(["Predicted " + ((d.target && d.target.name) || MI.target), fmt(d.prediction, 2) + " " + unit]);
+  rows.push(["Interval " + pct(d.interval && d.interval.nominal, 0),
+    fmt(d.interval && d.interval.low, 2) + " to " + fmt(d.interval && d.interval.high, 2) + " " + unit]);
+  rows.push(["Measured coverage", pct(d.interval && d.interval.empirical_coverage)]);
+  rows.push(["Placement", (d.band && d.band.confidence) || "Low"]);
+  rows.push(["Placement message", (d.band && d.band.message) || ""]);
+  rows.push(["Rules fired", ((d.band && d.band.rules) || []).join(", ") || "none"]);
+  return rows;
+}
+
+function renderSheet(d, sent){
+  var rows = sheetRows(d, sent);
+  $("sheet").innerHTML = '<table><tbody>' + rows.map(function(r){
+    return '<tr><td class="muted">' + esc(r[0]) + '</td><td>' + esc(r[1]) + '</td></tr>';
+  }).join("") + '</tbody></table>' +
+  '<p class="prov">' + esc(R.data.dataset_version || "?") + ' | ' +
+  esc(MI.model_version || "?") + ' | ' + esc(MI.n_training_rows || "?") + ' rows | ' +
+  esc(MI.target || "?") + ' | ' + esc(MI.units || "?") + ' | ' + esc(H.model_dir || "?") + '</p>' +
+  '<p class="note">' + esc(MI.disclaimer || "") + '</p>';
+
+  $("sheet-actions").innerHTML = "";
+  var copy = document.createElement("button");
+  copy.type = "button";
+  copy.className = "ghost";
+  copy.textContent = "Copy sheet as text";
+  copy.addEventListener("click", function(){
+    var text = rows.map(function(r){ return r[0] + ": " + r[1]; }).join("\n") +
+      "\n" + (MI.model_version || "") + "\n" + (MI.disclaimer || "");
+    if (navigator.clipboard) navigator.clipboard.writeText(text);
+  });
+  var print = document.createElement("button");
+  print.type = "button";
+  print.textContent = "Print / save as PDF";
+  print.addEventListener("click", function(){ window.print(); });
+  $("sheet-actions").appendChild(copy);
+  $("sheet-actions").appendChild(print);
+}
+</script>
+</body></html>

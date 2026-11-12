@@ -79,6 +79,7 @@ Every visible value, its source, and its fallback. `R` = `GET /results`, `MI` = 
 | `#chip` class | `R.data.is_real_data` → `chip-real` / `chip-syn` | `chip` (neutral) |
 | `#chip` text | `"REAL DATA"`/`"SYNTHETIC STAND-IN"` · `R.data.dataset_version` · `MI.model_version` · `H.model_dir` | `?` per field |
 | `#loaderr` | rejection from `boot()` | shows recovery instructions |
+| `.chip-on` link | literal `href="/session"` | always present; the session sheet is reached from here rather than from the entry gate, because it takes the five laboratory values the farmer view never asks for |
 
 The chip is the one element that must never degrade. If `H.model_dir` is missing the chip still
 prints, because the bundle name is what distinguishes a synthetic demo from a real one.
@@ -321,6 +322,8 @@ Recorded from the review of an externally produced dashboard, kept as a rejectio
 | Invalid utility class names | Fail silently and leave the layout broken in a way nobody notices |
 | Unsynchronised slider and numeric display | Two sources of truth for one input |
 | Loading fonts or scripts from a CDN | Breaks the offline guarantee |
+| A dashboard that ships its own predictor | The retracted mock (§15.1) computed SOC in JavaScript, printed a spatial R² of 0.338 labelled as random, invented a 0.590, and drew a benchmark curve no bundle contains. Five bans above, in one file |
+| A confidence band narrower than the calibrated one | It shows the opposite of the finding: 0.24 against a measured half-width of 2.11 |
 
 ---
 
@@ -541,5 +544,74 @@ and the routes do not.
 | Quoting a break-even figure the bundle does not contain | The card says the test never found it instead |
 | A model-driven recommendation | The experiment supports no such claim, and §9 forbids advice |
 | Hard-coding a sentence in the page | It escapes the banned-term scan and drifts from the numbers |
-| Linking to a route that is not served | `/`, `/login`, `/farmer` and `/researcher` are each tested to return 200 |
+| Linking to a route that is not served | `/`, `/login`, `/farmer`, `/researcher` and `/session` are each tested to return 200 |
 | A password field checked against a stored list | There are no accounts; the field is a door, and the page says so in words |
+
+---
+
+## 15. The session view (`web/session.html`, `GET /session`)
+
+The same numbers as the researcher dashboard, in the order a field session collects them: one
+sample, five measurements, one estimate, its placement, and a printable sheet. It adds no new
+calculation — it arranges the panels of §3 around a single submission.
+
+### 15.1 What this replaced
+
+A mock supplied as `web/pimaudongo_field_soil_health_agronomic_advisor.html` computed its own SOC
+in JavaScript from invented texture constants, printed `Spatial Block CV R²: 0.338` beside an
+invented `0.590`, showed feature weights of 42/28/18/12 with moisture among them (moisture is not
+a feature), a 0–100 fertility index, lime and manure rates per acre, a crop list, and a conformal
+half-width of 0.24 where the calibrated one is 2.11. It loaded Tailwind and Chart.js from CDNs.
+That is five entries of §11 in one file, plus C5, C6 and C8.
+
+The file is retained unchanged in `_retired/` as a layout reference. It is not served, not linked,
+and nothing in it is quoted here or in the report.
+
+### 15.2 Binding map
+
+`R` = `GET /results`, `MI` = `GET /model-info`, `H` = `GET /health`, `P` = `POST /api/predict`.
+
+| Element | Source | Absent → |
+|---|---|---|
+| `#h1sub` | `MI.target`, `MI.units`, `MI.n_training_rows` | `"soil carbon"`, `?` per field |
+| `#chip` | `R.data.is_real_data` → `chip-real`/`chip-syn`; text `REAL DATA`/`SYNTHETIC STAND-IN` · `R.data.dataset_version` · `MI.model_version` · `H.model_dir` | `?` per field; the chip always prints |
+| `#kindbanner` | `R.data.is_real_data` | hidden when real |
+| `#s-label`, `#s-site` | operator input, printed only | `not recorded` on the sheet |
+| `#fields` | `MI.features[]`, `R.feature_units[name]`, `MI.feature_ranges[name].{p5,p95,median}` | field omitted; hints print `n/a` |
+| `#texchip` | sum of features whose unit string contains `percent` | `texture sum: not used` |
+| `#est` | `P.prediction`, `P.interval.{low,high,half_width,nominal,empirical_coverage,coverage_sd,mean_width,method,note}`, `P.band.{confidence,band,message,rules,flags,out_of_range}`, `P.accuracy.spatial_rmse` | `No sample submitted yet.` |
+| `#est` refusal | 422 `detail.{error,message,offending[].{feature}.{given,physically_valid_range}}` | no estimate is shown |
+| `#est` context | `R.results.validation_gap[]` (leading = highest `r2_spatial`), `R.results.interval` | rows omitted |
+| `#evidence` noise | `R.results.noise_sweep[]`, `R.results.baseline_rmse.spatial`, `R.headline.break_even_noise["train_clean|spatial"]` | `No noise sweep in this run.` |
+| `#evidence` gain | `R.results.gain_sweep[]`, `R.validation.gain_levels` | `No gain sweep in this run. It is opt-in.` |
+| `#evidence` ablation | `R.feature_ablation` (top level, written only by `--drop-features`) | no banner |
+| `#sheet` | exactly the values already rendered in `#est`, plus labels, print time, provenance | `Complete a reading to fill the sheet.` |
+| Provenance | `dataset_version` · `model_version` · rows · target · units · `model_dir` | `?` per field |
+
+The noise chart obeys §6: its own vertical span including zero, extremes printed as tick labels,
+no series that is not in `noise_sweep`, no reference line on an axis the run did not sweep.
+
+### 15.3 Interaction
+
+Values are typed; the page states that no instrument is connected and that a browser cannot read
+one. Estimation goes to `/api/predict`, which returns the §1 gate placement, so the page never
+computes a result and never invents a band. The texture chip warns above `100.5` and still sends
+the request. An out-of-range input shows the estimate **and** a `b-bad` banner listing each
+feature's training p5–p95, per §8. Print is the page itself: actions hidden, cards kept whole.
+
+Navigation is one link each way: the researcher header carries `href="/session"`, and this page
+carries `href="/researcher"`. The entry gate is unchanged, so the two-audience split stays
+readable and neither route is a dead end. Both directions are asserted in `test_api.py`.
+
+### 15.4 Copy rules
+
+The word is **placement**, never rating, grade or score. Band names are terciles of the training
+target and are printed as such. The target is named from `MI.target` ("Total carbon"), never
+"SOC". No advice, no crop list, no index, no cost or adoption language.
+
+### 15.5 Tests
+
+`tests/test_api.py::TestSessionPage` — five tests: the four endpoints appear in the source, no
+external request, no baked result literal, no banned vocabulary, and the placement is read from
+`band`. The page is also included in the all-pages C1/C2/C3 loop.
+

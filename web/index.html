@@ -19,6 +19,7 @@ header.top{border-bottom:1px solid var(--line);background:var(--card);position:s
 .head{display:flex;gap:14px;align-items:flex-start;justify-content:space-between;flex-wrap:wrap}
 .headright{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
 .chip{font:12px ui-monospace,Consolas,monospace;border:1px solid var(--line);border-radius:99px;padding:3px 10px;color:var(--muted);white-space:nowrap}
+.chip-on{text-decoration:none;color:var(--a);border-color:var(--a)}
 .chip-real{border-color:var(--a);color:var(--a);font-weight:700}
 .chip-syn{border-color:var(--bad);color:var(--bad);font-weight:700}
 .chip-ok{border-color:var(--line);color:var(--muted)}
@@ -108,6 +109,7 @@ summary{cursor:pointer;color:var(--muted);font-size:12.5px}
   </div>
   <div class="headright">
     <span id="chip" class="chip">bundle: loading</span>
+    <a class="chip chip-on" href="/session" title="One sample, start to finish">one sample →</a>
     <button id="theme" class="ghost" type="button" aria-label="Switch colour theme">Theme</button>
   </div>
 </div></header>

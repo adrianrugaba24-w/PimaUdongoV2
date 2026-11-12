@@ -287,11 +287,17 @@ class TestIndexPage:
         assert r.status_code == 200
         assert "text/html" in r.headers["content-type"]
 
+    def test_researcher_links_to_the_session_sheet(self, client):
+        # The sheet is a researcher-side utility: it takes the five laboratory
+        # values the farmer view never asks for.  It is reached from here, not
+        # from the entry gate, so the two-audience split stays readable.
+        assert 'href="/session"' in client.get("/researcher").text
+
     def test_every_page_carries_the_banner_and_no_baked_numbers(self, client):
         # "/" is the entry gate, "/researcher" is the dashboard this class was
-        # written for, and "/farmer" is the plain-language view.  The three
-        # constraints hold on all of them.
-        for route in ("/", "/researcher", "/farmer"):
+        # written for, "/farmer" is the plain-language view and "/session" is
+        # the one-sample sheet.  The three constraints hold on all of them.
+        for route in ("/", "/researcher", "/farmer", "/session"):
             r = client.get(route)
             assert r.status_code == 200, route
             html = r.text
@@ -299,3 +305,53 @@ class TestIndexPage:
             assert "soil health" not in html.lower(), route
             # the page must fetch its numbers; it may not contain them
             assert "fetch(" in html, route
+
+
+class TestSessionPage:
+    """The one-sample sheet, held to C1, C3, C5, C6 and C8.
+
+    The page it replaced computed its own prediction in JavaScript and drew a
+    benchmark curve that appears in no artefact.  These tests exist so that
+    cannot return unnoticed: the page may only read, never compute a result.
+    """
+
+    def _html(self, client):
+        r = client.get("/session")
+        assert r.status_code == 200
+        assert "text/html" in r.headers["content-type"]
+        return r.text
+
+    def test_all_numbers_come_from_the_api(self, client):
+        html = self._html(client)
+        for endpoint in ("/results", "/model-info", "/health", "/api/predict"):
+            assert endpoint in html, endpoint
+
+    def test_no_external_request(self, client):
+        # C6: the demo must work on a venue network or on no network at all.
+        html = self._html(client).lower()
+        for token in ("http://", "https://", "//cdn", "cdn.", "@import", "integrity="):
+            assert token not in html, token
+
+    def test_no_baked_result_values(self, client):
+        # C5: a result printed into the source survives a re-run and goes stale.
+        html = self._html(client)
+        for literal in ("0.338", "0.590", "4.21", "57ae8583", "0.788", "16.8"):
+            assert literal not in html, literal
+
+    def test_no_advice_no_grading_no_proxy_score(self, client):
+        # C8 and UI_UX §9: no agronomic instruction, no quality grade, no index.
+        html = self._html(client).lower()
+        for banned in ("lime", "manure", "fertiliser", "fertilizer", "kg/ha",
+                       "tons/acre", "t/acre", "yield", "fertility index",
+                       "best-suited crops", "recommend", "advisor", "smallholder"):
+            assert banned not in html, banned
+
+    def test_the_placement_is_drawn_from_the_gate(self, client):
+        html = self._html(client)
+        assert "band.confidence" in html or "b.confidence" in html
+        assert "b.message" in html
+
+    def test_links_back_to_the_research_view(self, client):
+        # No route is a dead end, and no link points at a route that is not
+        # served: both directions are asserted, one in each class.
+        assert 'href="/researcher"' in self._html(client)

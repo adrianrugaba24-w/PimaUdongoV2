@@ -43,6 +43,11 @@ GRID_JOBS = max(1, int(os.environ.get("PIMA_GRID_JOBS", "4")))
 NOISE_LEVELS = [0.0, 0.1, 0.25, 0.5, 1.0]      # fraction of each feature's SD
 BLOCK_SIZES = [5, 10, 20, 50]
 ARMS = ("train_clean", "train_noisy")           # clean-train/noisy-test vs noisy/noisy
+# Systematic gain error: one multiplicative factor per channel for a whole fold,
+# which is what a mis-calibrated probe does.  Kept separate from the noise levels
+# because the two fail differently and must never be pooled in a report.
+GAIN_LEVELS = [0.0, 0.1, 0.25, 0.5, 1.0]
+GAIN_ARMS = ("train_clean", "train_gain")       # drifted deployment vs same device
 NOMINAL_COVERAGE = 0.90
 # Deliberately no hard-coded grid grain: grid_resolution() picks one from the
 # data.  A fixed 3x3 gave only 3-4 non-empty cells on clustered coordinates, and
@@ -288,6 +293,17 @@ def _add_noise(X: np.ndarray, sd: np.ndarray, level: float, rng) -> np.ndarray:
     return X + rng.normal(0.0, 1.0, X.shape) * sd * level
 
 
+def _add_gain(X: np.ndarray, gains: np.ndarray) -> np.ndarray:
+    """
+    Systematic gain error: each channel is multiplied by its own factor.
+
+    Unlike noise this is not redrawn per row - a mis-calibrated probe reads high
+    by the same proportion every time, so the error survives averaging.
+    Missing values stay missing.
+    """
+    return X * gains
+
+
 # ---------------------------------------------------------------------------
 # One CV run
 # ---------------------------------------------------------------------------
@@ -312,7 +328,7 @@ def _summarise_folds(rows: list[dict]) -> dict:
 def run_cv(X, y, row_groups, spec: ModelSpec, scheme: str, seed: int,
            log_target: bool, params: dict | None = None, tune: bool = True,
            noise_level: float = 0.0, arm: str = "train_clean",
-           collect_train: bool = False) -> dict:
+           gain: float = 0.0, collect_train: bool = False) -> dict:
     """
     Score one model under one validation scheme.
 
@@ -336,6 +352,16 @@ def run_cv(X, y, row_groups, spec: ModelSpec, scheme: str, seed: int,
         sd = _nan_sd(X[tr])                       # training-fold only: no test statistic
         Xtr = _add_noise(X[tr], sd, noise_level, rng) if arm == "train_noisy" else X[tr]
         Xte = _add_noise(X[te], sd, noise_level, rng)
+
+        if gain:
+            # Systematic, not random: one factor per channel for the whole fold,
+            # because a probe does not re-calibrate between samples.  Drawn from
+            # the seed alone, so no training statistic enters the draw.
+            gains = 1.0 + gain * rng.uniform(-1.0, 1.0, X.shape[1])
+            if arm == "train_gain":        # same instrument in fit and deployment
+                Xtr, Xte = _add_gain(Xtr, gains), _add_gain(Xte, gains)
+            else:                          # clean fit, drifted deployment
+                Xte = _add_gain(Xte, gains)
 
         if tune and spec.grid:
             pipe = build_pipeline(spec, log_target, seed)
@@ -427,42 +453,53 @@ def _seeded_seeds(seed0: int, n: int) -> list[int]:
 
 def sweep(X, y, row_groups, specs, schemes, seeds, log_target, params_by_key,
           tune: bool, label: str, noise_levels=(0.0,), arms=("train_clean",),
-          extra: dict | None = None) -> list[dict]:
+          gains=(0.0,), extra: dict | None = None) -> list[dict]:
     """
-    Run every (model x scheme x seed x noise x arm) cell and return tidy rows.
+    Run every (model x scheme x seed x noise x gain x arm) cell and return tidy rows.
     `params_by_key` supplies fixed hyperparameters when tune=False.
+
+    The `gain` key is only written when a gain sweep is requested, so a default
+    run's rows are unchanged.
     """
     rows = []
     extra = dict(extra or {})
+    use_gain = any(g > 0 for g in gains)
     for name, spec in specs.items():
         for scheme in schemes:
             for level in noise_levels:
-                for arm in arms:
-                    per_seed, params_seen = [], []
-                    for seed in seeds:
-                        params = (params_by_key or {}).get((name, scheme))
-                        try:
-                            r = run_cv(X, y, row_groups, spec, scheme, seed, log_target,
-                                       params=params, tune=tune, noise_level=level, arm=arm)
-                        except Exception as ex:                       # never fake a number
-                            rows.append(dict(extra, experiment=label, model=name, cv=scheme,
-                                             noise=level, arm=arm, seed=seed,
-                                             error=f"{type(ex).__name__}: {ex}"))
+                for gain in gains:
+                    for arm in arms:
+                        per_seed, params_seen = [], []
+                        for seed in seeds:
+                            params = (params_by_key or {}).get((name, scheme))
+                            try:
+                                r = run_cv(X, y, row_groups, spec, scheme, seed, log_target,
+                                           params=params, tune=tune, noise_level=level,
+                                           arm=arm, gain=gain)
+                            except Exception as ex:                   # never fake a number
+                                bad = dict(extra, experiment=label, model=name, cv=scheme,
+                                           noise=level, arm=arm, seed=seed,
+                                           error=f"{type(ex).__name__}: {ex}")
+                                if use_gain:
+                                    bad["gain"] = gain
+                                rows.append(bad)
+                                continue
+                            per_seed.append(dict(seed=seed, **r["metrics"]))
+                            params_seen.append(r["chosen_params"])
+                        if not per_seed:
                             continue
-                        per_seed.append(dict(seed=seed, **r["metrics"]))
-                        params_seen.append(r["chosen_params"])
-                    if not per_seed:
-                        continue
-                    row = dict(experiment=label, model=name, cv=scheme, noise=level,
-                               arm=arm, n_seeds=len(per_seed))
-                    for m in ("r2", "rmse", "mae", "rpiq"):
-                        v = np.array([p[m] for p in per_seed], float)
-                        v = v[np.isfinite(v)]
-                        row[f"{m}_mean"] = float(v.mean()) if len(v) else float("nan")
-                        row[f"{m}_sd"] = float(v.std(ddof=1)) if len(v) > 1 else 0.0
-                    row["per_seed"] = per_seed
-                    row["tuned_params"] = params_seen
-                    if extra:
-                        row.update(extra)
-                    rows.append(row)
+                        row = dict(experiment=label, model=name, cv=scheme, noise=level,
+                                   arm=arm, n_seeds=len(per_seed))
+                        if use_gain:
+                            row["gain"] = gain
+                        for m in ("r2", "rmse", "mae", "rpiq"):
+                            v = np.array([p[m] for p in per_seed], float)
+                            v = v[np.isfinite(v)]
+                            row[f"{m}_mean"] = float(v.mean()) if len(v) else float("nan")
+                            row[f"{m}_sd"] = float(v.std(ddof=1)) if len(v) > 1 else 0.0
+                        row["per_seed"] = per_seed
+                        row["tuned_params"] = params_seen
+                        if extra:
+                            row.update(extra)
+                        rows.append(row)
     return rows

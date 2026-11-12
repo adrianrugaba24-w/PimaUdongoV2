@@ -489,6 +489,17 @@ def researcher_page():
     return _page(WEB_DIR / "index.html")
 
 
+@app.get("/session")
+def session_page():
+    """One sample, start to finish: five measurements, the estimate, its placement.
+
+    The same numbers as /researcher, in the order a field session collects them.
+    It carries the C1 banner and reads every figure from the API, so it is held
+    to the same constraints; the estimate itself comes from /api/predict.
+    """
+    return _page(WEB_DIR / "session.html")
+
+
 def _page(path: Path):
     if not path.is_file():
         raise HTTPException(404, f"{path.name} not found")
