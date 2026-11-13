@@ -1,0 +1,285 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Pima: soil carbon check</title>
+<style>
+:root{--bg:#F3F6F2;--pn:#fff;--p2:#EEF4EC;--ink:#18271D;--mt:#566259;--ln:#DDE6DB;--g:#26734D;--gd:#174B34;--or:#F0A34B;--red:#B83A2D;--amb:#8F5A0C;--grn:#1E7A45;--rb:#FBE4E0;--ab:#FBEBCB;--gb:#DDF1E3;
+box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#101713;--pn:#18221C;--p2:#202C24;--ink:#EAF2EA;--mt:#A2B1A6;--ln:#2E3D33;--g:#79D39C;--red:#FF8D7E;--amb:#F2B867;--grn:#7BD59B;--rb:#3B1F1B;--ab:#3A2E14;--gb:#1B3524;color-scheme:dark}}
+:root[data-theme="dark"]{--bg:#101713;--pn:#18221C;--p2:#202C24;--ink:#EAF2EA;--mt:#A2B1A6;--ln:#2E3D33;--g:#79D39C;--red:#FF8D7E;--amb:#F2B867;--grn:#7BD59B;--rb:#3B1F1B;--ab:#3A2E14;--gb:#1B3524;color-scheme:dark}
+*,*::before,*::after{box-sizing:inherit}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.55 Inter,ui-sans-serif,system-ui,-apple-system,"Segoe UI",sans-serif}
+h1,h2,h3,p{margin:0}button,input,select,summary{font:inherit}button{cursor:pointer}
+:focus-visible{outline:3px solid var(--or);outline-offset:2px}[hidden]{display:none!important}
+.login{position:fixed;inset:0;display:grid;place-items:center;padding:calc(16px + env(safe-area-inset-top,0px)) 16px calc(16px + env(safe-area-inset-bottom,0px));overflow:auto}
+.login>svg{position:absolute;inset:0;width:100%;height:100%}
+.gl{position:relative;width:min(440px,100%);padding:30px 26px;border-radius:26px;color:#fff;background:rgba(10,30,18,.42);border:1.5px solid rgba(255,255,255,.55);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px)}
+.gl h1{font-size:34px;letter-spacing:-.5px}.gl p{margin:4px 0 18px;font-size:15px}
+.gl small{display:block;margin-top:8px;font-size:13px;opacity:.95}
+.app{display:grid;grid-template-columns:230px minmax(0,1fr);min-height:100vh}
+.sb{background:var(--pn);border-right:1px solid var(--ln);padding:22px 14px;display:flex;flex-direction:column;gap:16px}
+.brand{display:flex;gap:10px;align-items:center;font-weight:800;font-size:20px;padding:0 8px}
+.bm{width:34px;height:34px;border-radius:11px;background:#26734D;display:grid;place-items:center}
+.brand small{display:block;font-size:12px;font-weight:500;color:var(--mt)}
+.chip{margin:0 8px;display:inline-block;padding:4px 12px;border-radius:20px;background:var(--p2);color:var(--g);font-weight:700;font-size:13px;width:max-content}
+.nav{display:grid;gap:4px}
+.nav button,.out{border:0;background:none;color:var(--mt);text-align:left;padding:11px 14px;min-height:46px;border-radius:11px;font-weight:600;width:100%}
+.nav button[aria-current=page]{background:#26734D;color:#fff}
+.nav button:hover:not([aria-current]),.out:hover{background:var(--p2);color:var(--ink)}
+.out{margin-top:auto}
+.main{min-width:0;padding:22px clamp(14px,3vw,40px) 40px;max-width:1080px}
+.top{display:flex;gap:10px;align-items:flex-start;margin-bottom:14px}
+.top h1{font-size:28px;letter-spacing:-.6px;line-height:1.2}.top p{color:var(--mt);font-size:15px;margin-top:2px}
+.menu{display:none;width:46px;height:46px;border:1px solid var(--ln);border-radius:12px;background:var(--pn);color:var(--ink);font-size:20px}
+.banner{background:var(--ab);color:var(--amb);border:1px solid var(--or);border-radius:12px;padding:8px 14px;font-size:14px;margin-bottom:16px}
+.card{background:var(--pn);border:1px solid var(--ln);border-radius:20px;padding:18px;min-width:0}
+.card h3{font-size:17px;margin-bottom:2px}.sub{font-size:14px;color:var(--mt);margin-bottom:10px}
+.stack{display:grid;gap:16px}
+.hero{background:linear-gradient(135deg,#174B34,#26734D);color:#fff;border:0;padding:24px}
+.hero .st{display:inline-flex;align-items:center;gap:10px;background:rgba(255,255,255,.16);border-radius:30px;padding:6px 16px 6px 8px;font-weight:700;font-size:15px}
+.hero .st svg{width:28px;height:28px}
+.hero h2{font-size:clamp(22px,3.4vw,31px);line-height:1.25;margin:14px 0 8px;letter-spacing:-.4px}
+.hero p{font-size:17px;max-width:60ch}
+.dots{display:inline-flex;gap:4px;margin-left:6px}.dots i{width:10px;height:10px;border-radius:50%;background:rgba(255,255,255,.35)}.dots i.on{background:#fff}
+.scale{margin-top:22px}
+.track{position:relative;height:22px;border-radius:12px;background:rgba(255,255,255,.18)}
+.typ{position:absolute;top:0;bottom:0;background:rgba(255,255,255,.18);border-left:2px dashed rgba(255,255,255,.7);border-right:2px dashed rgba(255,255,255,.7)}
+.rng{position:absolute;top:3px;bottom:3px;border-radius:10px;background:#F0A34B;opacity:.9;transition:left .3s,width .3s}
+.rng.high{background:#7BD59B}.rng.low,.rng.check{background:#FF8D7E}
+.dot{position:absolute;top:-5px;width:6px;height:32px;border-radius:3px;background:#fff;transition:left .3s}
+.sl{display:flex;justify-content:space-between;font-size:14px;margin-top:8px;opacity:.95}
+.ind{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:12px}
+.ic{border:1px solid var(--ln);border-radius:16px;padding:14px;background:var(--p2)}
+.ic span{font-size:14px;color:var(--mt);font-weight:600}.ic b{display:block;font-size:24px;letter-spacing:-.4px;margin:2px 0}
+.ic em{font-style:normal;font-size:14px;font-weight:700}.ic small{display:block;font-size:13px;color:var(--mt);margin-top:2px}
+.s-r{color:var(--red)}.s-a{color:var(--amb)}.s-g{color:var(--grn)}
+.steps{margin:0;padding:0;list-style:none;display:grid;gap:10px;counter-reset:s}
+.steps li{counter-increment:s;display:flex;gap:12px;align-items:flex-start;font-size:16px}
+.steps li::before{content:counter(s);flex:none;width:30px;height:30px;border-radius:50%;background:#26734D;color:#fff;display:grid;place-items:center;font-weight:700;font-size:15px}
+.gen{list-style:none;margin:0;padding:0;display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:10px}
+.gen li{border:1px solid var(--ln);border-radius:14px;padding:10px 14px;font-size:15px}
+.note{font-size:13px;color:var(--mt);margin-top:10px}
+.kp{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:12px}
+.kp div{background:var(--pn);border:1px solid var(--ln);border-radius:18px;padding:14px 16px}
+.kp span{font-size:13px;color:var(--mt);font-weight:600}.kp b{display:block;font-size:26px;letter-spacing:-.6px;font-variant-numeric:tabular-nums}.kp small{font-size:13px;color:var(--mt)}
+.two{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.sx{overflow-x:auto}
+table{border-collapse:collapse;width:100%;font-size:14px}th,td{text-align:left;padding:9px 8px;border-bottom:1px solid var(--ln);white-space:nowrap;font-variant-numeric:tabular-nums}th{color:var(--mt);font-weight:600}
+svg text{fill:var(--mt);font:12px Inter,system-ui,sans-serif}
+.key{display:flex;gap:14px;font-size:13px;color:var(--mt);margin-top:6px}.key i{display:inline-block;width:10px;height:10px;border-radius:3px;margin-right:5px}
+.gauge{position:relative;height:18px;border-radius:10px;background:var(--p2);border:1px solid var(--ln);margin:18px 0 6px}
+.gauge i{position:absolute;left:0;top:0;bottom:0;border-radius:10px;transition:width .3s}
+.gauge u{position:absolute;top:-6px;bottom:-6px;left:50%;width:0;border-left:3px dashed var(--red)}
+.pv{margin-top:20px;border:1.5px dashed var(--mt);border-radius:16px;padding:12px 16px;background:var(--pn)}
+.pv summary{font-weight:700;cursor:pointer;min-height:32px}
+.pv .g{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:12px;margin-top:10px;font-size:14px}
+.pv label{display:grid;gap:2px;font-weight:600}.pv input[type=range]{width:100%;accent-color:var(--g);min-height:28px}
+.pv select{min-height:40px;border-radius:10px;border:1px solid var(--ln);background:var(--p2);color:var(--ink);padding:0 8px}
+.pill{display:inline-block;padding:2px 10px;border-radius:12px;font-size:12px;font-weight:700}
+.pr{background:var(--rb);color:var(--red)}.pa{background:var(--ab);color:var(--amb)}.pg{background:var(--gb);color:var(--grn)}
+.seg{display:grid;grid-template-columns:1fr 1fr;gap:4px;background:rgba(255,255,255,.16);border-radius:16px;padding:4px;margin-bottom:4px}
+.seg button{border:0;border-radius:12px;background:none;color:#fff;font-weight:700;min-height:44px}
+.seg button[aria-selected=true]{background:#fff;color:#174B34}
+.gl label{display:block;font-weight:600;font-size:14px;margin:14px 0 5px}
+.gl input{width:100%;height:50px;padding:0 18px;color:#fff;background:rgba(0,0,0,.22);border:1.5px solid rgba(255,255,255,.65);border-radius:16px}
+.gl input::placeholder{color:rgba(255,255,255,.8)}
+.pwr{position:relative}.pwr input{padding-right:78px}.pwr button{position:absolute;right:6px;top:6px;height:38px;border:0;border-radius:12px;background:rgba(255,255,255,.22);color:#fff;font-weight:600;padding:0 12px}
+.err{margin:10px 0 0;background:#FBE4E0;color:#8E2A1F;border-radius:12px;padding:8px 12px;font-size:14px;font-weight:600}
+.go{width:100%;height:52px;margin-top:16px;border:0;border-radius:16px;font-weight:700;font-size:17px;color:#0E3B2A;background:linear-gradient(90deg,#B9D62A,#27A05A)}
+.g0{background:#1E7A45}.g1{background:#3F7F26}.g2{background:#946000}.g3{background:#A8520F}.g4{background:#B83A2D}
+.gr{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:12px;margin-top:14px}
+.gc{border:1px solid var(--ln);border-radius:16px;padding:14px;background:var(--p2)}
+.lt{display:inline-grid;place-items:center;width:44px;height:44px;border-radius:12px;color:#fff;font-size:26px;font-weight:800}
+.gc h4{margin:8px 0 0;font-size:15px}.gc b{font-size:20px;font-variant-numeric:tabular-nums}.gc small{display:block;font-size:12px;color:var(--mt);margin-top:6px}
+.gb{display:grid;grid-template-columns:repeat(5,1fr);gap:3px;margin-top:8px}
+.gb i{font-style:normal;text-align:center;font-size:12px;font-weight:700;color:#fff;border-radius:6px;padding:2px 0;opacity:.35}
+.gb i.on{opacity:1;outline:2px solid var(--ink);outline-offset:1px}
+.ov{display:flex;gap:16px;align-items:center;flex-wrap:wrap}.ov .lt{width:76px;height:76px;font-size:46px;border-radius:18px}.ov b{font-size:24px}
+.tm{display:grid;grid-template-columns:repeat(5,1fr);gap:6px;margin-top:10px}
+.tm span{padding:10px 2px;text-align:center;font-size:13px;font-weight:700;border-radius:10px;background:var(--p2);color:var(--mt)}
+.tm span.on{color:#fff}
+.chk{list-style:none;margin:0;padding:0;display:grid;gap:10px}
+.chk li{position:relative;padding-left:32px;font-size:16px}
+.chk li::before{content:"✓";position:absolute;left:0;top:1px;width:22px;height:22px;border-radius:50%;background:#26734D;color:#fff;display:grid;place-items:center;font-size:13px;font-weight:700}
+.acc{background:var(--pn);border:1px solid var(--ln);border-radius:18px;padding:2px 18px}
+.acc summary{font-weight:700;min-height:50px;display:flex;align-items:center;cursor:pointer}
+.acc[open] summary{border-bottom:1px solid var(--ln);margin-bottom:12px}
+.acc p,.acc ul{font-size:15px;margin:0 0 12px}.acc dl{display:grid;gap:10px;margin:0 0 12px}.acc dt{font-weight:700}.acc dd{margin:0;color:var(--mt);font-size:15px}
+@media (max-width:1000px){.two{grid-template-columns:1fr}}
+@media (max-width:760px){.app{display:block}.sb{display:none}.sb.open{display:flex;position:fixed;z-index:10;inset:0 auto 0 0;width:270px;padding-top:calc(22px + env(safe-area-inset-top,0px));box-shadow:0 0 0 100vw #0007}.menu{display:inline-grid;place-items:center}.main{padding:14px}.top h1{font-size:23px}}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+</head>
+<body>
+<section class="login" id="s-login" aria-label="Choose how to sign in">
+<svg viewBox="0 0 400 800" preserveAspectRatio="xMidYMid slice" aria-hidden="true"><defs><linearGradient id="sky" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#7FA3B5"/><stop offset=".5" stop-color="#F1C98E"/></linearGradient></defs><rect width="400" height="800" fill="url(#sky)"/><path d="M0 330C80 300 160 340 240 320S360 300 400 320V800H0Z" fill="#4C7A3A"/><path d="M0 420C90 360 190 440 290 390S380 400 400 410V800H0Z" fill="#6EA33A"/><path d="M0 560C110 480 220 600 400 500V800H0Z" fill="#8DC63F"/><path d="M0 680C120 630 260 720 400 650V800H0Z" fill="#5B8F2E"/></svg>
+<div class="gl"><h1>Pima</h1><p>Sign in to check your soil.</p>
+<div class="seg" role="tablist" aria-label="Account type"><button type="button" role="tab" id="t-farmer" aria-selected="true">Farmer</button><button type="button" role="tab" id="t-researcher" aria-selected="false">Researcher</button></div>
+<form id="lf" novalidate>
+<label for="un" id="lbu">Phone number or username</label><input id="un" autocomplete="username" autocapitalize="none" spellcheck="false">
+<label for="pw">Password</label><div class="pwr"><input id="pw" type="password" autocomplete="current-password"><button type="button" id="sp" aria-label="Show password">Show</button></div>
+<p class="err" id="er" role="alert" hidden></p>
+<button class="go" type="submit">Sign in</button></form>
+<small id="hint"></small><small>Each account has one role. Farmer accounts cannot open researcher pages.</small></div>
+</section>
+
+<div class="app" id="app" hidden>
+<aside class="sb" id="sb">
+<div class="brand"><div class="bm"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.4" stroke-linecap="round"><path d="M12 3v18M5 9c4 0 7 3 7 7M19 9c-4 0-7 3-7 7"/></svg></div><div>Pima<small>Soil carbon check</small></div></div>
+<span class="chip" id="rc"></span>
+<nav class="nav" id="nav" aria-label="Main"></nav>
+<button class="out" id="out">Sign out</button>
+</aside>
+<main class="main">
+<header class="top"><button class="menu" id="menu" aria-label="Open menu">☰</button><div><h1 id="ttl"></h1><p id="sbt"></p></div></header>
+<div class="banner"><strong>Layout preview.</strong> The sensor readings and the carbon estimate are simulated. Validation figures on researcher pages come from the project’s results run.</div>
+
+<div id="v-farmer" class="stack">
+<section class="card hero"><span class="st" id="st"></span><h2 id="hl"></h2><p id="hs"></p>
+<div class="scale"><div class="track"><div class="typ" id="typ"></div><div class="rng" id="rng"></div><div class="dot" id="dot"></div></div>
+<div class="sl"><span>Less carbon</span><span id="rl">The shaded part shows where it could be</span><span>More carbon</span></div></div></section>
+<section class="card"><h3>How much can you trust this check?</h3><div class="tm" id="tm"></div><p id="tt" style="font-size:16px;margin-top:12px"></p><p class="note">Based on tests on soils the check had not seen before.</p></section>
+<section class="card"><h3>Your soil at a glance</h3><p class="sub">Readings from your sensor, last updated <span id="lu"></span>.</p><div class="ind" id="ind"></div></section>
+<section class="card"><h3 id="nh">What to do now</h3><ol class="steps" id="steps"></ol><p class="note">Sampling tips are general and should be confirmed with your extension officer.</p></section>
+<section class="card"><h3>Should I get a laboratory test?</h3><p class="sub">Yes, if any of these is true:</p><ul class="chk"><li>This check says it is not sure.</li><li>You are about to spend money on lime, fertiliser or compost.</li><li>A reading looks unusual, or jumps around between readings.</li><li>Your crops are doing badly and you do not know why.</li></ul></section>
+<details class="acc"><summary>How to take a good soil sample</summary><ol class="steps"><li>Use a clean spade or trowel. Clear away leaves and surface litter.</li><li>Dig a small hole about 20 cm deep and cut a thin slice from one side.</li><li>Repeat at 5 to 8 spots across the field. Avoid paths, field edges and places where compost or animals have been.</li><li>Mix the slices in a clean bucket and take about half a kilogram.</li><li>Put it in a clean bag, label it with your name, field and date, and take it to the laboratory soon.</li></ol><p class="note">General guidance. Confirm with your extension officer.</p></details>
+<details class="acc"><summary>What your readings mean</summary><dl><dt>Acidity (pH)</dt><dd>How acidic or alkaline the soil is. Most crops grow best in slightly acidic to neutral soil. Very acidic or very alkaline soil can lock up nutrients.</dd><dt>Salt level</dt><dd>How much dissolved salt is in the soil. Too much stops plants taking up water.</dd><dt>Moisture</dt><dd>How wet the soil is. It changes quickly after rain, so compare readings taken in similar conditions.</dd><dt>Temperature</dt><dd>It changes how fast living things in the soil work.</dd></dl></details>
+<details class="acc"><summary>Who can help</summary><ul><li>Your district agricultural officer</li><li>A local extension worker or farmer group</li><li>A university or research laboratory that tests soil</li></ul><p>Ask: “Which test do you recommend for my crop? How should I collect and send the sample?”</p></details>
+<section class="card"><h3>General practices that help soil carbon</h3><p class="sub">Not based on your reading.</p>
+<ul class="gen"><li><b>Leave crop residues on the field</b><br>They feed the soil and hold moisture.</li><li><b>Mulch between rows</b><br>It protects the surface from sun and rain.</li><li><b>Rotate with beans or groundnuts</b><br>Their roots and leaves return carbon and nitrogen.</li><li><b>Add compost or manure where you can</b><br>It adds organic matter to the topsoil.</li></ul><p class="note">Sources to be added before wider use.</p></section>
+</div>
+
+<div id="v-about" class="stack" hidden>
+<section class="card"><h3>What is soil carbon?</h3><p class="sub">The carbon held in your soil, mostly from plants and animals that have broken down. More carbon usually means soil that holds water and nutrients better.</p>
+<h3 style="margin-top:12px">How sure are we?</h3><p class="sub">Pima estimates carbon from your pH and salt readings and your soil type. We tested it on soils it had never seen, and it is often far off. So it tells you when it is not sure, and in that case you should get a laboratory test.</p>
+<h3 style="margin-top:12px">What the sensor measures</h3><p class="sub">Acidity (pH), salt level, moisture and temperature. Soil carbon cannot be read by a simple sensor, which is why we estimate it.</p></section>
+</div>
+
+<div id="v-evidence" class="stack" hidden>
+<section class="card" id="gr"></section>
+<section class="kp"><div><span>Spatial R² (random forest)</span><b>0.086</b><small>on areas it has not seen</small></div><div><span>Random-split R²</span><b>0.338</b><small>same model</small></div><div><span>Validation gap</span><b>0.252 ± 0.011</b><small>random minus spatial</small></div><div><span>Sensor tolerance</span><b>0.5 × spread</b><small>where it stops beating the average</small></div></section>
+<div class="two">
+<section class="card"><h3>Random vs. spatial validation</h3><p class="sub">R² by model</p>
+<svg viewBox="0 0 420 210" role="img" aria-label="Grouped bars: random validation scores exceed spatial scores for every model" style="width:100%"><line x1="20" y1="153" x2="410" y2="153" stroke="var(--ln)"/>
+<g fill="#26734D"><rect x="50" y="40.3" width="34" height="112.7" rx="4"/><rect x="160" y="54.7" width="34" height="98.3" rx="4"/><rect x="270" y="152" width="34" height="1.5"/></g>
+<g fill="#F0A34B"><rect x="88" y="124.3" width="34" height="28.7" rx="4"/><rect x="198" y="127" width="34" height="26" rx="4"/><rect x="308" y="153" width="34" height="10" rx="2"/></g>
+<text x="67" y="35" text-anchor="middle">0.338</text><text x="105" y="119" text-anchor="middle">0.086</text><text x="177" y="50" text-anchor="middle">0.295</text><text x="215" y="122" text-anchor="middle">0.078</text><text x="287" y="146" text-anchor="middle">−0.002</text><text x="325" y="177" text-anchor="middle">−0.030</text>
+<text x="87" y="200" text-anchor="middle">Random forest</text><text x="197" y="200" text-anchor="middle">Boosting</text><text x="307" y="200" text-anchor="middle">Field average</text></svg>
+<div class="key"><span><i style="background:#26734D"></i>Random split</span><span><i style="background:#F0A34B"></i>Unseen areas</span></div></section>
+<section class="card"><h3>Sensor error budget</h3><p class="sub">Simulated noise against the tolerance, as a multiple of each input’s spread</p>
+<div class="gauge"><i id="gi"></i><u></u></div><div class="sl" style="color:var(--mt)"><span>0</span><span id="gt"></span><span>1 ×</span></div>
+<p class="note">Dashed line: random forest stops beating the field average. Measured error from a real sensor: not yet available.</p></section>
+</div>
+<div class="two">
+<section class="card"><h3>Are the ranges honest?</h3><p class="sub">Share of held-out samples inside the 90% range</p>
+<div class="gauge" style="margin-top:10px"><i style="width:88.8%;background:var(--g)"></i><u style="left:90%;border-color:var(--ink)"></u></div>
+<p style="font-size:15px">88.8% covered, against 90% targeted. Typical range width is 4.21 g/100 g, so most answers come out “too uncertain”.</p></section>
+<section class="card sx"><h3>Models</h3><p class="sub">Random forest is the one served by the app</p>
+<table><thead><tr><th>Model</th><th>R² random</th><th>R² spatial</th><th>RMSE spatial</th></tr></thead><tbody><tr><td>Random forest</td><td>0.338</td><td>0.086</td><td>1.339</td></tr><tr><td>Gradient boosting</td><td>0.295</td><td>0.078</td><td>1.344</td></tr><tr><td>Field average</td><td>−0.002</td><td>−0.030</td><td>1.421</td></tr></tbody></table></section>
+</div>
+</div>
+
+<div id="v-feed" class="stack" hidden>
+<section class="card sx"><h3>Simulated sensor node</h3><p class="sub">A new reading arrives every 3 seconds. Noise is set in the preview controls below.</p>
+<table><thead><tr><th>Time</th><th>pH</th><th>Salt (dS/m)</th><th>Estimate</th><th>Answer</th></tr></thead><tbody id="fb"></tbody></table></section>
+</div>
+
+<div id="v-method" class="stack" hidden>
+<section class="card"><h3>How the model was built and tested</h3><ol class="steps" style="margin-top:12px">
+<li><span><b>Assemble.</b> 926 samples from 19 countries; pH and EC from CROPNUTS, texture and total carbon from ICRAF.</span></li>
+<li><span><b>Split.</b> Shuffled 5-fold baseline, and GroupKFold over 10 blocks of site coordinates.</span></li>
+<li><span><b>Train.</b> Five models, five seeds, tuning inside folds only.</span></li>
+<li><span><b>Evaluate.</b> R², RMSE and MAE pooled out-of-fold, on the original scale.</span></li>
+<li><span><b>Stress.</b> Gaussian noise on the inputs, from 0 to 1 × each input’s spread.</span></li>
+<li><span><b>Calibrate.</b> Split-conformal 90% range. A gate refuses to answer when it is too wide.</span></li></ol>
+<p class="note">Final-year project, Department of Computing and Technology, Uganda Christian University. Not validated on field sensors or Ugandan farms.</p></section>
+</div>
+
+<div id="v-denied" class="stack" hidden><section class="card"><h3>This page is not available for your account</h3><p class="sub">Farmer accounts only see the plain-language result. Sign in as a researcher to see the evidence.</p></section></div>
+
+<details class="pv" id="pv"><summary>Design preview controls (not part of the product)</summary>
+<div class="g">
+<label>Acidity (pH): <output id="o-ph"></output><input id="ph" type="range" min="3.5" max="9.5" step="0.1" value="6.1"></label>
+<label>Salt (EC, dS/m): <output id="o-ec"></output><input id="ec" type="range" min="0" max="0.6" step="0.01" value="0.064"></label>
+<label>Sensor noise (× spread): <output id="o-nz"></output><input id="nz" type="range" min="0" max="1" step="0.05" value="0.1"></label>
+<label>Soil type<select id="tx"><option value="sandy">Sandy</option><option value="loamy" selected>Loamy</option><option value="clayey">Clayey</option></select></label>
+<label style="grid-column:1/-1;display:flex;gap:8px;align-items:center"><input id="nr" type="checkbox"> Pretend the model were more precise (±0.4 instead of ±2.1)</label>
+</div></details>
+</main>
+</div>
+
+<script>
+(function(){
+var $=function(i){return document.getElementById(i)},S={ph:6.1,ec:.064,nz:.1,tx:"loamy",nr:false,role:null,feed:[]};
+try{S.role=sessionStorage.getItem("pima-role")}catch(e){}
+var CL={sandy:4,loamy:18,clayey:38},CUT=[.6,1.1],MAX=3.5,BW=["lower than most","about typical","higher than most"];
+var NAV={farmer:[["farmer","My soil"],["about","About this check"]],researcher:[["evidence","Evidence"],["feed","Sensor feed"],["method","Method"]]};
+var T={farmer:["Your soil check","What your sensor and our estimate say about your soil."],about:["About this check","How to read the result."],evidence:["Evidence","How reliable the estimate is on soils the model has not seen."],feed:["Sensor feed","A simulated node sending readings to the model."],method:["Method","How the model was built and tested."]};
+function gs(){var u=1-Math.random(),v=Math.random();return Math.sqrt(-2*Math.log(u))*Math.cos(6.2832*v)}
+function pad(n){return(n<10?"0":"")+n}
+function tick(){var d=new Date(),r={t:pad(d.getHours())+":"+pad(d.getMinutes())+":"+pad(d.getSeconds()),ph:Math.min(9.5,Math.max(3.5,S.ph+gs()*S.nz*1.0)),ec:Math.max(0,S.ec+gs()*S.nz*.09)};S.feed.unshift(an(r));S.feed=S.feed.slice(0,6)}
+function an(r){var soc=Math.max(.1,.9+.1*(r.ph-6.1)+1.2*(r.ec-.064)+.02*(CL[S.tx]-10)),H=S.nr?.4:2.1,lo=Math.max(0,soc-H),hi=soc+H;
+var odd=r.ph<4.76||r.ph>8.26||r.ec<.02||r.ec>.32,x=CUT.filter(function(c){return c>lo&&c<hi}).length,b=soc<CUT[0]?0:soc<CUT[1]?1:2;
+r.soc=soc;r.lo=lo;r.hi=hi;r.b=b;r.odd=odd;r.cf=odd?"check":x>=2?"low":x==1?"mid":"high";return r}
+function ic(c){var p={check:"M12 7v6M12 16.5v.5",low:"M9 9a3 3 0 116 0c0 2-3 2-3 4M12 17v.5",mid:"M8 12h8",high:"M8 12l3 3 5-6"};return'<svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="11" fill="'+{check:"#C0463A",low:"#C0463A",mid:"#B27312",high:"#1E7A45"}[c]+'" stroke="none"/><path d="'+p[c]+'"/></svg>'}
+function phL(v){return v<5.5?["Acidic","s-a"]:v<6.5?["Slightly acidic","s-g"]:v<7.5?["About neutral","s-g"]:["Alkaline","s-a"]}
+function ecL(v){return v<.2?["Low","s-g"]:v<.4?["Moderate","s-a"]:["High","s-r"]}
+function render(){
+var r=S.feed[0];if(!r)return;
+$("o-ph").textContent=S.ph;$("o-ec").textContent=S.ec;$("o-nz").textContent=S.nz+" ×";
+var H={check:["One of your readings looks unusual.","Check that the sensor is clean and sitting in moist soil, then read again."],low:["We can’t tell how much carbon your soil holds.","Our estimate could be almost anywhere on this scale, so it is too uncertain to act on. Get a laboratory test before you decide."],mid:["Your soil carbon looks "+BW[r.b]+", but it is close to the edge.","A laboratory test would confirm it."],high:["Your soil carbon looks "+BW[r.b]+".","This estimate is fairly clear. A laboratory test is still the best way to confirm it."]}[r.cf];
+var lab={check:"Check your sensor",low:"Not sure",mid:"Somewhat sure",high:"Fairly sure"}[r.cf],n={check:1,low:1,mid:2,high:3}[r.cf];
+$("st").innerHTML=ic(r.cf)+lab+'<span class="dots">'+[1,2,3].map(function(i){return'<i'+(i<=n?' class="on"':'')+'></i>'}).join("")+"</span>";
+$("hl").textContent=H[0];$("hs").textContent=H[1];
+$("typ").style.left=CUT[0]/MAX*100+"%";$("typ").style.width=(CUT[1]-CUT[0])/MAX*100+"%";
+var rg=$("rng");rg.className="rng "+r.cf;rg.style.left=r.lo/MAX*100+"%";rg.style.width=Math.max(1,(Math.min(r.hi,MAX)-r.lo)/MAX*100)+"%";$("dot").style.left="calc("+Math.min(r.soc,MAX)/MAX*100+"% - 3px)";
+$("lu").textContent=r.t;
+var p=phL(r.ph),e=ecL(r.ec);
+$("ind").innerHTML=[["Soil carbon",r.cf==="low"||r.cf==="check"?"Not sure":BW[r.b],r.cf==="high"?"s-g":r.cf==="mid"?"s-a":"s-r","An estimate, not a reading"],["Acidity (pH)",r.ph.toFixed(1),p[1],p[0]+". Sensors can be off by about 0.3."],["Salt level",r.ec.toFixed(2)+" dS/m",e[1],e[0]],["Moisture and temperature","22% · 24 °C","s-g","Context only"]].map(function(c){return'<div class="ic"><span>'+c[0]+"</span><b>"+c[1]+"</b>"+(c[3]?'<em class="'+c[2]+'">'+c[3].split(". ")[0]+"</em>":"")+(c[3]&&c[3].indexOf(". ")>0?"<small>"+c[3].split(". ")[1]+"</small>":"")+"</div>"}).join("");
+var ST={check:["Clean the probe and push it into moist soil","Wait a minute and read again","If it still looks odd, test a sample in a laboratory"],low:["Take a soil sample for a laboratory test","Dig 0 to 20 cm at 5 to 8 spots across the field, mix them, and send about half a kilogram","Keep using the sensor for pH and salt, which it measures directly"],mid:["Confirm with a laboratory test before big decisions","Read again at a few spots and compare","Use the general practices below"],high:["Confirm with a laboratory test before big decisions","Read again at a few spots and compare","Use the general practices below"]}[r.cf];
+$("steps").innerHTML=ST.map(function(s){return"<li>"+s+"</li>"}).join("");
+$("gi").style.width=S.nz*100+"%";$("gi").style.background=S.nz<.5?"var(--g)":"var(--red)";$("gt").textContent="Tolerance 0.5 × · simulated noise "+S.nz+" ×";
+$("fb").innerHTML=S.feed.map(function(x){var c={check:"pr",low:"pr",mid:"pa",high:"pg"}[x.cf],l={check:"Check sensor",low:"Not sure",mid:"Somewhat sure",high:"Fairly sure"}[x.cf];return"<tr><td>"+x.t+"</td><td>"+x.ph.toFixed(2)+"</td><td>"+x.ec.toFixed(3)+"</td><td>"+x.soc.toFixed(2)+" ("+x.lo.toFixed(1)+" to "+x.hi.toFixed(1)+")</td><td><span class='pill "+c+"'>"+l+"</span></td></tr>"}).join("");
+}
+function route(){
+var h=location.hash.slice(1),ok=T[h];if(!S.role||!ok){if(S.role&&!ok){location.hash=NAV[S.role][0][0];return}h="login"}
+var inRole=h==="login"||NAV[S.role].some(function(n){return n[0]===h});
+$("s-login").hidden=h!=="login";$("app").hidden=h==="login";
+if(h==="login")return;
+["farmer","about","evidence","feed","method"].forEach(function(k){$("v-"+k).hidden=!(inRole&&h===k)});$("v-denied").hidden=inRole;
+$("pv").hidden=!inRole;$("rc").textContent=S.role==="farmer"?"Farmer":"Researcher";
+$("nav").innerHTML=NAV[S.role].map(function(n){return'<button data-p="'+n[0]+'"'+(n[0]===h?' aria-current="page"':"")+">"+n[1]+"</button>"}).join("");
+Array.prototype.forEach.call($("nav").children,function(b){b.onclick=function(){location.hash=b.dataset.p}});
+$("ttl").textContent=inRole?T[h][0]:"Not available";$("sbt").textContent=inRole?T[h][1]:"";$("sb").classList.remove("open");
+}
+function login(r){S.role=r;try{sessionStorage.setItem("pima-role",r)}catch(e){}location.hash=NAV[r][0][0];route()}
+
+$("out").onclick=function(){S.role=null;try{sessionStorage.removeItem("pima-role")}catch(e){}location.hash="login";route()};
+$("menu").onclick=function(){$("sb").classList.toggle("open")};
+[["ph","ph",1],["ec","ec",1],["nz","nz",1]].forEach(function(a){$(a[0]).addEventListener("input",function(){S[a[1]]=+this.value;tick();render()})});
+$("tx").addEventListener("change",function(){S.tx=this.value;tick();render()});$("nr").addEventListener("change",function(){S.nr=this.checked;tick();render()});
+var tab="farmer",LB={farmer:["Phone number or username","e.g. farmer"],researcher:["Username or email","e.g. researcher"]};
+function setTab(t){tab=t;["farmer","researcher"].forEach(function(k){$("t-"+k).setAttribute("aria-selected",k===t)});$("lbu").textContent=LB[t][0];$("un").placeholder=LB[t][1];$("er").hidden=true;$("hint").textContent="Demo account: username “"+t+"”, password “demo”."}
+$("t-farmer").onclick=function(){setTab("farmer")};$("t-researcher").onclick=function(){setTab("researcher")};
+$("sp").onclick=function(){var q=$("pw"),h=q.type==="password";q.type=h?"text":"password";this.textContent=h?"Hide":"Show";this.setAttribute("aria-label",h?"Hide password":"Show password")};
+$("lf").addEventListener("submit",function(e){e.preventDefault();var u=$("un").value.trim(),q=$("pw").value,er=$("er");
+if(!u||!q){er.textContent=!u&&!q?"Enter your username and password.":!u?"Enter your username.":"Enter your password.";er.hidden=false;return}
+if(u.toLowerCase()!==tab||q!=="demo"){er.textContent="That username or password does not match a "+tab+" account.";er.hidden=false;return}
+$("pw").value="";login(tab)});
+var LET=["A","B","C","D","F"],TW=["High","Good","Medium","Low","Very low"],TX=["This check has done well on new land. Still confirm with a laboratory test before big decisions.","This check is usually close on new land. Confirm big decisions with a laboratory test.","This check is sometimes close and sometimes far off on new land. Confirm important decisions with a test.","This check is often far off on land it has not seen. Treat it as a reminder to test, not as an answer.","This check cannot be trusted on new land. Use a laboratory test."];
+function gd(v,c,hi){for(var i=0;i<4;i++){if(hi?v>=c[i]:v<=c[i])return i}return 4}
+function grades(){var beat=(1.421-1.339)/1.421*100,D=[["Accuracy on new areas","R² 0.086",gd(.086,[.6,.4,.2,0],1),"A ≥ 0.6 · B ≥ 0.4 · C ≥ 0.2 · D ≥ 0"],["Random vs. spatial gap","0.252",gd(.252,[.05,.1,.2,.3],0),"A ≤ 0.05 · B ≤ 0.10 · C ≤ 0.20 · D ≤ 0.30"],["Beats the field average",beat.toFixed(1)+"% lower error",gd(beat,[30,20,10,.0001],1),"A ≥ 30% · B ≥ 20% · C ≥ 10% · D > 0"],["Sensor tolerance","0.5 × spread",gd(.5,[1,.75,.5,.25],1),"A ≥ 1.0 · B ≥ 0.75 · C ≥ 0.5 · D ≥ 0.25"],["Range honesty","88.8% vs 90%",gd(Math.abs(88.8-90),[1,2,5,10],0),"A ≤ 1 pt · B ≤ 2 · C ≤ 5 · D ≤ 10 off target"]],w=0;
+D.forEach(function(d){if(d[2]>w)w=d[2]});
+$("gr").innerHTML='<h3>Reliability grade</h3><p class="sub">How far the estimate can be trusted on soils the model has not seen</p><div class="ov"><span class="lt g'+w+'">'+LET[w]+'</span><div><b>'+TW[w]+' trust</b><p style="font-size:14px;color:var(--mt)">Overall grade is the weakest of the five checks below (weakest-link rule).</p></div></div><div class="gr">'+D.map(function(d){return'<div class="gc"><span class="lt g'+d[2]+'">'+LET[d[2]]+"</span><h4>"+d[0]+"</h4><b>"+d[1]+'</b><div class="gb">'+LET.map(function(l,i){return'<i class="g'+i+(i===d[2]?" on":"")+'">'+l+"</i>"}).join("")+"</div><small>"+d[3]+"</small></div>"}).join("")+'</div><p class="note">Proposed rubric. The thresholds are a design choice and need to be justified in the report.</p>';
+$("tm").innerHTML=[4,3,2,1,0].map(function(i){return'<span'+(i===w?' class="on g'+w+'"':"")+">"+TW[i]+"</span>"}).join("");
+$("tt").textContent=TX[w]}
+setTab("farmer");grades();
+window.addEventListener("hashchange",route);
+tick();render();setInterval(function(){tick();render()},3000);route();
+})();
+</script>
+</body>
+</html>

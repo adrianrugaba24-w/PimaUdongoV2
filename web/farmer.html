@@ -40,6 +40,9 @@
   .fields{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:14px}
   .field{display:flex;flex-direction:column;gap:4px}
   .lab{font-weight:600}
+  .row{display:flex;align-items:center;gap:10px}
+  .row input[type=range]{flex:1;padding:0;border:0;background:transparent;accent-color:var(--accent)}
+  .row input.exact{width:92px;text-align:right}
   input{font:inherit;padding:10px 12px;border:1px solid var(--line);border-radius:9px;
         background:var(--bg);color:var(--ink)}
   .hint{font-size:13px;color:var(--muted)}
@@ -57,6 +60,30 @@
   .ends{display:flex;justify-content:space-between;font-size:13px;color:var(--muted)}
   .step h3{margin:0 0 8px;font-size:17px}
   .step p{margin:0 0 10px}
+  .block h3{margin:0 0 8px;font-size:17px}
+  .block p{margin:0 0 10px}
+  .block ul,.block ol{margin:0 0 10px;padding-left:20px}
+  .block li{margin:0 0 7px}
+  .block li strong{display:block;font-weight:650}
+  .block .note{font-size:13px}
+  .choices{display:flex;flex-wrap:wrap;gap:8px;margin:12px 0 14px}
+  .choices button{font:inherit;font-size:14px;padding:9px 14px;border-radius:999px;
+    border:1px solid var(--line);background:var(--bg);color:var(--ink);cursor:pointer}
+  .choices button[aria-pressed="true"]{background:var(--accent);color:var(--accent-ink);
+    border-color:var(--accent)}
+  #crop-answer h4{margin:6px 0 8px;font-size:17px}
+  #crop-answer h5{margin:14px 0 6px;font-size:15px}
+  #crop-answer ul{margin:0;padding-left:20px}
+  #crop-answer li{margin:0 0 7px}
+  #crop-answer li strong{display:block;font-weight:650}
+  .drift{font-size:13px;color:var(--muted)}
+  #strip-compare h4{margin:14px 0 8px;font-size:17px}
+  .cmp{margin:0;padding-left:20px}
+  .cmp li{margin:0 0 7px}
+  .cmp li strong{display:block;font-weight:650}
+  #pair-answer h4{margin:14px 0 6px;font-size:17px}
+  #pair-answer h5{margin:12px 0 6px;font-size:15px}
+  #pair-answer p{margin:0 0 10px}
   footer{margin-top:26px;padding-top:14px;border-top:1px solid var(--line);
          display:flex;flex-wrap:wrap;gap:12px;align-items:center;font-size:14px;color:var(--muted)}
   footer a{color:var(--accent);font-weight:600}
@@ -73,23 +100,18 @@
 </header>
 
 <main id="main" aria-busy="true">
-  <div class="tabs" role="tablist" aria-label="Screens">
-    <button type="button" role="tab" id="tab-form" aria-selected="true">The soil test</button>
-    <button type="button" role="tab" id="tab-result" aria-selected="false">The answer</button>
-    <button type="button" role="tab" id="tab-sensor" aria-selected="false">My sensor</button>
-  </div>
-
-  <section id="screen-form" aria-labelledby="tab-form">
+  <section id="screen-form">
     <div class="card">
       <h2 id="form-title"></h2>
       <p class="note" id="form-hint"></p>
       <div class="fields" id="form-fields"></div>
+      <p class="note" id="form-start"></p>
       <button class="primary" id="go" type="button"></button>
     </div>
     <p class="note" id="explainer"></p>
   </section>
 
-  <section id="screen-result" hidden aria-labelledby="tab-result">
+  <section id="screen-result" hidden>
     <div class="card">
       <h2 id="r-headline"></h2>
       <p class="lead" id="r-sub"></p>
@@ -109,7 +131,51 @@
     </div>
   </section>
 
-  <section id="screen-sensor" hidden aria-labelledby="tab-sensor">
+  <section id="screen-guide" aria-live="polite">
+    <div id="guide-blocks"></div>
+  </section>
+
+  <section id="screen-crop" hidden>
+    <div class="card">
+      <h3 id="crop-title"></h3>
+      <p class="note" id="crop-lead"></p>
+      <div class="choices" id="crop-choices"></div>
+      <div id="crop-answer" aria-live="polite"></div>
+      <p class="note" id="crop-health"></p>
+    </div>
+  </section>
+
+  <section id="screen-strip">
+    <div class="card">
+      <h3 id="strip-title"></h3>
+      <p class="note" id="strip-lead"></p>
+      <div class="fields" id="strip-fields"></div>
+      <div class="field">
+        <label class="lab" for="strip-date" id="strip-date-label"></label>
+        <input type="date" id="strip-date">
+        <span class="hint" id="strip-date-hint"></span>
+      </div>
+      <div class="choices">
+        <button type="button" id="strip-save"></button>
+        <button type="button" id="strip-clear"></button>
+      </div>
+      <p class="note" id="strip-status"></p>
+      <div id="strip-compare" aria-live="polite"></div>
+      <p class="note" id="strip-note"></p>
+    </div>
+  </section>
+
+  <section id="screen-pairing">
+    <div class="card">
+      <h3 id="pair-title"></h3>
+      <p class="note" id="pair-lead"></p>
+      <p class="hint" id="pair-band-note"></p>
+      <div id="pair-fields"></div>
+      <div id="pair-answer" aria-live="polite"></div>
+    </div>
+  </section>
+
+  <section id="screen-sensor">
     <div class="card">
       <h2 id="s-title"></h2>
       <p class="lead" id="s-headline"></p>
@@ -134,6 +200,8 @@
 (function(){
   "use strict";
   var V = null;
+  var STORE = "pima.readings.v1";
+  var S = { crop: null, hist: [], bands: {} };
 
   function $(id){ return document.getElementById(id); }
   function esc(s){
@@ -147,11 +215,361 @@
     return isFinite(f) ? f.toFixed(dp === undefined ? 2 : dp) : "";
   }
 
-  function show(which){
-    ["form","result","sensor"].forEach(function(k){
-      $("screen-" + k).hidden = (k !== which);
-      $("tab-" + k).setAttribute("aria-selected", k === which ? "true" : "false");
+  // The guide is rendered from the payload, one block at a time.  The page
+  // decides which element a block gets, never what it says.
+  function el(tag, cls, text){
+    var e = document.createElement(tag);
+    if (cls) { e.className = cls; }
+    if (text !== null && text !== undefined && text !== "") {
+      e.textContent = text;
+    }
+    return e;
+  }
+
+  function drawBlock(b){
+    var card = el("div", "card block");
+    card.appendChild(el("h3", null, b.title));
+    if (b.intro) { card.appendChild(el("p", null, b.intro)); }
+    if (b.items && b.items.length) {
+      var list = el(b.kind === "steps" ? "ol" : "ul");
+      b.items.forEach(function(it){
+        var li = document.createElement("li");
+        if (it.name) { li.appendChild(el("strong", null, it.name)); }
+        li.appendChild(document.createTextNode(it.body || ""));
+        list.appendChild(li);
+      });
+      card.appendChild(list);
+    }
+    if (b.note) { card.appendChild(el("p", "note", b.note)); }
+    return card;
+  }
+
+  function drawGuide(){
+    var g = V.guide;
+    if (!g) { return; }
+    document.title = V.target.label;
+    var host = $("guide-blocks");
+    while (host.firstChild) { host.removeChild(host.firstChild); }
+    (g.blocks || []).forEach(function(b){ host.appendChild(drawBlock(b)); });
+  }
+
+  function drawCrop(){
+    var c = V.crop;
+    if (!c) { return; }
+    $("crop-title").textContent = c.title;
+    $("crop-lead").textContent = c.lead;
+    $("crop-health").textContent = c.health_note;
+    var host = $("crop-choices");
+    while (host.firstChild) { host.removeChild(host.firstChild); }
+    (c.options || []).forEach(function(o){
+      var b = el("button", null, o.button);
+      b.type = "button";
+      b.setAttribute("data-key", o.key);
+      b.setAttribute("aria-pressed", "false");
+      b.addEventListener("click", function(){ chooseCrop(o); });
+      host.appendChild(b);
     });
+    showCropIdle();
+  }
+
+  function showCropIdle(){
+    var box = $("crop-answer");
+    while (box.firstChild) { box.removeChild(box.firstChild); }
+    box.appendChild(el("p", "note", V.crop.idle));
+  }
+
+  function chooseCrop(o){
+    var box = $("crop-answer");
+    while (box.firstChild) { box.removeChild(box.firstChild); }
+    var btns = $("crop-choices").querySelectorAll("button");
+    for (var i = 0; i < btns.length; i++) {
+      btns[i].setAttribute("aria-pressed",
+        btns[i].getAttribute("data-key") === o.key ? "true" : "false");
+    }
+    S.crop = o.key;
+    drawPairAnswer();
+    box.appendChild(el("h4", null, o.name));
+    box.appendChild(el("p", null, o.reading));
+    box.appendChild(el("p", "note", o.step));
+    if (o.practices && o.practices.length) {
+      box.appendChild(el("h5", null, V.crop.practices_note));
+      var ul = document.createElement("ul");
+      o.practices.forEach(function(p){
+        var li = document.createElement("li");
+        li.appendChild(el("strong", null, p.name));
+        li.appendChild(document.createTextNode(p.body || ""));
+        ul.appendChild(li);
+      });
+      box.appendChild(ul);
+    }
+  }
+
+  // ---- the short end: readings kept on this device, and the pairing card ----
+  function trim(v){
+    var s = String(v);
+    if (s.indexOf(".") >= 0) { s = s.replace(/0+$/, "").replace(/\.$/, ""); }
+    return s;
+  }
+
+  function fmt(v){
+    return (typeof v === "number" && isFinite(v)) ? trim(num(v, 3)) : String(v);
+  }
+
+  function readStore(){
+    try {
+      var raw = localStorage.getItem(STORE);
+      var v = raw ? JSON.parse(raw) : [];
+      return (v && v.length) ? v : [];
+    } catch (e) { return []; }
+  }
+
+  function writeStore(list){
+    try { localStorage.setItem(STORE, JSON.stringify(list)); } catch (e) {}
+  }
+
+  function numberRow(x){
+    var wrap = el("div", "field");
+    wrap.appendChild(el("label", "lab", x.label));
+    var box = document.createElement("input");
+    box.type = "number";
+    box.step = "any";
+    box.setAttribute("data-track", x.key);
+    box.setAttribute("inputmode", "decimal");
+    box.setAttribute("aria-label", x.label);
+    wrap.appendChild(box);
+    wrap.appendChild(el("span", "hint", x.hint));
+    var dr = el("span", "drift", "");
+    dr.textContent = (x.drift === null || x.drift === undefined)
+      ? x.drift_words
+      : x.drift_words.split("{value}").join(trim(num(x.drift, 3)));
+    wrap.appendChild(dr);
+    return wrap;
+  }
+
+  function choiceRow(x){
+    var wrap = el("div", "field");
+    wrap.appendChild(el("label", "lab", x.label));
+    var row = el("div", "choices");
+    row.setAttribute("data-track", x.key);
+    (x.choices || []).forEach(function(c){
+      var b = el("button", null, c.label);
+      b.type = "button";
+      b.setAttribute("data-value", c.key);
+      b.setAttribute("aria-pressed", "false");
+      b.addEventListener("click", function(){ pressed(row, c.key); });
+      row.appendChild(b);
+    });
+    wrap.appendChild(row);
+    wrap.appendChild(el("span", "hint", x.hint));
+    wrap.appendChild(el("span", "drift", x.drift_words));
+    return wrap;
+  }
+
+  function pressed(row, key){
+    var btns = row.querySelectorAll("button");
+    for (var i = 0; i < btns.length; i++) {
+      btns[i].setAttribute("aria-pressed",
+        btns[i].getAttribute("data-value") === key ? "true" : "false");
+    }
+  }
+
+  function drawStrip(){
+    var t = V.strip;
+    if (!t) { return; }
+    $("strip-title").textContent = t.title;
+    $("strip-lead").textContent = t.lead;
+    $("strip-note").textContent = t.note;
+    $("strip-save").textContent = t.save;
+    $("strip-clear").textContent = t.clear;
+    $("strip-date-label").textContent = t.date_label;
+    $("strip-date-hint").textContent = t.date_hint;
+    if (!$("strip-date").value) {
+      $("strip-date").value = new Date().toISOString().slice(0, 10);
+    }
+    var host = $("strip-fields");
+    while (host.firstChild) { host.removeChild(host.firstChild); }
+    t.fields.forEach(function(x){
+      host.appendChild(x.kind === "choice" ? choiceRow(x) : numberRow(x));
+    });
+  }
+
+  function collectReading(){
+    var r = { date: $("strip-date").value };
+    var nums = $("strip-fields").querySelectorAll("input[data-track]");
+    for (var i = 0; i < nums.length; i++) {
+      var raw = String(nums[i].value).trim();
+      r[nums[i].getAttribute("data-track")] = raw === "" ? null : Number(raw);
+    }
+    var rows = $("strip-fields").querySelectorAll("div.choices[data-track]");
+    for (var j = 0; j < rows.length; j++) {
+      var on = rows[j].querySelector('button[aria-pressed="true"]');
+      r[rows[j].getAttribute("data-track")] =
+        on ? on.getAttribute("data-value") : null;
+    }
+    return r;
+  }
+
+  function saveReading(){
+    if (!V) { return; }
+    S.hist.push(collectReading());
+    if (S.hist.length > 12) { S.hist = S.hist.slice(S.hist.length - 12); }
+    writeStore(S.hist);
+    $("strip-status").textContent = V.strip.saved;
+    drawCompare();
+    drawPairAnswer();
+  }
+
+  function clearReadings(){
+    if (!V) { return; }
+    S.hist = [];
+    writeStore(S.hist);
+    var box = $("strip-compare");
+    while (box.firstChild) { box.removeChild(box.firstChild); }
+    $("strip-status").textContent = V.strip.empty;
+    drawPairAnswer();
+  }
+
+  function drawCompare(){
+    var box = $("strip-compare");
+    while (box.firstChild) { box.removeChild(box.firstChild); }
+    var t = V.strip;
+    if (!S.hist.length) { return; }
+    if (S.hist.length === 1) {
+      box.appendChild(el("p", "note", t.first));
+      return;
+    }
+    var now = S.hist[S.hist.length - 1];
+    var was = S.hist[S.hist.length - 2];
+    box.appendChild(el("h4", null, t.since));
+    var ul = document.createElement("ul");
+    ul.className = "cmp";
+    t.fields.forEach(function(x){
+      var a = was[x.key], b = now[x.key];
+      if (a === null || a === undefined || b === null || b === undefined) { return; }
+      var verdict;
+      if (x.kind === "choice") {
+        verdict = (a === b) ? t.still : t.moved;
+      } else if (x.drift === null || x.drift === undefined) {
+        verdict = x.drift_words;
+      } else {
+        verdict = (Math.abs(Number(b) - Number(a)) > x.drift) ? t.moved : t.still;
+      }
+      var li = document.createElement("li");
+      li.appendChild(el("strong", null, x.label));
+      li.appendChild(document.createTextNode(" " + verdict + " " +
+        t.value_template.split("{before}").join(fmt(a))
+                         .split("{now}").join(fmt(b))));
+      ul.appendChild(li);
+    });
+    box.appendChild(ul);
+  }
+
+  function lastReading(){
+    return S.hist.length ? S.hist[S.hist.length - 1] : null;
+  }
+
+  function fieldByKey(key){
+    var f = V.strip.fields;
+    for (var i = 0; i < f.length; i++) { if (f[i].key === key) { return f[i]; } }
+    return null;
+  }
+
+  function markOf(name){
+    var m = V.pairing.marks[name];
+    return (m === null || m === undefined) ? null : Number(m);
+  }
+
+  function condition(key){
+    var last = lastReading();
+    if (!last) { return null; }
+    var v = last[key];
+    if (v === null || v === undefined) { return null; }
+    if (key === "ph") {
+      var lo = markOf("ph_low"), hi = markOf("ph_high");
+      if (lo !== null && Number(v) < lo) { return "low"; }
+      if (hi !== null && Number(v) > hi) { return "high"; }
+      return "middle";
+    }
+    if (key === "ec") {
+      var top = markOf("ec_high");
+      if (top !== null && Number(v) > top) { return "high"; }
+      return "normal";
+    }
+    return String(v);
+  }
+
+  function chooseBand(row, nu, key){
+    pressed(row, key);
+    S.bands[nu] = key;
+    drawPairAnswer();
+  }
+
+  function drawPairing(){
+    var p = V.pairing;
+    if (!p) { return; }
+    $("pair-title").textContent = p.title;
+    $("pair-lead").textContent = p.lead;
+    $("pair-band-note").textContent = p.band_note + " " + p.marks.words;
+    var host = $("pair-fields");
+    while (host.firstChild) { host.removeChild(host.firstChild); }
+    p.nutrients.forEach(function(nu){
+      var wrap = el("div", "field");
+      wrap.appendChild(el("label", "lab", nu.label));
+      var row = el("div", "choices");
+      row.setAttribute("data-nutrient", nu.key);
+      p.bands.forEach(function(bd){
+        var b = el("button", null, bd.label);
+        b.type = "button";
+        b.setAttribute("data-value", bd.key);
+        b.setAttribute("aria-pressed",
+          S.bands[nu.key] === bd.key ? "true" : "false");
+        b.addEventListener("click", function(){ chooseBand(row, nu.key, bd.key); });
+        row.appendChild(b);
+      });
+      wrap.appendChild(row);
+      host.appendChild(wrap);
+    });
+  }
+
+  function drawPairAnswer(){
+    var p = V.pairing;
+    if (!p) { return; }
+    var box = $("pair-answer");
+    while (box.firstChild) { box.removeChild(box.firstChild); }
+    var any = false;
+    p.nutrients.forEach(function(nu){ if (S.bands[nu.key]) { any = true; } });
+    if (!any) { box.appendChild(el("p", "note", p.idle)); return; }
+    if (!lastReading()) { box.appendChild(el("p", "note", p.need_readings)); return; }
+
+    var rule = null;
+    for (var i = 0; i < p.rules.length; i++) {
+      var r = p.rules[i];
+      if (S.bands[r.needs.nutrient] !== r.needs.band) { continue; }
+      if (!fieldByKey(r.needs.reading)) { continue; }
+      if (condition(r.needs.reading) === r.needs.side) { rule = r; break; }
+    }
+    var out = rule || {
+      title: p.fallback.title, says: p.fallback.says,
+      ask: p.fallback.ask, practice: p.fallback.practice, horizon: null
+    };
+    box.appendChild(el("h4", null, out.title));
+    box.appendChild(el("p", null, out.says));
+    box.appendChild(el("h5", null, p.horizon_title));
+    box.appendChild(el("p", "note",
+      out.horizon ? (out.horizon[S.crop] || p.horizon_idle) : p.horizon_idle));
+    box.appendChild(el("h5", null, p.ask_label));
+    box.appendChild(el("p", null, out.ask));
+    if (out.practice) {
+      box.appendChild(el("h5", null, p.practice_label));
+      box.appendChild(el("p", null, out.practice));
+    }
+  }
+
+  function drawShort(){
+    drawStrip();
+    drawPairing();
+    drawCompare();
+    drawPairAnswer();
   }
 
   function drawChrome(){
@@ -166,21 +584,46 @@
     var f = V.form;
     $("form-title").textContent = f.title;
     $("form-hint").textContent = f.hint;
+    $("form-start").textContent = f.start_note || "";
     $("go").textContent = f.submit;
     var h = "";
     f.fields.forEach(function(x){
       var id = "in-" + x.name.replace(/[^A-Za-z0-9_-]/g, "_");
-      h += '<label class="field" for="' + id + '">' +
-           '<span class="lab">' + esc(x.label) + "</span>" +
-           '<input id="' + id + '" data-name="' + esc(x.name) + '" inputmode="decimal" ' +
-           'placeholder="' + esc(x.placeholder) + '"' +
-           (x.lowest === null || x.lowest === undefined ? "" : ' min="' + esc(x.lowest) + '"') +
-           (x.highest === null || x.highest === undefined ? "" : ' max="' + esc(x.highest) + '"') +
-           ' aria-describedby="hint-' + id + '">' +
+      var med = (x.placeholder === null || x.placeholder === undefined)
+        ? null : Number(x.placeholder);
+      var lo = x.lowest, hi = x.highest;
+      if (med !== null && isFinite(med)) {
+        lo = (lo === null || lo === undefined) ? med : Math.min(Number(lo), med);
+        hi = (hi === null || hi === undefined) ? med : Math.max(Number(hi), med);
+      }
+      var at = (med === null || !isFinite(med)) ? "" : med;
+      // One slider for the hand, one box for the laboratory figure.  Both
+      // carry the same value; only the slider is read when the answer is asked
+      // for, so a field can never be sent twice.
+      h += '<div class="field">' +
+           '<label class="lab" for="' + id + '">' + esc(x.label) + "</label>" +
+           '<span class="row">' +
+             '<input type="range" id="' + id + '" data-name="' + esc(x.name) + '" ' +
+             (lo === null || lo === undefined ? "" : 'min="' + esc(lo) + '" ') +
+             (hi === null || hi === undefined ? "" : 'max="' + esc(hi) + '" ') +
+             'step="any" value="' + esc(at) + '" aria-describedby="hint-' + id + '">' +
+             '<input type="number" class="exact" data-mirror="' + esc(x.name) + '" ' +
+             'inputmode="decimal" value="' + esc(at) + '" ' +
+             'aria-label="' + esc(x.label) + '">' +
+           '</span>' +
            '<span class="hint" id="hint-' + id + '">' + esc(x.hint) + "</span>" +
-           "</label>";
+           '</div>';
     });
     $("form-fields").innerHTML = h;
+    var ranges = $("form-fields").querySelectorAll("input[type=range]");
+    for (var i = 0; i < ranges.length; i++) {
+      (function(r){
+        var box = $("form-fields").querySelector(
+          'input[data-mirror="' + r.getAttribute("data-name") + '"]');
+        r.addEventListener("input", function(){ box.value = r.value; });
+        box.addEventListener("input", function(){ r.value = box.value; });
+      })(ranges[i]);
+    }
 
     var s = V.sensor;
     $("s-title").textContent = s.title;
@@ -200,6 +643,10 @@
       $("learn-title").textContent = l.title;
       $("learn-body").textContent = l.reason;
     }
+
+    drawGuide();
+    drawCrop();
+    drawShort();
   }
 
   function drawResult(){
@@ -219,8 +666,8 @@
       $("fill").style.left = b.low_pct + "%";
       $("fill").style.width = Math.max(0, b.high_pct - b.low_pct) + "%";
       $("pin").style.left = b.estimate_pct + "%";
-      $("end-low").textContent = num(b.low, 2) + " " + r.unit_words;
-      $("end-high").textContent = num(b.high, 2) + " " + r.unit_words;
+      $("end-low").textContent = b.low_words;
+      $("end-high").textContent = b.high_words;
       $("track").setAttribute("aria-label",
         b.aria_template
           .split("{low}").join(num(b.low, 2))
@@ -238,9 +685,9 @@
 
   function submit(){
     var vals = {};
-    var inputs = $("form-fields").querySelectorAll("input");
+    var inputs = $("form-fields").querySelectorAll("input[type=range]");
     for (var i = 0; i < inputs.length; i++) {
-      var raw = inputs[i].value.trim();
+      var raw = String(inputs[i].value).trim();
       if (raw === "") { inputs[i].focus(); return; }
       var v = Number(raw);
       if (!isFinite(v)) { inputs[i].focus(); return; }
@@ -254,21 +701,26 @@
     }).then(function(res){ return res.json(); }).then(function(j){
       V = j;
       drawResult();
-      show("result");
+      $("screen-result").hidden = false;
+      $("screen-crop").hidden = false;
+      S.crop = null;
+      drawCrop();
+      drawPairAnswer();
+      $("screen-result").scrollIntoView({ block: "start" });
     }).catch(function(){
       $("r-headline").textContent = V.failure.headline;
       $("r-sub").textContent = V.failure.sub;
-      show("result");
+      $("screen-result").hidden = false;
     }).then(function(){ $("go").disabled = false; });
   }
 
-  $("tab-form").addEventListener("click", function(){ show("form"); });
-  $("tab-result").addEventListener("click", function(){ show("result"); });
-  $("tab-sensor").addEventListener("click", function(){ show("sensor"); });
   $("go").addEventListener("click", submit);
+  $("strip-save").addEventListener("click", saveReading);
+  $("strip-clear").addEventListener("click", clearReadings);
 
   fetch("/api/farmer").then(function(res){ return res.json(); }).then(function(j){
     V = j;
+    S.hist = readStore();
     drawChrome();
     $("main").setAttribute("aria-busy", "false");
   });

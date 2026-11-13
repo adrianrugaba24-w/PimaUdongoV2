@@ -29,8 +29,11 @@ which reads it from a file.  Two figures are arithmetic on published fields
 (the position of the estimate inside the range bar) and the payload says so in
 `sources`.
 
-No advice, and no imperative verbs.  The "next step" is a statement about what
-would settle the question, not an instruction.
+No rates, and no product names.  The "next step" is a statement about what
+would settle the question.  The short-term card goes one step further and pairs
+a soil-test word with a reading, but it still never says how much of anything to
+put on a field: a figure like that would need a trial this project has not run,
+and the tool's own uncertainty is the reason it does not give one.
 """
 from __future__ import annotations
 
@@ -161,25 +164,209 @@ FAILURE = dict(
          "nothing was saved."),
 )
 
-# The entry gate.  It looks like a sign-in and behaves like a door: any name and
-# any password opens it, nothing is sent anywhere, nothing is stored and there is
-# no check.  The page says exactly that above the two buttons.
+# ---------------------------------------------------------------------------
+# The check, in the order a farmer needs it: what it says, how far to trust it,
+# what to do next, and what the words mean.  Every string here passes the same
+# banned-term scan as the result screen, so none of it can drift technical.
+#
+# Two deviations from the supplied layout, both because the page cannot honour
+# the original: moisture and temperature are not readings this tool receives,
+# so they are not shown as ones; and there is no sensor node, so nothing claims
+# a device produced these numbers.
+# ---------------------------------------------------------------------------
+
+TRUST = dict(
+    title="How much can you trust this check?",
+    body="Based on tests on soils the check had not seen before.",
+)
+
+GLANCE = dict(
+    title="Your soil at a glance",
+    lead="The readings you entered for this soil.",
+    note=("The check uses the acidity and salt readings and the share of clay, "
+          "silt and sand. It does not use moisture or temperature."),
+)
+
+LAB_DECISION = dict(
+    title="Should I get a laboratory test?",
+    lead="Yes, if any of these is true:",
+    items=[
+        "This check says it is not sure.",
+        "You are about to spend money on lime, compost or seed.",
+        "A reading looks unusual, or jumps around between readings.",
+        "Your crops are doing badly and you do not know why.",
+    ],
+)
+
+SAMPLING = dict(
+    title="How to take a good soil sample",
+    steps=[
+        "Use a clean spade or trowel. Clear away leaves and surface litter.",
+        "Dig a small hole about 20 cm deep and cut a thin slice from one side.",
+        ("Repeat at 5 to 8 spots across the field. Avoid paths, field edges "
+         "and places where compost or animals have been."),
+        "Mix the slices in a clean bucket and take about half a kilogram.",
+        ("Put it in a clean bag, label it with your name, field and date, and "
+         "take it to the laboratory soon."),
+    ],
+    note="General guidance. Confirm with your extension officer.",
+)
+
+READINGS_MEANING = dict(
+    title="What your readings mean",
+    items=[
+        dict(name="Acidity (pH)",
+             body=("How acidic or alkaline the soil is. Most crops grow best "
+                   "in slightly acidic to neutral soil. Very acidic or very "
+                   "alkaline soil can lock up nutrients.")),
+        dict(name="Salt level",
+             body=("How much dissolved salt is in the soil. Too much stops "
+                   "plants taking up water.")),
+    ],
+    note="Moisture and temperature are not used by this check.",
+)
+
+WHO_HELPS = dict(
+    title="Who can help",
+    items=[
+        "Your district agricultural officer",
+        "A local extension worker or farmer group",
+        "A university or research laboratory that tests soil",
+    ],
+    ask=("Ask which test suits your crop, and how to collect and send the "
+         "sample."),
+)
+
+PRACTICES = dict(
+    title="General practices that help soil carbon",
+    note="Not based on your reading.",
+    items=[
+        dict(key="residues", name="Leave crop residues on the field",
+             body="They feed the soil and hold moisture."),
+        dict(key="mulch", name="Mulch between rows",
+             body="It protects the surface from sun and rain."),
+        dict(key="rotation", name="Rotate with beans or groundnuts",
+             body="Their roots and leaves return carbon and nitrogen."),
+        dict(key="compost", name="Add compost or manure where you can",
+             body="It adds organic matter to the topsoil."),
+    ],
+    source_note="Sources to be added before wider use.",
+)
+
+ABOUT_CARBON = dict(
+    title="What is soil carbon?",
+    body=("The carbon held in your soil, mostly from plants and animals that "
+          "have broken down. More carbon usually means soil that holds water "
+          "and nutrients better."),
+)
+
+HOW_SURE = dict(
+    title="How sure are we?",
+    body=("We estimate carbon from your acidity and salt readings and the "
+          "texture of your soil. We tested it on soils it had never seen, and "
+          "it is often far off. So it tells you when it is not sure, and in "
+          "that case a laboratory test is the answer worth keeping."),
+)
+
+WHAT_IS_USED = dict(
+    title="What this check uses",
+    body=("The acidity and salt readings, and the share of clay, silt and sand "
+          "in your soil. Soil carbon cannot be read by a simple sensor, which "
+          "is why we estimate it."),
+)
+
+GUIDE_TAB = "Help and next steps"
+
+# ---------------------------------------------------------------------------
+# The crop question.  A crop cycle changes what a single reading can support,
+# not what the tool predicts: the estimate is the same either way.  Nothing
+# here rates the soil or names an input to buy, because neither the data nor
+# the reliability gate can carry that claim.
+# ---------------------------------------------------------------------------
+
+CROPS = dict(
+    title="What are you growing?",
+    lead=("The answer above is the same either way. What it means for your "
+          "next step is not."),
+    health_note=("This tool places carbon in our sample. It does not rate the "
+                 "soil, and it does not say which crop will do well."),
+    practices_note="General practices for this kind of crop, not based on your reading.",
+    options=[
+        dict(key="annual",
+             button="A crop I replant each season",
+             name="A crop replanted each season",
+             reading=("Each season starts again. One reading shows where this "
+                      "soil sits now; it cannot show whether the soil is "
+                      "getting better or worse. That needs the same field "
+                      "sampled again, at the same point in another season."),
+             step=("Take a laboratory sample before changing how the field is "
+                   "managed. One reading from this tool is not grounds for a "
+                   "change on its own."),
+             practices=["residues", "rotation"]),
+        dict(key="perennial",
+             button="A crop that stays for years",
+             name="A crop that stays in the ground for years",
+             reading=("A perennial holds the same soil for years, and that soil "
+                      "changes slowly. One reading is a starting point. The "
+                      "useful comparison is the same field, a year apart, "
+                      "sampled the same way."),
+             step=("Take a laboratory sample before a decision that is hard to "
+                   "undo, such as replanting. Keep the field name and the date "
+                   "so the next reading can be set against this one."),
+             practices=["mulch", "compost"]),
+        dict(key="mixed",
+             button="Both, on the same field",
+             name="Both, on one field",
+             reading=("Where two crops share a field, one reading stands for "
+                      "the whole field. It cannot separate the strips, so "
+                      "sample like for like if you measure again."),
+             step=("Take a laboratory sample for the part of the field you are "
+                   "about to change, rather than for the field as a whole."),
+             practices=["residues", "mulch", "rotation", "compost"]),
+    ],
+    idle="Choose one of the three. Nothing is sent until you do.",
+)
+
+
+# The entry gate.  It looks like a sign-in and, for the two accounts printed on
+# it, behaves like one: the demo name for a view and the word "demo".  Anything
+# else is refused, and the page prints what it accepts before anything is typed,
+# so the comparison is against a visible constant rather than a secret.  Nothing
+# typed is stored and nothing is sent anywhere.  (The farmer page does keep the
+# readings a farmer chooses to keep, in that browser only; this is about the
+# sign-in, and says so.)
 LOGIN = dict(
     label="Demo only",
-    title="Soil carbon demo",
-    lead="This tool gives one answer about the carbon in one soil sample.",
-    body=("This is a demonstration. Any name and any password will let you in. "
-          "Nothing is stored and no sign-in is checked."),
-    username_label="Name",
+    title="Pima",
+    lead="Sign in to check your soil.",
+    body=("This is a demonstration. The two demo accounts are printed under each "
+          "account type below and anything else is refused, so this is a "
+          "comparison against a visible name, not a real sign-in. What you type "
+          "here is not stored."),
+    note=("An account opens one of the two views. Both views also answer at "
+          "their own address, so the choice here decides where you land, not "
+          "what you may see."),
+    role_label="Account type",
     password_label="Password",
-    farmer_action="Sign in to the farmer view",
-    farmer_note=("One answer, one bar and one next step, with no technical "
-                 "words."),
+    show="Show",
+    hide="Hide",
+    demo_password="demo",
+    farmer_label="Farmer",
+    farmer_action="Open the farmer view",
+    farmer_username="Phone number or username",
+    farmer_placeholder="e.g. farmer",
+    farmer_hint='Demo account: username "farmer", password "demo".',
     farmer_href="/farmer",
-    researcher_action="Sign in to the researcher view",
-    researcher_note=("Every chart, table and number that sits behind that "
-                     "answer."),
+    researcher_label="Researcher",
+    researcher_action="Open the researcher view",
+    researcher_username="Username or email",
+    researcher_placeholder="e.g. researcher",
+    researcher_hint='Demo account: username "researcher", password "demo".',
     researcher_href="/researcher",
+    err_both="Enter your username and password.",
+    err_user="Enter your username.",
+    err_pass="Enter your password.",
+    err_wrong="That username or password does not match a {role} account.",
 )
 
 NAV = dict(back_to_farmer="Farmer",
@@ -204,6 +391,135 @@ FIELD_COPY = {
 }
 FALLBACK_FIELD = dict(label="A soil measurement",
                       hint="One of the numbers the tool needs.")
+
+
+# ---------------------------------------------------------------------------
+# The short end: readings taken now, and the soil test read beside them
+# ---------------------------------------------------------------------------
+# Two cards live here, and neither asks the tool for a new answer.
+#
+# The first keeps a reading per visit.  A single reading is a snapshot of one
+# day; a reading only becomes information about change when there is a second
+# one taken the same way to set it against.
+#
+# The second reads a soil-test word next to that reading.  It is the one place
+# on a farmer's screen where two measured things are deliberately put together,
+# so the rule it follows is written down here: it says what the two numbers mean
+# side by side, what to ask the laboratory, and one general practice.  It names
+# no quantity and no product.
+
+TRACK = dict(
+    title="Your readings over time",
+    lead=("One reading shows one day. The same field read again, the same way, "
+          "is what shows a change."),
+    note="These numbers stay in this browser. Nothing is sent to a server.",
+    save="Keep this reading",
+    clear="Forget the saved readings",
+    saved="Kept for this field.",
+    empty="No reading has been kept yet.",
+    first=("This is the first reading kept for this field. A second one, taken "
+           "the same way, is what it can be set against."),
+    since="Since the last saved reading",
+    value_template="was {before}, now {now}",
+    moved="has moved by more than the drift this tool was tested against.",
+    still="has not moved by more than that drift.",
+    date_label="The day the reading was taken",
+    date_hint="Two readings need two dates before they can be compared.",
+    drift_words="Half the usual spread of this reading in our sample: {value}.",
+    no_drift="The tool has no figure for how much a change here matters.",
+    choices=(dict(key="dry", label="Dry"),
+             dict(key="damp", label="Damp"),
+             dict(key="wet", label="Wet")),
+)
+
+TRACK_FIELDS = (
+    dict(key="ph", name="pH_H2O", label="Acidity", unit="", kind="number",
+         hint="The acidity number from your meter."),
+    dict(key="ec", name="EC", label="Salts", unit="dS/m", kind="number",
+         hint="The salt number from your meter."),
+    dict(key="moisture", name=None, label="Moisture", unit="", kind="choice",
+         hint=("How wet the soil was. The tool was not built on moisture, so "
+               "this one is compared as a word.")),
+)
+
+PAIRING = dict(
+    title="Your soil test and your readings together",
+    lead=("The soil test says what is in the soil. A reading says what state "
+          "the soil is in. The two say more side by side than either says "
+          "alone."),
+    band_note="Use the word your laboratory printed. Do not guess it.",
+    bands=(dict(key="low", label="Low"), dict(key="medium", label="Medium"),
+           dict(key="high", label="High")),
+    nutrients=(dict(key="n", label="Nitrogen"),
+               dict(key="p", label="Phosphorus"),
+               dict(key="k", label="Potassium")),
+    idle=("Choose a word for each number, and keep a reading above. The two "
+          "are then read together."),
+    need_readings=("Keep a reading above first. A soil test word on its own "
+                   "has nothing to be read against."),
+    marks_words=("Low means in the lowest tenth of the soils this tool was "
+                 "built on; high means in the highest tenth."),
+    horizon_title="What this means for your crop",
+    horizon_idle=("Say what you are growing above and this line changes with "
+                  "the answer."),
+    ask_label="What to ask",
+    practice_label="One practice that applies",
+)
+
+PAIR_FALLBACK = dict(
+    title="The soil test word and the reading do not disagree",
+    says=("None of the pairings below applies to these numbers. Nothing here "
+          "points to a shortage that the reading can confirm."),
+    ask="The next useful step is a second reading later, not another input.",
+    practice="Keep the crop residues on the field and keep reading the same soil.",
+)
+
+PAIR_RULES = (
+    dict(key="p_acid", nutrient="p", band="low", reading="ph", side="low",
+         title="Low phosphorus, acid soil",
+         says=("In acid soil phosphorus binds to the soil and stays bound. A "
+               "low phosphorus number can mean the soil is holding it, not "
+               "that it is missing."),
+         ask=("Ask the laboratory whether the acidity was measured on the "
+              "same sample."),
+         practice=("Compost and manure carry phosphorus in a form the soil "
+                   "holds less tightly than a bag of phosphorus does."),
+         annual=("A season passes before the acidity is settled, so the "
+                 "phosphorus put on this year may be held rather than taken "
+                 "up."),
+         perennial=("A perennial draws on the same soil for years, so the "
+                    "acidity is worth settling before planting rather than "
+                    "after."),
+         mixed=("Both on one field: the acidity question belongs to the whole "
+                "field, so settle it before any part is planted again.")),
+    dict(key="k_salty", nutrient="k", band="low", reading="ec", side="high",
+         title="Low potassium, salty soil",
+         says=("Potassium moves with the soil water. When the salt reading is "
+               "high, a low potassium number says as much about the water in "
+               "the soil as about the potassium."),
+         ask="Ask whether the sample was taken wet or dry, and on what date.",
+         practice="Crop residues left on the field return potassium as they break down.",
+         annual=("One season of residue is one season of potassium, so the "
+                 "reading is worth repeating before the next planting."),
+         perennial=("A perennial keeps the ground covered, and what falls under "
+                    "it keeps returning potassium to the surface."),
+         mixed=("Both on one field: the part under the perennial is the part "
+                "returning potassium, so read the two parts separately.")),
+    dict(key="n_dry", nutrient="n", band="low", reading="moisture", side="dry",
+         title="Low nitrogen, dry soil",
+         says=("Nitrogen in the topsoil only reaches the roots if there is "
+               "water to carry it. A low nitrogen number from dry soil "
+               "describes the day the sample was taken."),
+         ask=("Ask on what date the sample was taken, and take the next one in "
+              "the same month."),
+         practice="Mulch between rows to keep the surface from drying out.",
+         annual=("A replanted crop starts each season on whatever nitrogen the "
+                 "soil holds at that moment."),
+         perennial=("A perennial's roots reach deeper, but the surface still "
+                    "has to stay covered for nitrogen to build under it."),
+         mixed=("Both on one field: the surface is what dries first, so the "
+                "mulched part is the part worth reading again.")),
+)
 
 
 def _pct(value, lo, hi):
@@ -263,8 +579,173 @@ def _form(metrics: dict) -> dict:
         title="The soil test numbers",
         hint=("These are the numbers a soil test gives. The tool needs all of "
               "them, and reads them only for this one answer."),
+        # The sliders open at the middle of the sample the tool was built on,
+        # so the first answer needs no typing.  The sentence says so, because
+        # a starting point read as a reading is the one lie a slider can tell.
+        start_note=("The sliders start at the typical soil in our sample, not "
+                    "at your soil. Move them to the numbers on your soil test."),
         submit="Show the answer",
         fields=fields,
+    )
+
+
+def _block(title, kind="para", intro=None, items=None, note=None) -> dict:
+    """One section of the guide, in a shape the page can render blind.
+
+    `kind` tells the page which element to use: a paragraph, a bulleted list,
+    a numbered sequence of steps, or a list where each entry has a name.
+    """
+    return dict(
+        kind=kind,
+        title=title,
+        intro=intro,
+        items=[dict(name=i.get("name"), body=i["body"])
+               if isinstance(i, dict) else dict(name=None, body=i)
+               for i in (items or [])],
+        note=note,
+    )
+
+
+def _guide(metrics: dict) -> dict:
+    """
+    Everything below the answer, in the order a worried farmer reads it.
+
+    One list of blocks with one shape each, so the page renders whatever
+    arrives and writes none of it: title, an opening sentence, items, a closing
+    note.  A block with no items is a paragraph.
+    """
+    return dict(
+        tab=GUIDE_TAB,
+        blocks=[
+            _block(TRUST["title"], intro=TRUST["body"]),
+            _block(GLANCE["title"], intro=GLANCE["lead"],
+                   note=GLANCE["note"]),
+            _block(LAB_DECISION["title"], kind="list",
+                   intro=LAB_DECISION["lead"], items=LAB_DECISION["items"]),
+            _block(SAMPLING["title"], kind="steps", items=SAMPLING["steps"],
+                   note=SAMPLING["note"]),
+            _block(READINGS_MEANING["title"], kind="pairs",
+                   items=READINGS_MEANING["items"],
+                   note=READINGS_MEANING["note"]),
+            _block(WHO_HELPS["title"], kind="list", items=WHO_HELPS["items"],
+                   note=WHO_HELPS["ask"]),
+            _block(PRACTICES["title"], kind="pairs", intro=PRACTICES["note"],
+                   items=PRACTICES["items"], note=PRACTICES["source_note"]),
+            _block(ABOUT_CARBON["title"], intro=ABOUT_CARBON["body"]),
+            _block(HOW_SURE["title"], intro=HOW_SURE["body"]),
+            _block(WHAT_IS_USED["title"], intro=WHAT_IS_USED["body"]),
+        ],
+    )
+
+
+def _crop() -> dict:
+    """
+    The crop question, and what each answer changes.
+
+    The estimate is computed before this question is asked and is not touched
+    by it, so no answer here can move the number.  Each option carries what the
+    reading supports, the next step that follows, and the general practices
+    that apply to that kind of crop.
+    """
+    by_key = {i["key"]: i for i in PRACTICES["items"]}
+    options = []
+    for o in CROPS["options"]:
+        options.append(dict(
+            key=o["key"],
+            button=o["button"],
+            name=o["name"],
+            reading=o["reading"],
+            step=o["step"],
+            practices=[dict(name=by_key[k]["name"], body=by_key[k]["body"])
+                       for k in o["practices"] if k in by_key],
+        ))
+    return dict(
+        title=CROPS["title"],
+        lead=CROPS["lead"],
+        health_note=CROPS["health_note"],
+        practices_note=CROPS["practices_note"],
+        idle=CROPS["idle"],
+        options=options,
+    )
+
+
+def _strip(metrics: dict) -> dict:
+    """
+    The readings the farmer keeps, and how much of a change is a change.
+
+    The drift figure is half the spread of that reading in the training sample,
+    which is the point the sensor test already uses: past that much added drift
+    the reading stops carrying the answer.  It is arithmetic on `sd`, so a
+    bundle without an `sd` (or without the feature at all) yields no figure and
+    the card says exactly that rather than borrowing one from a neighbour.
+    Moisture is not an input of this build, so it never has a figure - it is
+    compared as a word, and the card says why.
+    """
+    by_name = {f.get("name"): f for f in metrics.get("features") or []}
+    fields = []
+    for spec in TRACK_FIELDS:
+        rng = ((by_name.get(spec["name"]) or {}).get("training_range") or {})
+        drift = None
+        try:
+            if rng.get("sd") is not None:
+                drift = round(float(rng["sd"]) / 2.0, 3)
+        except (TypeError, ValueError):
+            drift = None
+        fields.append(dict(
+            key=spec["key"], label=spec["label"], hint=spec["hint"],
+            unit=spec["unit"], kind=spec["kind"],
+            choices=([dict(c) for c in TRACK["choices"]]
+                     if spec["kind"] == "choice" else []),
+            drift=drift,
+            drift_words=(TRACK["drift_words"] if drift is not None
+                         else TRACK["no_drift"]),
+        ))
+    return dict(
+        title=TRACK["title"], lead=TRACK["lead"], note=TRACK["note"],
+        save=TRACK["save"], clear=TRACK["clear"], saved=TRACK["saved"],
+        empty=TRACK["empty"], first=TRACK["first"], since=TRACK["since"],
+        value_template=TRACK["value_template"], moved=TRACK["moved"],
+        still=TRACK["still"], date_label=TRACK["date_label"],
+        date_hint=TRACK["date_hint"], fields=fields,
+    )
+
+
+def _pairing(metrics: dict) -> dict:
+    """
+    A soil-test word read beside a reading.
+
+    The two marks that decide whether a reading counts as low or high are read
+    from the bundle's own sample percentiles, not chosen here, so the sentence
+    a farmer reads describes the soils the tool was built on and nothing wider.
+    The page picks the first rule whose word and reading both match; when none
+    matches it renders the fallback rather than inventing a verdict.
+    """
+    by_name = {f.get("name"): f for f in metrics.get("features") or []}
+
+    def mark(name, which):
+        rng = ((by_name.get(name) or {}).get("training_range") or {})
+        return rng.get(which)
+
+    return dict(
+        title=PAIRING["title"], lead=PAIRING["lead"],
+        band_note=PAIRING["band_note"],
+        bands=[dict(b) for b in PAIRING["bands"]],
+        nutrients=[dict(n) for n in PAIRING["nutrients"]],
+        idle=PAIRING["idle"], need_readings=PAIRING["need_readings"],
+        marks=dict(ph_low=mark("pH_H2O", "p5"), ph_high=mark("pH_H2O", "p95"),
+                   ec_high=mark("EC", "p95"), words=PAIRING["marks_words"]),
+        horizon_title=PAIRING["horizon_title"],
+        horizon_idle=PAIRING["horizon_idle"],
+        ask_label=PAIRING["ask_label"],
+        practice_label=PAIRING["practice_label"],
+        fallback=dict(PAIR_FALLBACK),
+        rules=[dict(key=r["key"], title=r["title"], says=r["says"],
+                    ask=r["ask"], practice=r["practice"],
+                    needs=dict(nutrient=r["nutrient"], band=r["band"],
+                               reading=r["reading"], side=r["side"]),
+                    horizon=dict(annual=r["annual"], perennial=r["perennial"],
+                                 mixed=r["mixed"]))
+               for r in PAIR_RULES],
     )
 
 
@@ -365,6 +846,11 @@ def _bar(metrics: dict, prediction: dict) -> dict | None:
         estimate_pct=_pct(float(est), scale_min, scale_max),
         caption=("The shaded part is the whole range we can defend. The line "
                  "is our single best answer."),
+        # The two ends of the bar, in words.  A farmer reads where the soil
+        # sits; the numbers travel in the spoken description below, not on the
+        # track, so the track carries one idea at a time.
+        low_words="Less carbon",
+        high_words="More carbon",
         # Spoken description, assembled by the page from these fragments so the
         # sentence itself is written and scanned here.
         aria_template=("Our range runs from {low} to {high} {unit}. "
@@ -429,11 +915,16 @@ def build(metrics: dict, prediction: dict | None = None) -> dict:
         ),
         nav=dict(NAV),
         form=_form(metrics),
+        strip=_strip(metrics),
+        pairing=_pairing(metrics),
         sensor=_sensor(metrics),
+        guide=_guide(metrics),
+        crop=_crop(),
         next_step=dict(NEXT_STEP),
         learn_more=dict(LEARN_MORE),
         failure=dict(FAILURE),
-        screens=["form", "result", "sensor"],
+        screens=["form", "result", "crop", "strip", "pairing", "sensor",
+                 "guide"],
         sources=dict(
             note=("Every number on this screen is read from the same files the "
                   "research view uses. Nothing here is typed into the page.")),

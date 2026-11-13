@@ -615,3 +615,223 @@ target and are printed as such. The target is named from `MI.target` ("Total car
 external request, no baked result literal, no banned vocabulary, and the placement is read from
 `band`. The page is also included in the all-pages C1/C2/C3 loop.
 
+## 16. The farmer check: the supplied layout, built
+
+`Pima_ soil carbon check.md` is the intended low-friction farmer interface. It is a *layout
+preview*, so its figures were placeholders; the layout and the reading order are what it fixes,
+and this section records how that order is served from real payload only.
+
+### 16.1 Shape
+
+One scrolling page, no tabs. In order: the soil test (five sliders), the answer card (headline,
+traffic light, track with **words** at the ends, caption, caveat), the next step, then ten guide
+blocks: how far to trust the check, your soil at a glance, should I get a laboratory test, how to
+take a good soil sample, what your readings mean, who can help, general practices (marked "Not
+based on your reading"), what is soil carbon, how sure are we, what this check uses. The sensor
+card closes the page; the footer keeps both links and the data notice.
+
+Once an answer arrives, a crop card appears between the next step and the guide. It asks one
+question with three buttons (replanted each season, stays for years, both on one field), and each
+answer changes what the reading supports, the next step, and which of the four general practices
+apply. The crop answer never re-runs the estimate and never produces a rating: `crop.health_note`
+says the tool places carbon in a sample and does not rate the soil.
+
+The track ends read "Less carbon" and "More carbon". The numbers moved into the spoken label,
+which is assembled from `bar.aria_template`, so a screen reader still hears the low, the high and
+the single best answer.
+
+### 16.2 Binding map (farmer)
+
+| Element | Source | If absent |
+| --- | --- | --- |
+| `#form-fields` | `form.fields[]`: label, hint, `lowest`, `highest`, `placeholder` (training median) | a field with no median starts empty and the slider cannot open |
+| `#form-start` | `form.start_note` | paragraph omitted |
+| `#light` | `result.light.icon` + `.words` | never absent; build() raises |
+| `#end-low`, `#end-high` | `bar.low_words`, `bar.high_words` | track hidden when `bar` is null |
+| `#guide-blocks` | `guide.blocks[]`: `kind` (`para`/`list`/`steps`/`pairs`), `title`, `intro`, `items[]`, `note` | section omitted |
+| `#crop-choices`, `#crop-answer` | `crop.options[]`: `button`, `name`, `reading`, `step`, `practices[]` | card stays hidden until a result exists |
+| `#crop-health` | `crop.health_note` | paragraph omitted |
+| `#s-value` | `sensor.value` else `sensor.low` | line left empty |
+
+Every guide string is built inside `farmer_view.build()` and therefore passes `_banned_guard`:
+a technical word in the guide fails the build, not just a test.
+
+### 16.3 Deviations from the supplied layout
+
+Three, each because the page cannot honour the original without inventing something:
+
+1. **No sensor readings.** The tool receives five typed or dragged numbers; there is no node, so
+   nothing is labelled "readings from your sensor".
+2. **Moisture and temperature are not shown as readings.** The guide says they are not used,
+   instead of displaying values no endpoint returns.
+3. **The sliders open at the sample's median**, and `form.start_note` says so in words. A
+   starting point that looked like a measurement would be the one lie a slider can tell.
+
+Two lines of the supplied copy are kept but are the only place this project departs from the
+ban on cost framing: "You are about to spend money on lime, compost or seed" (a trigger for
+paying a laboratory, not a claim about this tool) and the general practices list, which is
+carried under "Not based on your reading" and "Sources to be added before wider use".
+
+### 16.4 Tests
+
+`tests/test_farmer_view.py::TestGuide` — eight tests: the guide opens on trust, every block has a
+title and a shape, the laboratory decision has its four cases, sampling is a five-step numbered
+sequence, the practices block carries its two disclaimers, no block quotes a figure, the guide is
+inside the build scan, and the page is one page rather than four tabs.
+
+`TestCropQuestion` — nine tests: three cycles in a fixed order, each with a reading and a next
+step, the two cycles do not share their wording, each uses only the four practices already
+written, the health note says the tool does not rate the soil, no crop string carries a digit, no
+cycle names an input or promises an outcome, the card is hidden until an answer exists, and the
+page renders the cycles from the payload rather than writing them.
+
+---
+
+## 17. The short end: readings over time, and the soil test beside them
+
+Two cards sit between the crop question and the guide. Neither asks the tool for
+a new answer, and neither can move the carbon estimate.
+
+### 17.1 Readings over time
+
+Three readings are kept per field: acidity, salts and moisture, each with the
+date it was taken. The page keeps them in `localStorage` under one key
+(`pima.readings.v1`), never sends them, and never folds them into a request.
+Saving and clearing are the only two functions that touch the store, and a test
+asserts that neither contains `fetch(`.
+
+A second reading is compared with the one before it against a drift figure: half
+the spread of that reading in the training sample (`0.5 * sd`, from
+`feature_ranges`). That is the same point the sensor test already uses, past
+which added drift stops the reading carrying the answer. For the headline
+bundle the live figures are 0.508 pH units for acidity and 0.134 dS/m for salts.
+
+Moisture has no figure, because it is not an input of this build. The card says
+so and compares it as a word (dry, damp, wet) instead. A bundle without an `sd`
+also yields no figure; the card falls back to the same sentence rather than
+borrowing a number from a neighbouring input.
+
+### 17.2 The soil test beside a reading
+
+The farmer picks the word the laboratory printed for nitrogen, phosphorus and
+potassium (low, medium, high). No threshold is chosen in this project: the
+classification belongs to the laboratory that ran the sample.
+
+A rule fires when a soil-test word and a reading condition both hold:
+
+| key | word | reading condition | what it says |
+|---|---|---|---|
+| `p_acid` | phosphorus low | acidity below the sample 5th percentile | acid soil binds phosphorus, so a low number can mean held rather than missing |
+| `k_salty` | potassium low | salts above the 95th percentile | potassium moves with soil water, so the number partly describes the sampling day |
+| `n_dry` | nitrogen low | moisture recorded as dry | nitrogen needs water to reach roots, so the number describes the day it was taken |
+
+Each rule carries four things: what the pair means, what to ask the laboratory,
+one general practice, and a line for each crop cycle (replanted each season,
+stays for years, both on one field). The crop line is the only place the crop
+answer changes anything; it re-renders when a crop button is pressed and does not
+re-run the estimate. When nothing matches, the fallback says the two numbers do
+not disagree and points at a second reading rather than another input.
+
+### 17.3 What it deliberately does not say
+
+No rule names a quantity, a product or a rate. A test scans every rule string for
+a digit and for the verbs `apply`, `spread`, `increase`, `reduce`, `best` and
+`recommended`. The reason is in the numbers already on the page: spatial R2 is
+0.086, and the interval is 4.215 g/100 g wide against a sample sd of 1.40. A tool
+that cannot place one field inside its own interval has no basis for telling
+anyone how much of anything to put on it. What it can do is say what two
+measurements mean side by side, and what would settle the question.
+
+### 17.4 The storage rule changed
+
+The old rule was that the farmer page stored nothing. It now stores the readings
+a farmer chooses to keep, in that browser only, so the rule was rewritten to say
+what it actually protects: no credential is stored, and no reading ever becomes a
+request body. `LOGIN.body` moved from "Nothing is stored" to "What you type here
+is not stored", which is the true statement about the sign-in form.
+
+### 17.5 Tests
+
+`TestReadingStrip` - seven tests: the three readings in order, both sensor
+readings carry a drift figure, moisture says it has no figure and offers three
+words, the drift is half the `sd`, a bundle without one gets no figure, the card
+is inside the build scan, and the page has a place for each reading.
+
+`TestPairing` - nine tests: every rule pairs a nutrient word with a reading, no
+rule quotes a figure, no rule names what to apply, every rule speaks to all three
+crop cycles, every rule carries an ask and a practice, the marks come from the
+sample percentiles in order, the fallback still points somewhere, the card is
+inside the build scan, and the page picks the rule from the payload.
+
+`TestLogin` changed with 17.4: the storage ban now applies to the sign-in alone,
+and a new test holds the farmer page to one key with no path from it to a
+request.
+
+## 18. The entry gate (`web/login.html`, `GET /` and `GET /login`)
+
+Rebuilt from the supplied screen (`web/Pima_ soil carbon check.html`): a
+landscape behind one translucent panel, two account types on a tab strip, and a
+single door. It replaces the previous gate, which offered two buttons and
+checked nothing.
+
+### 18.1 What it is made of
+
+A fixed full-viewport panel over an inline SVG — sky gradient, four hill
+shapes — with no image file, no font and no script from outside the app. The
+backdrop is decoration and is hidden from assistive technology. The panel is a
+rounded card with a translucent green fill and a blur, so the landscape reads
+through it without ever competing with the text.
+
+Every sentence on the panel comes from `/api/login`: the demo badge, title,
+lead, tab labels, field labels, placeholders, hint, note and button text. Three
+strings are written into the page: the control name on the show/hide button, the
+standing notice under the panel, and the no-script fallback links.
+
+### 18.2 Two account types, one door
+
+The tabs are `role="tab"` buttons marked `type="button"`, so pressing one can
+never submit the form. Choosing a type swaps four things and nothing else: the
+username label (phone number or username, or username or email), its
+placeholder, the hint that prints that account's demo name and password, and
+the button text. Both types carry the same six payload fields — label, action,
+username, placeholder, hint, href — and a test fails if either is blank, so a
+missing key shows up as an empty control rather than an invented sentence.
+
+### 18.3 The check is printed, so it is not a hiding place
+
+This gate refuses what it does not recognise, which the previous one did not. It
+is only honest because what it checks against is printed on the page before
+anything is typed: the demo name for the chosen type and the word `demo`. The
+comparison runs in the browser against `demo_password` from the payload, the
+password field is cleared on both refusal and success, nothing is sent and
+nothing is stored. `LOGIN.body` says all of that, and `TestEntryGate` holds the
+hint and the check to the same word — if one changes without the other, the
+suite fails rather than the page lying quietly.
+
+Refusals are payload strings too: both fields empty, one field empty, and a
+mismatch whose message names the account type it wanted.
+
+### 18.4 What the panel no longer claims
+
+The supplied screen said "Farmer accounts cannot open researcher pages". No
+session exists in this app — the two views are separate addresses and either
+can be opened directly — so that sentence was replaced with one that is true: an
+account decides where you land, not what you may see. Enforcing the stronger
+claim would need a server-side session, which this demo does not have; a test
+fails if the word "cannot" returns to the note.
+
+### 18.5 Tests
+
+`TestLogin` keeps what survived the rebuild: the demo label, both destinations
+served, the two field labels in the markup, the ban on any request carrying what
+is typed, the ban on storage, the banner, the no-figure rule, and the payload's
+wording being rendered rather than written. Two tests were replaced rather than
+kept: "any name and any password will let you in" is no longer true, so it
+became "it prints the account it will accept"; and "no sign-in is checked"
+became "not a real sign-in".
+
+`TestEntryGate` — eight tests: both types carry six non-empty fields, the types
+share neither a name nor a destination, the tabs cannot submit, the password can
+be read back, every refusal is written in the payload, the refusal names the
+type it wanted, the printed password is the accepted one, and the page does not
+claim the views are walled off.

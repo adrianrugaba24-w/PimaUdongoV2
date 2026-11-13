@@ -100,7 +100,7 @@ def build_metrics(results: dict, meta: dict, *, supplement: dict | None = None,
             unit=(results.get("feature_units") or {}).get(name),
             group=FEATURE_GROUP,
             training_range=dict(p5=_f(rng.get("p5")), median=_f(rng.get("median")),
-                                p95=_f(rng.get("p95"))),
+                                p95=_f(rng.get("p95")), sd=_f(rng.get("sd"))),
             physical_bounds=(results.get("feature_bounds") or {}).get(name),
             perturbed_by_noise_sweep=True,
         ))
