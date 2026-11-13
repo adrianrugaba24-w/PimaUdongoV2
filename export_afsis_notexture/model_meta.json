@@ -1,0 +1,37 @@
+{
+ "model_version": "sha256:123a6d79f883e2b5",
+ "model_kind": "TransformedTargetRegressor",
+ "pipeline_steps": [
+  "impute",
+  "model"
+ ],
+ "feature_names": [
+  "pH_H2O",
+  "EC"
+ ],
+ "target_name": "Total carbon",
+ "target_units": "percent (g/100 g)",
+ "log_target": true,
+ "training_data_version": "afsis-2f-ddd215cc66b5",
+ "training_data_sha256": "ddd215cc66b517b305d777504e79bd694cbc8d020fd399fe6c325916790e8880",
+ "n_rows": 926,
+ "results_sha256": "d4b1530422ee09b4ded19d78d684b02bb929af52660c033feeb6a4616a5a1d53",
+ "model_params": {
+  "max_features": 0.5,
+  "min_samples_leaf": 3
+ },
+ "model_seed": 20261104,
+ "sklearn_version": "1.8.0",
+ "fitted_at_utc": "2026-11-12T09:04:04+00:00",
+ "feature_ablation": {
+  "dropped": [
+   "Clay percent",
+   "Sand percent",
+   "Silt percent"
+  ],
+  "remaining": [
+   "pH_H2O",
+   "EC"
+  ]
+ }
+}

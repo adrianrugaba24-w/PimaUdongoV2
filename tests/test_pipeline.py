@@ -479,3 +479,89 @@ class TestPipelineConstruction:
         X = np.array([[1.0, np.nan], [2.0, 3.0]])
         out = V._add_noise(X, np.array([1.0, 1.0]), 0.5, np.random.default_rng(0))
         assert np.isnan(out[0, 1]) and np.isfinite(out[0, 0])
+
+
+# ---------------------------------------------------------------------------
+# Feature ablation (the --drop-features flag)
+# ---------------------------------------------------------------------------
+
+class TestFeatureAblation:
+    """Dropping a feature is a different experiment, so it must be loud and exact.
+
+    The failure these guard against is a typo: 'Clay' must never pass quietly
+    where the column is 'Clay percent', or the run reports a number for an
+    experiment nobody ran.
+    """
+
+    def _schema(self):
+        s = A.Schema()
+        s.features = ["pH_H2O", "EC", "Clay percent", "Sand percent", "Silt percent"]
+        return s
+
+    def test_no_names_is_a_noop(self):
+        s = self._schema()
+        assert E.apply_feature_ablation(s, None) == []
+        assert len(s.features) == 5
+
+    def test_texture_ablation_leaves_two_features(self):
+        s = self._schema()
+        dropped = E.apply_feature_ablation(
+            s, ["Clay percent", "Sand percent", "Silt percent"])
+        assert dropped == ["Clay percent", "Sand percent", "Silt percent"]
+        assert s.features == ["pH_H2O", "EC"]
+
+    def test_unknown_name_raises_and_changes_nothing(self):
+        s = self._schema()
+        with pytest.raises(SystemExit, match="not features of this run"):
+            E.apply_feature_ablation(s, ["Clay"])
+        assert len(s.features) == 5
+
+    def test_cannot_ablate_down_to_one_feature(self):
+        s = self._schema()
+        with pytest.raises(SystemExit, match="at least 2"):
+            E.apply_feature_ablation(
+                s, ["Clay percent", "Sand percent", "Silt percent", "EC"])
+        assert len(s.features) == 5
+
+
+# ---------------------------------------------------------------------------
+# Systematic gain error (--gain-sweep)
+# ---------------------------------------------------------------------------
+
+class TestGainError:
+    """A gain error fails differently from noise, and the two must not be conflated."""
+
+    def test_gain_is_per_channel_and_constant_down_the_rows(self):
+        X = np.array([[1.0, 2.0], [1.0, 2.0]])
+        out = V._add_gain(X, np.array([2.0, 0.5]))
+        assert np.allclose(out, [[2.0, 1.0], [2.0, 1.0]])
+
+    def test_gain_preserves_missing_values(self):
+        X = np.array([[1.0, np.nan]])
+        out = V._add_gain(X, np.array([1.5, 1.5]))
+        assert np.isnan(out[0, 1]) and out[0, 0] == 1.5
+
+    def test_consistent_gain_is_absorbed_but_unlearned_drift_is_not(self, pipeline_inputs):
+        """A monotone per-channel factor can be learned; one applied only at
+        deployment cannot, and must show up in the score."""
+        p = pipeline_inputs
+        spec = V.model_specs()["random_forest"]
+        run = lambda **kw: V.run_cv(p["X"], p["y"], p["groups"], spec, "spatial", 0,
+                                    p["log_target"], params=spec.default_params,
+                                    tune=False, **kw)["metrics"]["rmse"]
+        base = run()
+        assert run(gain=0.5, arm="train_gain") == pytest.approx(base)
+        assert run(gain=0.5, arm="train_clean") > base
+
+    def test_sweep_emits_one_row_per_arm(self, pipeline_inputs):
+        """Every (gain x arm) cell needs its own row.  A nesting slip here once
+        collapsed both arms into one row and silently reported half the sweep."""
+        p = pipeline_inputs
+        rows = V.sweep(p["X"], p["y"], p["groups"],
+                       {"random_forest": V.model_specs()["random_forest"]},
+                       ["spatial"], [0], p["log_target"], {}, tune=False,
+                       label="gain_sweep", gains=[0.0, 0.5], arms=V.GAIN_ARMS)
+        assert len(rows) == 4
+        assert {r["arm"] for r in rows} == {"train_clean", "train_gain"}
+        assert {r["gain"] for r in rows} == {0.0, 0.5}
+        assert all(r["n_seeds"] == 1 for r in rows)

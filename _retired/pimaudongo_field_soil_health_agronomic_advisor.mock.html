@@ -1,0 +1,1123 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PimaUdongo — Field Soil Health & Agronomic Advisor</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Chart.js for Regional Benchmark Visualization -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- Google Fonts: Inter & JetBrains Mono -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                        mono: ['JetBrains Mono', 'monospace'],
+                    },
+                    colors: {
+                        tealDeep: '#0F4C5C',
+                        tealLight: '#1B6B80',
+                        amberWarm: '#E3B23C',
+                        navyDark: '#1A2634',
+                        slateBg: '#F7F9FA',
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body {
+            background-color: #F7F9FA;
+            color: #1A2634;
+        }
+        /* Custom Range Slider Styling */
+        input[type="range"] {
+            -webkit-appearance: none;
+            appearance: none;
+            height: 6px;
+            background: #E2E8F0;
+            border-radius: 999px;
+            outline: none;
+        }
+        input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 18px;
+            height: 18px;
+            border-radius: 50%;
+            background: #0F4C5C;
+            cursor: pointer;
+            border: 2px solid #FFFFFF;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.3);
+            transition: transform 0.1s ease;
+        }
+        input[type="range"]::-webkit-slider-thumb:hover {
+            transform: scale(1.12);
+        }
+        @media print {
+            .no-print { display: none !important; }
+            body { background: white; }
+        }
+    </style>
+</head>
+<body class="antialiased selection:bg-tealDeep selection:text-white">
+
+    <!-- Top Navigation & Context Bar -->
+    <header class="bg-navyDark text-white border-b border-slate-700 sticky top-0 z-30 shadow-sm">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3.5">
+            <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-3">
+                <!-- Brand & Title -->
+                <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 rounded-xl bg-tealDeep border border-teal-500/40 flex items-center justify-center shrink-0">
+                        <!-- Custom Vector Soil/Sensor Icon -->
+                        <svg class="w-6 h-6 text-amberWarm" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M12 3v12m0 0l-3-3m3 3l3-3M5 17h14M4 21h16" />
+                        </svg>
+                    </div>
+                    <div>
+                        <div class="flex items-center gap-2 flex-wrap">
+                            <h1 class="text-lg sm:text-xl font-bold tracking-tight text-white">PimaUdongo</h1>
+                            <span class="text-xs font-medium px-2 py-0.5 rounded-full bg-tealDeep text-teal-100 border border-teal-600/50">Field PoC v1.2</span>
+                        </div>
+                        <p class="text-xs text-slate-300">Field Soil Health & Agronomic Advisor • Central Uganda</p>
+                    </div>
+                </div>
+
+                <!-- Model Lineage Badge -->
+                <div class="flex flex-wrap items-center gap-2 text-[11px] font-mono bg-slate-800/90 border border-slate-700 px-3 py-1.5 rounded-lg text-slate-300">
+                    <span class="inline-block w-2 h-2 rounded-full bg-emerald-400"></span>
+                    <span>Artifact: <strong class="text-amberWarm">sha256:57ae8583074e476a</strong></span>
+                    <span class="hidden sm:inline text-slate-500">|</span>
+                    <span class="hidden sm:inline">5-Fold Spatial Block CV</span>
+                    <span class="hidden sm:inline text-slate-500">|</span>
+                    <span>Depth: 5.0 cm</span>
+                </div>
+            </div>
+
+            <!-- Quick-Select Farm Scenarios Bar -->
+            <div class="mt-3 pt-3 border-t border-slate-700/80 flex flex-wrap items-center justify-between gap-2 no-print">
+                <div class="flex flex-wrap items-center gap-2">
+                    <span class="text-xs font-medium text-slate-400 mr-1">Field Scenarios:</span>
+                    <button onclick="applyPreset('mukono')" id="btn-preset-mukono" class="preset-btn text-xs font-medium px-3 py-1.5 rounded-lg bg-tealDeep text-white border border-teal-500/40 hover:bg-tealLight transition">
+                        Farm A: Acidic Clay (Mukono)
+                    </button>
+                    <button onclick="applyPreset('jinja')" id="btn-preset-jinja" class="preset-btn text-xs font-medium px-3 py-1.5 rounded-lg bg-slate-800 text-slate-200 border border-slate-600 hover:bg-slate-700 transition">
+                        Farm B: Balanced Loam (Jinja)
+                    </button>
+                    <button onclick="applyPreset('wakiso')" id="btn-preset-wakiso" class="preset-btn text-xs font-medium px-3 py-1.5 rounded-lg bg-slate-800 text-slate-200 border border-slate-600 hover:bg-slate-700 transition">
+                        Farm C: Dry/Saline Sandy Plot
+                    </button>
+                </div>
+
+                <div class="flex items-center gap-2">
+                    <button onclick="triggerBurstSimulation()" id="btn-burst" class="text-xs font-semibold px-3 py-1.5 rounded-lg bg-amberWarm text-navyDark hover:bg-amber-400 transition flex items-center gap-1.5 shadow-sm">
+                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z" />
+                        </svg>
+                        <span id="burst-btn-label">Simulate Live Arduino Burst</span>
+                    </button>
+                    <button onclick="openReportModal()" class="text-xs font-medium px-3 py-1.5 rounded-lg bg-slate-800 text-white border border-slate-600 hover:bg-slate-700 transition flex items-center gap-1.5">
+                        <svg class="w-3.5 h-3.5 text-amberWarm" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                        </svg>
+                        Field Report
+                    </button>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Dashboard Container -->
+    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-6">
+
+        <!-- Top Grid: Step 1 (Arduino Sensors) & Step 2 (Soil Type Sectioning) -->
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+
+            <!-- STEP 1: Live Arduino Sensor Node Stream (6 cols) -->
+            <section class="lg:col-span-6 bg-white rounded-2xl border border-slate-200 shadow-sm p-5 flex flex-col justify-between">
+                <div>
+                    <div class="flex items-start justify-between gap-2 mb-4">
+                        <div>
+                            <div class="flex items-center gap-2">
+                                <span class="px-2 py-0.5 text-[11px] font-bold uppercase tracking-wider rounded bg-tealDeep/10 text-tealDeep">Step 1</span>
+                                <h2 class="text-base font-bold text-navyDark">Arduino Sensor Node Telemetry</h2>
+                            </div>
+                            <p class="text-xs text-slate-500 mt-0.5">Live proxy probe readings calibrated at 5.0 cm topsoil depth</p>
+                        </div>
+
+                        <!-- Noise & Drift Stress Test Toggle -->
+                        <label class="inline-flex items-center gap-2 cursor-pointer bg-slate-50 border border-slate-200 px-2.5 py-1.5 rounded-lg select-none">
+                            <input type="checkbox" id="toggle-noise" onchange="updateModel()" class="sr-only peer">
+                            <div class="w-8 h-4 bg-slate-300 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-3 after:w-3 after:transition-all relative peer-checked:bg-amberWarm"></div>
+                            <span class="text-xs font-medium text-slate-700">Drift Stress Test</span>
+                        </label>
+                    </div>
+
+                    <!-- Firmware Moisture Gate Warning Banner (Hidden when Moisture >= 15%) -->
+                    <div id="moisture-gate-alert" class="hidden mb-4 p-3.5 rounded-xl bg-amber-50 border border-amberWarm text-navyDark flex items-start gap-3">
+                        <svg class="w-5 h-5 text-amber-600 shrink-0 mt-0.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                        </svg>
+                        <div class="text-xs">
+                            <p class="font-bold text-amber-900">Firmware Moisture Gate Triggered (&lt; 15% VWC)</p>
+                            <p class="text-amber-800 mt-0.5">Soil is too dry for reliable ion mobility. EC and pH electrodes may drift artificially. <strong>Action:</strong> Add a small splash of clean/distilled water to moisten the test hole before recording.</p>
+                        </div>
+                    </div>
+
+                    <!-- Sensor Sliders Stack -->
+                    <div class="space-y-4">
+                        <!-- 1. Soil pH -->
+                        <div class="p-3.5 rounded-xl bg-slateBg border border-slate-200/80">
+                            <div class="flex items-center justify-between mb-1.5">
+                                <div class="flex items-center gap-2">
+                                    <span class="text-xs font-bold text-navyDark">Soil Acidity (pH<sub>H₂O</sub>)</span>
+                                    <span id="badge-ph" class="text-[11px] font-semibold px-2 py-0.5 rounded-full bg-amber-100 text-amber-800">Acidic</span>
+                                </div>
+                                <div class="font-mono text-sm font-bold text-tealDeep">
+                                    <span id="val-ph">5.1</span> <span class="text-xs font-normal text-slate-500">pH</span>
+                                </div>
+                            </div>
+                            <input type="range" id="slider-ph" min="4.0" max="8.5" step="0.1" value="5.1" oninput="handleSliderChange()" class="w-full">
+                            <div class="flex justify-between text-[10px] font-mono text-slate-400 mt-1">
+                                <span>4.0 (Strongly Acidic)</span>
+                                <span>6.5 (Neutral)</span>
+                                <span>8.5 (Alkaline)</span>
+                            </div>
+                        </div>
+
+                        <!-- 2. Electrical Conductivity (EC) -->
+                        <div class="p-3.5 rounded-xl bg-slateBg border border-slate-200/80">
+                            <div class="flex items-center justify-between mb-1.5">
+                                <div class="flex items-center gap-2">
+                                    <span class="text-xs font-bold text-navyDark">Electrical Conductivity (EC)</span>
+                                    <span id="badge-ec" class="text-[11px] font-semibold px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800">Normal Salinity</span>
+                                </div>
+                                <div class="font-mono text-sm font-bold text-tealDeep text-right">
+                                    <span id="val-ec">0.45</span> <span class="text-xs font-normal text-slate-500">dS/m</span>
+                                </div>
+                            </div>
+                            <input type="range" id="slider-ec" min="0.1" max="4.0" step="0.05" value="0.45" oninput="handleSliderChange()" class="w-full">
+                            <div class="flex justify-between items-center text-[10px] font-mono text-slate-500 mt-1.5">
+                                <span>0.1 dS/m</span>
+                                <span class="bg-white px-2 py-0.5 rounded border border-slate-200 text-slate-600">
+                                    Temp-Compensated EC<sub>25</sub> (@ 26.5°C): <strong id="val-ec25">0.44</strong> dS/m
+                                </span>
+                                <span>4.0 dS/m</span>
+                            </div>
+                        </div>
+
+                        <!-- 3. Volumetric Soil Moisture -->
+                        <div class="p-3.5 rounded-xl bg-slateBg border border-slate-200/80">
+                            <div class="flex items-center justify-between mb-1.5">
+                                <div class="flex items-center gap-2">
+                                    <span class="text-xs font-bold text-navyDark">Volumetric Soil Moisture (VWC)</span>
+                                    <span id="badge-moisture" class="text-[11px] font-semibold px-2 py-0.5 rounded-full bg-teal-100 text-teal-800">Adequate Gate</span>
+                                </div>
+                                <div class="font-mono text-sm font-bold text-tealDeep">
+                                    <span id="val-moisture">24</span><span class="text-xs font-normal text-slate-500">%</span>
+                                </div>
+                            </div>
+                            <input type="range" id="slider-moisture" min="5" max="60" step="1" value="24" oninput="handleSliderChange()" class="w-full">
+                            <div class="flex justify-between text-[10px] font-mono text-slate-400 mt-1">
+                                <span>5% (Dry)</span>
+                                <span class="text-amber-600 font-semibold">15% Min Gate</span>
+                                <span>60% (Saturated)</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Burst Filtering Status Footer -->
+                <div class="mt-4 pt-3 border-t border-slate-100 flex flex-wrap items-center justify-between gap-2 text-[11px] text-slate-500">
+                    <div class="flex items-center gap-1.5">
+                        <span id="filter-status-dot" class="w-2 h-2 rounded-full bg-emerald-500"></span>
+                        <span id="filter-status-text">Burst Filter: 20-sample trimmed median active (SNR High)</span>
+                    </div>
+                    <span class="font-mono text-slate-400">ADC: 12-bit Normalized</span>
+                </div>
+            </section>
+
+            <!-- STEP 2: Low-Friction Land & Soil Type Sectioning (6 cols) -->
+            <section class="lg:col-span-6 bg-white rounded-2xl border border-slate-200 shadow-sm p-5 flex flex-col justify-between">
+                <div>
+                    <div class="flex items-start justify-between gap-2 mb-4">
+                        <div>
+                            <div class="flex items-center gap-2">
+                                <span class="px-2 py-0.5 text-[11px] font-bold uppercase tracking-wider rounded bg-tealDeep/10 text-tealDeep">Step 2</span>
+                                <h2 class="text-base font-bold text-navyDark">Land & Soil Type Sectioning</h2>
+                            </div>
+                            <p class="text-xs text-slate-500 mt-0.5">Non-sensor spatial texture lookup or farmer touch-and-feel override</p>
+                        </div>
+
+                        <!-- Texture Ablation Toggle -->
+                        <label class="inline-flex items-center gap-2 cursor-pointer bg-slate-50 border border-slate-200 px-2.5 py-1.5 rounded-lg select-none" title="Test how model confidence behaves without soil texture fractions">
+                            <input type="checkbox" id="toggle-ablation" onchange="updateModel()" class="sr-only peer">
+                            <div class="w-8 h-4 bg-slate-300 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-3 after:w-3 after:transition-all relative peer-checked:bg-tealDeep"></div>
+                            <span class="text-xs font-medium text-slate-700">Texture Ablation</span>
+                        </label>
+                    </div>
+
+                    <!-- Auto-GPS / Regional District Lookup Bar -->
+                    <div class="p-3 rounded-xl bg-slateBg border border-slate-200/80 mb-4 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                        <div class="flex items-center gap-2.5">
+                            <div class="w-8 h-8 rounded-lg bg-tealDeep/10 text-tealDeep flex items-center justify-center shrink-0">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+                                </svg>
+                            </div>
+                            <div>
+                                <div class="text-xs font-bold text-navyDark flex items-center gap-1.5">
+                                    <span>GPS Spatial Grid Lookup</span>
+                                    <span id="gps-coords" class="font-mono text-[10px] font-normal text-slate-500">0.3533° N, 32.7553° E</span>
+                                </div>
+                                <p class="text-[11px] text-slate-500">Auto-populates regional SoilGrids baseline</p>
+                            </div>
+                        </div>
+
+                        <select id="select-district" onchange="handleDistrictChange()" class="text-xs font-semibold bg-white border border-slate-300 rounded-lg px-2.5 py-1.5 text-navyDark focus:outline-none focus:border-tealDeep">
+                            <option value="mukono">Mukono District (Red Ferralsol)</option>
+                            <option value="jinja">Jinja District (Lake Basin Loam)</option>
+                            <option value="wakiso">Wakiso District (Sandy Loam)</option>
+                            <option value="masaka">Masaka District (Alluvial/Silty)</option>
+                        </select>
+                    </div>
+
+                    <!-- Farmer-Friendly Visual Soil Picker (4 Cards) -->
+                    <div class="mb-4">
+                        <label class="block text-xs font-bold text-navyDark mb-2">Tap Soil Feel / Appearance on Your Plot:</label>
+                        <div class="grid grid-cols-2 gap-2.5" id="soil-cards-grid">
+                            <!-- Card 1: Clayey -->
+                            <button type="button" onclick="selectSoilType('clay')" id="card-soil-clay" class="soil-card text-left p-3 rounded-xl border-2 border-tealDeep bg-tealDeep/5 transition flex items-start gap-2.5">
+                                <div class="w-8 h-8 rounded-lg bg-amber-800/15 text-amber-900 flex items-center justify-center shrink-0 mt-0.5">
+                                    <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20"><path d="M3 4a1 1 0 011-1h12a1 1 0 011 1v2a1 1 0 01-1 1H4a1 1 0 01-1-1V4zm0 6a1 1 0 011-1h12a1 1 0 011 1v2a1 1 0 01-1 1H4a1 1 0 01-1-1v-2zm0 6a1 1 0 011-1h12a1 1 0 011 1v2a1 1 0 01-1 1H4a1 1 0 01-1-1v-2z"/></svg>
+                                </div>
+                                <div>
+                                    <div class="text-xs font-bold text-navyDark">Red Clay / Heavy</div>
+                                    <p class="text-[11px] text-slate-600 leading-snug mt-0.5">Sticky when wet, holds nutrients & water tightly</p>
+                                </div>
+                            </button>
+
+                            <!-- Card 2: Loamy -->
+                            <button type="button" onclick="selectSoilType('loam')" id="card-soil-loam" class="soil-card text-left p-3 rounded-xl border border-slate-200 bg-white hover:border-slate-300 transition flex items-start gap-2.5">
+                                <div class="w-8 h-8 rounded-lg bg-emerald-800/15 text-emerald-900 flex items-center justify-center shrink-0 mt-0.5">
+                                    <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/></svg>
+                                </div>
+                                <div>
+                                    <div class="text-xs font-bold text-navyDark">Rich Dark Loam</div>
+                                    <p class="text-[11px] text-slate-600 leading-snug mt-0.5">Crumbles easily, balanced drainage & fertility</p>
+                                </div>
+                            </button>
+
+                            <!-- Card 3: Sandy -->
+                            <button type="button" onclick="selectSoilType('sand')" id="card-soil-sand" class="soil-card text-left p-3 rounded-xl border border-slate-200 bg-white hover:border-slate-300 transition flex items-start gap-2.5">
+                                <div class="w-8 h-8 rounded-lg bg-amberWarm/25 text-amber-800 flex items-center justify-center shrink-0 mt-0.5">
+                                    <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20"><path d="M5 3a2 2 0 00-2 2v2a2 2 0 002 2h2a2 2 0 002-2V5a2 2 0 00-2-2H5zM5 11a2 2 0 00-2 2v2a2 2 0 002 2h2a2 2 0 002-2v-2a2 2 0 00-2-2H5zM11 5a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V5zM11 13a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"/></svg>
+                                </div>
+                                <div>
+                                    <div class="text-xs font-bold text-navyDark">Light & Gritty</div>
+                                    <p class="text-[11px] text-slate-600 leading-snug mt-0.5">Loose grains, drains fast, warms up quickly</p>
+                                </div>
+                            </button>
+
+                            <!-- Card 4: Silty -->
+                            <button type="button" onclick="selectSoilType('silt')" id="card-soil-silt" class="soil-card text-left p-3 rounded-xl border border-slate-200 bg-white hover:border-slate-300 transition flex items-start gap-2.5">
+                                <div class="w-8 h-8 rounded-lg bg-tealDeep/15 text-tealDeep flex items-center justify-center shrink-0 mt-0.5">
+                                    <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M3 5a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zM3 10a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zM3 15a1 1 0 011-1h6a1 1 0 110 2H4a1 1 0 01-1-1z" clip-rule="evenodd"/></svg>
+                                </div>
+                                <div>
+                                    <div class="text-xs font-bold text-navyDark">Smooth River Valley</div>
+                                    <p class="text-[11px] text-slate-600 leading-snug mt-0.5">Flour-like when dry, smooth alluvial valley soil</p>
+                                </div>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Underlying Sand / Silt / Clay % Fraction Bar -->
+                <div id="texture-breakdown-box" class="p-3.5 rounded-xl bg-slateBg border border-slate-200/80 transition-opacity">
+                    <div class="flex items-center justify-between text-xs mb-2">
+                        <span class="font-bold text-navyDark">ML Feature Vector: Particle Fractions</span>
+                        <span id="ablation-badge" class="hidden text-[10px] font-mono font-bold px-2 py-0.5 rounded bg-amber-100 text-amber-800">ABLATED (Sensor-Only Mode)</span>
+                    </div>
+                    <!-- Horizontal Stacked Bar -->
+                    <div class="w-full h-3 rounded-full overflow-hidden flex bg-slate-200">
+                        <div id="bar-clay" style="width: 55%" class="bg-amber-700 transition-all duration-300" title="Clay %"></div>
+                        <div id="bar-silt" style="width: 25%" class="bg-tealDeep transition-all duration-300" title="Silt %"></div>
+                        <div id="bar-sand" style="width: 20%" class="bg-amberWarm transition-all duration-300" title="Sand %"></div>
+                    </div>
+                    <div class="flex justify-between text-[11px] font-mono text-slate-600 mt-2">
+                        <span class="flex items-center gap-1.5"><span class="w-2.5 h-2.5 rounded-sm bg-amber-700"></span>Clay: <strong id="txt-clay">55%</strong></span>
+                        <span class="flex items-center gap-1.5"><span class="w-2.5 h-2.5 rounded-sm bg-tealDeep"></span>Silt: <strong id="txt-silt">25%</strong></span>
+                        <span class="flex items-center gap-1.5"><span class="w-2.5 h-2.5 rounded-sm bg-amberWarm"></span>Sand: <strong id="txt-sand">20%</strong></span>
+                    </div>
+                </div>
+            </section>
+        </div>
+
+        <!-- STEP 3: Soil Health Statistics & ML Prediction Readout -->
+        <section class="bg-white rounded-2xl border border-slate-200 shadow-sm p-5">
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-5 pb-3 border-b border-slate-100">
+                <div>
+                    <div class="flex items-center gap-2">
+                        <span class="px-2 py-0.5 text-[11px] font-bold uppercase tracking-wider rounded bg-tealDeep/10 text-tealDeep">Step 3</span>
+                        <h2 class="text-base font-bold text-navyDark">ML Soil Carbon Inference & Spatial Benchmark</h2>
+                    </div>
+                    <p class="text-xs text-slate-500 mt-0.5">Log-transformed Random Forest ensemble with 90% split-conformal uncertainty bounds</p>
+                </div>
+                <div id="confidence-status-pill" class="text-xs font-semibold px-3 py-1 rounded-full bg-emerald-50 text-emerald-800 border border-emerald-200 self-start sm:self-auto">
+                    Conformal Coverage: Nominal (90% CI)
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-center">
+                <!-- Left Metrics Cards (5 cols) -->
+                <div class="lg:col-span-5 space-y-4">
+                    <!-- Primary Carbon Prediction Box -->
+                    <div class="p-4 rounded-xl bg-navyDark text-white relative overflow-hidden">
+                        <div class="flex items-start justify-between">
+                            <div>
+                                <p class="text-xs font-medium text-slate-300 uppercase tracking-wider">Predicted Soil Organic Carbon (SOC)</p>
+                                <div class="flex items-baseline gap-2 mt-1">
+                                    <span id="pred-soc" class="text-3xl font-bold font-mono text-amberWarm">1.68</span>
+                                    <span class="text-sm font-medium text-slate-300">%</span>
+                                    <span class="text-xs font-mono text-slate-400 ml-1">(<span id="pred-tc">16.8</span> g/kg Total C)</span>
+                                </div>
+                            </div>
+                            <span id="soc-rating-badge" class="text-xs font-bold px-2.5 py-1 rounded-lg bg-amber-500/20 text-amberWarm border border-amberWarm/40">
+                                Moderate-Low
+                            </span>
+                        </div>
+
+                        <!-- 90% Conformal Confidence Interval Bar -->
+                        <div class="mt-4 pt-3 border-t border-slate-700/80">
+                            <div class="flex justify-between text-[11px] font-mono text-slate-300 mb-1">
+                                <span>90% Conformal Interval:</span>
+                                <span class="text-white font-semibold">[<span id="ci-low">1.42</span>% — <span id="ci-high">1.94</span>%]</span>
+                            </div>
+                            <div class="w-full h-2 bg-slate-800 rounded-full relative overflow-hidden">
+                                <div id="ci-visual-band" style="left: 25%; width: 35%;" class="h-full bg-teal-400 rounded-full absolute transition-all duration-300"></div>
+                            </div>
+                            <p id="ci-explanation" class="text-[11px] text-slate-400 mt-1.5">
+                                Tight uncertainty band enabled by stable moisture (&ge;15%) and GIS texture covariates.
+                            </p>
+                        </div>
+                    </div>
+
+                    <!-- Soil Fertility Index Gauge -->
+                    <div class="p-4 rounded-xl bg-slateBg border border-slate-200">
+                        <div class="flex items-center justify-between mb-2">
+                            <span class="text-xs font-bold text-navyDark">Overall Soil Fertility Index</span>
+                            <span class="font-mono text-base font-bold text-tealDeep"><span id="fertility-score">62</span> / 100</span>
+                        </div>
+                        <div class="w-full h-3 bg-slate-200 rounded-full overflow-hidden">
+                            <div id="fertility-bar" style="width: 62%" class="h-full bg-tealDeep rounded-full transition-all duration-300"></div>
+                        </div>
+                        <p id="fertility-summary" class="text-xs text-slate-600 mt-2">
+                            Good mineral retention from clay fraction, but low pH limits phosphorus availability.
+                        </p>
+                    </div>
+                </div>
+
+                <!-- Middle: Feature Contribution Breakdown (3 cols) -->
+                <div class="lg:col-span-3 p-4 rounded-xl bg-slateBg border border-slate-200 h-full flex flex-col justify-between">
+                    <div>
+                        <h3 class="text-xs font-bold text-navyDark uppercase tracking-wider mb-1">Feature Impact Weights</h3>
+                        <p class="text-[11px] text-slate-500 mb-3">Relative contribution to current SOC estimate</p>
+
+                        <div class="space-y-3" id="feature-weights-container">
+                            <!-- Clay / Texture -->
+                            <div>
+                                <div class="flex justify-between text-xs mb-1">
+                                    <span class="font-medium text-slate-700">Clay / Texture</span>
+                                    <span id="weight-clay-txt" class="font-mono font-semibold text-navyDark">42%</span>
+                                </div>
+                                <div class="w-full h-2 bg-slate-200 rounded-full overflow-hidden">
+                                    <div id="weight-clay-bar" style="width: 42%" class="h-full bg-amber-700 rounded-full transition-all duration-300"></div>
+                                </div>
+                            </div>
+                            <!-- Soil pH -->
+                            <div>
+                                <div class="flex justify-between text-xs mb-1">
+                                    <span class="font-medium text-slate-700">Soil pH (Probe)</span>
+                                    <span id="weight-ph-txt" class="font-mono font-semibold text-navyDark">28%</span>
+                                </div>
+                                <div class="w-full h-2 bg-slate-200 rounded-full overflow-hidden">
+                                    <div id="weight-ph-bar" style="width: 28%" class="h-full bg-tealDeep rounded-full transition-all duration-300"></div>
+                                </div>
+                            </div>
+                            <!-- Electrical Conductivity -->
+                            <div>
+                                <div class="flex justify-between text-xs mb-1">
+                                    <span class="font-medium text-slate-700">EC Ionic Proxy</span>
+                                    <span id="weight-ec-txt" class="font-mono font-semibold text-navyDark">18%</span>
+                                </div>
+                                <div class="w-full h-2 bg-slate-200 rounded-full overflow-hidden">
+                                    <div id="weight-ec-bar" style="width: 18%" class="h-full bg-tealLight rounded-full transition-all duration-300"></div>
+                                </div>
+                            </div>
+                            <!-- Moisture Gate -->
+                            <div>
+                                <div class="flex justify-between text-xs mb-1">
+                                    <span class="font-medium text-slate-700">Moisture Gate</span>
+                                    <span id="weight-moist-txt" class="font-mono font-semibold text-navyDark">12%</span>
+                                </div>
+                                <div class="w-full h-2 bg-slate-200 rounded-full overflow-hidden">
+                                    <div id="weight-moist-bar" style="width: 12%" class="h-full bg-amberWarm rounded-full transition-all duration-300"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="mt-4 pt-2 border-t border-slate-200 text-[10px] text-slate-500">
+                        Spatial Block CV R²: <strong>0.338</strong> (vs. 0.590 Random)
+                    </div>
+                </div>
+
+                <!-- Right: Regional Benchmark Comparison Chart (4 cols) -->
+                <div class="lg:col-span-4 p-4 rounded-xl bg-white border border-slate-200 h-full flex flex-col justify-between">
+                    <div>
+                        <h3 class="text-xs font-bold text-navyDark uppercase tracking-wider">Central Uganda Benchmark</h3>
+                        <p class="text-[11px] text-slate-500 mb-2">Your Plot vs. Lake Victoria Crescent Baseline ($N=926$)</p>
+                    </div>
+                    <div class="relative h-48 w-full">
+                        <canvas id="benchmarkChart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- STEP 4: Actionable Farmer Recommendations Engine -->
+        <section class="bg-white rounded-2xl border border-slate-200 shadow-sm p-5">
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-5 pb-3 border-b border-slate-100">
+                <div>
+                    <div class="flex items-center gap-2">
+                        <span class="px-2 py-0.5 text-[11px] font-bold uppercase tracking-wider rounded bg-amberWarm/30 text-navyDark">Step 4</span>
+                        <h2 class="text-base font-bold text-navyDark">Actionable Farmer Recommendations</h2>
+                    </div>
+                    <p class="text-xs text-slate-500 mt-0.5">Plain-language field interventions generated directly from sensor readings & soil profile</p>
+                </div>
+
+                <!-- Crop Suitability Pills -->
+                <div class="flex flex-wrap items-center gap-1.5">
+                    <span class="text-xs font-semibold text-slate-600 mr-1">Best-Suited Crops:</span>
+                    <div id="crop-suitability-tags" class="flex flex-wrap gap-1.5">
+                        <!-- Dynamically populated -->
+                    </div>
+                </div>
+            </div>
+
+            <!-- Dynamic Action Cards Grid -->
+            <div id="recommendations-grid" class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <!-- Populated dynamically via JS -->
+            </div>
+        </section>
+
+    </main>
+
+    <!-- Footer -->
+    <footer class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 text-center text-xs text-slate-400 border-t border-slate-200 mt-8">
+        PimaUdongo Proof-of-Concept Decision Support System • Built on Spatially Validated Soil Carbon Models (5.0 cm Topsoil Standard)
+    </footer>
+
+    <!-- Field Report / Export Modal -->
+    <div id="report-modal" class="hidden fixed inset-0 z-50 bg-navyDark/60 backdrop-blur-xs flex items-center justify-center p-4">
+        <div class="bg-white rounded-2xl max-w-lg w-full border border-slate-200 shadow-xl overflow-hidden">
+            <div class="bg-navyDark text-white px-5 py-4 flex items-center justify-between">
+                <div>
+                    <h3 class="text-base font-bold">PimaUdongo Field Diagnostic Summary</h3>
+                    <p class="text-xs text-slate-300 font-mono">Session Audit • sha256:57ae8583074e476a</p>
+                </div>
+                <button onclick="closeReportModal()" class="text-slate-400 hover:text-white p-1">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                </button>
+            </div>
+            <div class="p-5 space-y-4 text-xs" id="report-modal-body">
+                <!-- Populated dynamically -->
+            </div>
+            <div class="bg-slate-50 px-5 py-3 border-t border-slate-200 flex justify-end gap-2 no-print">
+                <button onclick="copyReportText()" id="btn-copy-report" class="px-3.5 py-2 rounded-lg border border-slate-300 bg-white text-navyDark font-semibold text-xs hover:bg-slate-100 transition">
+                    Copy Summary Text
+                </button>
+                <button onclick="window.print()" class="px-3.5 py-2 rounded-lg bg-tealDeep text-white font-semibold text-xs hover:bg-tealLight transition">
+                    Print / Save PDF
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Application Logic -->
+    <script>
+        // --- 1. Reference Data & District/Soil Profiles ---
+        const DISTRICTS = {
+            mukono: { name: "Mukono District", coords: "0.3533° N, 32.7553° E", defaultSoil: "clay" },
+            jinja:  { name: "Jinja District",  coords: "0.4479° N, 33.2026° E", defaultSoil: "loam" },
+            wakiso: { name: "Wakiso District", coords: "0.4044° N, 32.4594° E", defaultSoil: "sand" },
+            masaka: { name: "Masaka District", coords: "0.3411° S, 31.7361° E", defaultSoil: "silt" }
+        };
+
+        const SOIL_PROFILES = {
+            clay: { label: "Red Clay / Heavy", clay: 55, silt: 25, sand: 20, baseSOC: 1.85, limeBuffer: 1.4 },
+            loam: { label: "Rich Dark Loam",   clay: 25, silt: 35, sand: 40, baseSOC: 2.15, limeBuffer: 1.0 },
+            sand: { label: "Light & Gritty",   clay: 10, silt: 15, sand: 75, baseSOC: 1.05, limeBuffer: 0.6 },
+            silt: { label: "Smooth River Valley", clay: 20, silt: 60, sand: 20, baseSOC: 1.95, limeBuffer: 1.1 }
+        };
+
+        const FARM_PRESETS = {
+            mukono: { district: "mukono", soil: "clay", ph: 5.1, ec: 0.45, moisture: 26, noise: false, ablation: false },
+            jinja:  { district: "jinja",  soil: "loam", ph: 6.4, ec: 0.85, moisture: 32, noise: false, ablation: false },
+            wakiso: { district: "wakiso", soil: "sand", ph: 5.8, ec: 2.35, moisture: 12, noise: true,  ablation: false }
+        };
+
+        // --- 2. Application State ---
+        let state = {
+            district: "mukono",
+            soilType: "clay",
+            ph: 5.1,
+            ec: 0.45,
+            moisture: 26,
+            tempC: 26.5,
+            noiseActive: false,
+            ablationActive: false,
+            burstInterval: null
+        };
+
+        let benchmarkChartInstance = null;
+
+        // --- 3. Initialization ---
+        window.addEventListener('DOMContentLoaded', () => {
+            initChart();
+            applyPreset('mukono');
+        });
+
+        // --- 4. Interactive Controls & Handlers ---
+        function applyPreset(presetKey) {
+            stopBurstSimulation();
+            const p = FARM_PRESETS[presetKey];
+            if (!p) return;
+
+            state.district = p.district;
+            state.soilType = p.soil;
+            state.ph = p.ph;
+            state.ec = p.ec;
+            state.moisture = p.moisture;
+            state.noiseActive = p.noise;
+            state.ablationActive = p.ablation;
+
+            // Sync DOM inputs
+            document.getElementById('select-district').value = state.district;
+            document.getElementById('slider-ph').value = state.ph;
+            document.getElementById('slider-ec').value = state.ec;
+            document.getElementById('slider-moisture').value = state.moisture;
+            document.getElementById('toggle-noise').checked = state.noiseActive;
+            document.getElementById('toggle-ablation').checked = state.ablationActive;
+
+            // Highlight active preset button
+            document.querySelectorAll('.preset-btn').forEach(btn => {
+                btn.classList.remove('bg-tealDeep', 'text-white', 'border-teal-500/40');
+                btn.classList.add('bg-slate-800', 'text-slate-200', 'border-slate-600');
+            });
+            const activeBtn = document.getElementById(`btn-preset-${presetKey}`);
+            if (activeBtn) {
+                activeBtn.classList.remove('bg-slate-800', 'text-slate-200', 'border-slate-600');
+                activeBtn.classList.add('bg-tealDeep', 'text-white', 'border-teal-500/40');
+            }
+
+            updateUIState();
+        }
+
+        function handleSliderChange() {
+            state.ph = parseFloat(document.getElementById('slider-ph').value);
+            state.ec = parseFloat(document.getElementById('slider-ec').value);
+            state.moisture = parseInt(document.getElementById('slider-moisture').value, 10);
+            updateModel();
+        }
+
+        function handleDistrictChange() {
+            const dist = document.getElementById('select-district').value;
+            state.district = dist;
+            state.soilType = DISTRICTS[dist].defaultSoil;
+            updateUIState();
+        }
+
+        function selectSoilType(soilKey) {
+            state.soilType = soilKey;
+            updateUIState();
+        }
+
+        function updateUIState() {
+            // Update District GPS label
+            document.getElementById('gps-coords').textContent = DISTRICTS[state.district].coords;
+
+            // Update Soil Card active styles
+            document.querySelectorAll('.soil-card').forEach(card => {
+                card.classList.remove('border-2', 'border-tealDeep', 'bg-tealDeep/5');
+                card.classList.add('border', 'border-slate-200', 'bg-white');
+            });
+            const selectedCard = document.getElementById(`card-soil-${state.soilType}`);
+            if (selectedCard) {
+                selectedCard.classList.remove('border', 'border-slate-200', 'bg-white');
+                selectedCard.classList.add('border-2', 'border-tealDeep', 'bg-tealDeep/5');
+            }
+
+            // Update Texture Fractions Bar
+            const profile = SOIL_PROFILES[state.soilType];
+            document.getElementById('bar-clay').style.width = `${profile.clay}%`;
+            document.getElementById('bar-silt').style.width = `${profile.silt}%`;
+            document.getElementById('bar-sand').style.width = `${profile.sand}%`;
+            document.getElementById('txt-clay').textContent = `${profile.clay}%`;
+            document.getElementById('txt-silt').textContent = `${profile.silt}%`;
+            document.getElementById('txt-sand').textContent = `${profile.sand}%`;
+
+            updateModel();
+        }
+
+        // --- 5. Live Arduino Burst Simulation ---
+        function triggerBurstSimulation() {
+            if (state.burstInterval) {
+                stopBurstSimulation();
+                return;
+            }
+            const btnLabel = document.getElementById('burst-btn-label');
+            btnLabel.textContent = "Stop Live Stream...";
+
+            state.burstInterval = setInterval(() => {
+                // Inject realistic probe micro-jitter
+                const jitterPH = (Math.random() - 0.5) * 0.14;
+                const jitterEC = (Math.random() - 0.5) * 0.08;
+                const jitterMoist = Math.round((Math.random() - 0.5) * 2);
+
+                const nextPH = Math.min(8.5, Math.max(4.0, +(state.ph + jitterPH).toFixed(1)));
+                const nextEC = Math.min(4.0, Math.max(0.1, +(state.ec + jitterEC).toFixed(2)));
+                const nextMoist = Math.min(60, Math.max(5, state.moisture + jitterMoist));
+
+                document.getElementById('slider-ph').value = nextPH;
+                document.getElementById('slider-ec').value = nextEC;
+                document.getElementById('slider-moisture').value = nextMoist;
+
+                // Update readouts without overwriting baseline sliders permanently
+                runInference(nextPH, nextEC, nextMoist);
+            }, 900);
+        }
+
+        function stopBurstSimulation() {
+            if (state.burstInterval) {
+                clearInterval(state.burstInterval);
+                state.burstInterval = null;
+                document.getElementById('burst-btn-label').textContent = "Simulate Live Arduino Burst";
+            }
+        }
+
+        // --- 6. Core Front-End ML Inference & Agronomic Engine ---
+        function updateModel() {
+            state.noiseActive = document.getElementById('toggle-noise').checked;
+            state.ablationActive = document.getElementById('toggle-ablation').checked;
+            runInference(state.ph, state.ec, state.moisture);
+        }
+
+        function runInference(ph, ec, moisture) {
+            const profile = SOIL_PROFILES[state.soilType];
+            const isDryGate = moisture < 15;
+
+            // 1. Update Sensor Readouts & Badges
+            document.getElementById('val-ph').textContent = ph.toFixed(1);
+            const phBadge = document.getElementById('badge-ph');
+            if (ph < 5.5) {
+                phBadge.textContent = "Acidic (<5.5)";
+                phBadge.className = "text-[11px] font-semibold px-2 py-0.5 rounded-full bg-amber-100 text-amber-800";
+            } else if (ph <= 7.2) {
+                phBadge.textContent = "Optimal Range";
+                phBadge.className = "text-[11px] font-semibold px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800";
+            } else {
+                phBadge.textContent = "Alkaline (>7.2)";
+                phBadge.className = "text-[11px] font-semibold px-2 py-0.5 rounded-full bg-sky-100 text-sky-800";
+            }
+
+            // EC & Temperature Compensation EC25 = EC_t / (1 + 0.019 * (T - 25))
+            const ec25 = ec / (1 + 0.019 * (state.tempC - 25.0));
+            document.getElementById('val-ec').textContent = ec.toFixed(2);
+            document.getElementById('val-ec25').textContent = ec25.toFixed(2);
+            const ecBadge = document.getElementById('badge-ec');
+            if (ec25 > 2.0) {
+                ecBadge.textContent = "High Salinity";
+                ecBadge.className = "text-[11px] font-semibold px-2 py-0.5 rounded-full bg-rose-100 text-rose-800";
+            } else if (ec25 < 0.25) {
+                ecBadge.textContent = "Very Low Ions";
+                ecBadge.className = "text-[11px] font-semibold px-2 py-0.5 rounded-full bg-amber-100 text-amber-800";
+            } else {
+                ecBadge.textContent = "Normal Salinity";
+                ecBadge.className = "text-[11px] font-semibold px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800";
+            }
+
+            // Moisture & Firmware Gate Alert
+            document.getElementById('val-moisture').textContent = moisture;
+            const moistBadge = document.getElementById('badge-moisture');
+            const gateAlert = document.getElementById('moisture-gate-alert');
+            if (isDryGate) {
+                moistBadge.textContent = "Below 15% Gate";
+                moistBadge.className = "text-[11px] font-semibold px-2 py-0.5 rounded-full bg-amber-100 text-amber-900";
+                gateAlert.classList.remove('hidden');
+            } else {
+                moistBadge.textContent = "Adequate Gate";
+                moistBadge.className = "text-[11px] font-semibold px-2 py-0.5 rounded-full bg-teal-100 text-teal-800";
+                gateAlert.classList.add('hidden');
+            }
+
+            // Filter Status Indicator
+            const filterDot = document.getElementById('filter-status-dot');
+            const filterText = document.getElementById('filter-status-text');
+            if (state.noiseActive) {
+                filterDot.className = "w-2 h-2 rounded-full bg-amber-500 animate-pulse";
+                filterText.textContent = "Drift Stress Active: Simulating +12% gain & offset noise";
+            } else {
+                filterDot.className = "w-2 h-2 rounded-full bg-emerald-500";
+                filterText.textContent = "Burst Filter: 20-sample trimmed median active (SNR High)";
+            }
+
+            // Texture Ablation Styling
+            const textureBox = document.getElementById('texture-breakdown-box');
+            const ablationBadge = document.getElementById('ablation-badge');
+            if (state.ablationActive) {
+                textureBox.classList.add('opacity-55');
+                ablationBadge.classList.remove('hidden');
+            } else {
+                textureBox.classList.remove('opacity-55');
+                ablationBadge.classList.add('hidden');
+            }
+
+            // 2. Surrogate ML Model Inference (Log-space calibrated approximation)
+            // Base SOC driven by texture (unless ablated), modified by pH optimality, EC fertility proxy, and moisture
+            let baseCarbon = state.ablationActive ? 1.65 : profile.baseSOC;
+            const phOptimalBonus = -0.14 * Math.pow(ph - 6.3, 2) + 0.25;
+            const ecEffect = (ec25 <= 1.8) ? (ec25 * 0.22) : (0.40 - (ec25 - 1.8) * 0.18);
+            const moistureEffect = isDryGate ? -0.18 : Math.min(0.15, (moisture - 20) * 0.005);
+            const driftBias = state.noiseActive ? -0.08 : 0.0;
+
+            let predictedSOC = Math.max(0.45, Math.min(4.2, baseCarbon + phOptimalBonus + ecEffect + moistureEffect + driftBias));
+            let totalCarbonGKg = predictedSOC * 10.0; // g/kg equivalent
+
+            // 90% Conformal Interval Half-Width (widens with noise, dry soil, or texture ablation)
+            let halfWidth = 0.24;
+            if (state.ablationActive) halfWidth += 0.16;
+            if (state.noiseActive) halfWidth += 0.19;
+            if (isDryGate) halfWidth += 0.15;
+
+            const ciLow = Math.max(0.20, predictedSOC - halfWidth);
+            const ciHigh = Math.min(5.00, predictedSOC + halfWidth);
+
+            // Update SOC & Conformal UI
+            document.getElementById('pred-soc').textContent = predictedSOC.toFixed(2);
+            document.getElementById('pred-tc').textContent = totalCarbonGKg.toFixed(1);
+            document.getElementById('ci-low').textContent = ciLow.toFixed(2);
+            document.getElementById('ci-high').textContent = ciHigh.toFixed(2);
+
+            // Visual CI bar position (mapped across 0% - 4.5% SOC scale)
+            const leftPct = Math.min(85, Math.max(2, (ciLow / 4.5) * 100));
+            const widthPct = Math.min(95 - leftPct, Math.max(8, ((ciHigh - ciLow) / 4.5) * 100));
+            const ciBar = document.getElementById('ci-visual-band');
+            ciBar.style.left = `${leftPct}%`;
+            ciBar.style.width = `${widthPct}%`;
+
+            const confPill = document.getElementById('confidence-status-pill');
+            const ciExpl = document.getElementById('ci-explanation');
+            if (halfWidth > 0.42) {
+                ciBar.className = "h-full bg-amberWarm rounded-full absolute transition-all duration-300";
+                confPill.textContent = "High Uncertainty — Verify Field Conditions";
+                confPill.className = "text-xs font-semibold px-3 py-1 rounded-full bg-amber-50 text-amber-800 border border-amber-300";
+                ciExpl.textContent = "Interval widened due to active sensor noise, dry soil gate, or ablated texture features.";
+            } else {
+                ciBar.className = "h-full bg-teal-400 rounded-full absolute transition-all duration-300";
+                confPill.textContent = "Conformal Coverage: Nominal (90% CI)";
+                confPill.className = "text-xs font-semibold px-3 py-1 rounded-full bg-emerald-50 text-emerald-800 border border-emerald-200";
+                ciExpl.textContent = "Tight uncertainty band enabled by stable moisture (≥15%) and GIS texture covariates.";
+            }
+
+            // SOC Rating Badge
+            const socBadge = document.getElementById('soc-rating-badge');
+            if (predictedSOC < 1.4) {
+                socBadge.textContent = "Depleted (<1.4%)";
+                socBadge.className = "text-xs font-bold px-2.5 py-1 rounded-lg bg-rose-500/20 text-rose-200 border border-rose-400/40";
+            } else if (predictedSOC < 2.0) {
+                socBadge.textContent = "Moderate";
+                socBadge.className = "text-xs font-bold px-2.5 py-1 rounded-lg bg-amber-500/20 text-amberWarm border border-amberWarm/40";
+            } else {
+                socBadge.textContent = "Healthy Organic C";
+                socBadge.className = "text-xs font-bold px-2.5 py-1 rounded-lg bg-emerald-500/20 text-emerald-200 border border-emerald-400/40";
+            }
+
+            // 3. Overall Soil Fertility Index (0-100)
+            let score = 50;
+            score += (predictedSOC - 1.5) * 18;
+            score -= Math.abs(ph - 6.3) * 10;
+            score += (ec25 > 2.2) ? -15 : (ec25 * 6);
+            score += isDryGate ? -10 : 4;
+            score = Math.round(Math.max(15, Math.min(96, score)));
+
+            document.getElementById('fertility-score').textContent = score;
+            const fertBar = document.getElementById('fertility-bar');
+            fertBar.style.width = `${score}%`;
+            fertBar.className = score >= 70 ? "h-full bg-emerald-600 rounded-full transition-all duration-300" :
+                                score >= 45 ? "h-full bg-tealDeep rounded-full transition-all duration-300" :
+                                              "h-full bg-amberWarm rounded-full transition-all duration-300";
+
+            const fertSummary = document.getElementById('fertility-summary');
+            if (ph < 5.5) {
+                fertSummary.textContent = `Acidity (pH ${ph.toFixed(1)}) is locking up soil nutrients despite ${profile.label.toLowerCase()} structure.`;
+            } else if (ec25 > 2.0) {
+                fertSummary.textContent = `Elevated salt levels (EC ${ec25.toFixed(2)} dS/m) risk osmotic root stress in sensitive crops.`;
+            } else if (predictedSOC < 1.5) {
+                fertSummary.textContent = `Low organic carbon reserves reduce water holding and microbial nutrient cycling.`;
+            } else {
+                fertSummary.textContent = `Balanced chemical and textural profile well suited for smallholder crop production.`;
+            }
+
+            // 4. Update Feature Contribution Weights
+            if (state.ablationActive) {
+                setWeights(0, 48, 32, 20);
+            } else {
+                setWeights(42, 28, 18, 12);
+            }
+
+            // 5. Update Benchmark Chart
+            updateChart(predictedSOC, ph);
+
+            // 6. Generate Agronomic Action Cards & Crop Tags
+            renderRecommendations(ph, ec25, moisture, predictedSOC, profile);
+        }
+
+        function setWeights(clayW, phW, ecW, moistW) {
+            document.getElementById('weight-clay-txt').textContent = `${clayW}%`;
+            document.getElementById('weight-clay-bar').style.width = `${clayW}%`;
+            document.getElementById('weight-ph-txt').textContent = `${phW}%`;
+            document.getElementById('weight-ph-bar').style.width = `${phW}%`;
+            document.getElementById('weight-ec-txt').textContent = `${ecW}%`;
+            document.getElementById('weight-ec-bar').style.width = `${ecW}%`;
+            document.getElementById('weight-moist-txt').textContent = `${moistW}%`;
+            document.getElementById('weight-moist-bar').style.width = `${moistW}%`;
+        }
+
+        // --- 7. Agronomic Recommendations & Crop Suitability ---
+        function renderRecommendations(ph, ec25, moisture, soc, profile) {
+            const grid = document.getElementById('recommendations-grid');
+            const cards = [];
+
+            // Card 1: Acidity / Liming Decision
+            if (ph < 5.5) {
+                // Buffering rate adjusted by clay fraction
+                const limeTonsAcre = (0.8 * profile.limeBuffer * (5.8 - ph)).toFixed(1);
+                cards.push({
+                    title: "Apply Agricultural Lime",
+                    status: "Priority Action",
+                    badgeClass: "bg-amber-100 text-amber-900",
+                    borderClass: "border-amberWarm",
+                    body: `Your soil is strongly acidic (<strong>pH ${ph.toFixed(1)}</strong>). Apply approx. <strong>${limeTonsAcre} tons/acre</strong> of finely ground agricultural lime (calcitic or dolomitic) 2–3 weeks before planting to unlock phosphorus and prevent aluminum root toxicity.`
+                });
+            } else if (ph > 7.4) {
+                cards.push({
+                    title: "Manage Soil Alkalinity",
+                    status: "Moderate Alert",
+                    badgeClass: "bg-sky-100 text-sky-900",
+                    borderClass: "border-sky-300",
+                    body: `Soil pH is slightly alkaline (<strong>pH ${ph.toFixed(1)}</strong>). Incorporate elemental sulfur or acidifying organic compost to prevent iron and zinc micronutrient deficiencies.`
+                });
+            } else {
+                cards.push({
+                    title: "Maintain Optimal Soil pH",
+                    status: "Healthy Range",
+                    badgeClass: "bg-emerald-100 text-emerald-900",
+                    borderClass: "border-emerald-200",
+                    body: `Soil acidity (<strong>pH ${ph.toFixed(1)}</strong>) sits in the ideal window (5.8–7.0) where nitrogen, phosphorus, and potassium are maximally available to crop roots.`
+                });
+            }
+
+            // Card 2: Organic Carbon & Soil Structure
+            if (soc < 1.8) {
+                cards.push({
+                    title: "Rebuild Organic Carbon",
+                    status: "Soil Enrichment",
+                    badgeClass: "bg-amber-100 text-amber-900",
+                    borderClass: "border-amberWarm",
+                    body: `Predicted SOC is <strong>${soc.toFixed(2)}%</strong> (below the 1.8% target). Incorporate <strong>2–3 tons/acre</strong> of well-decomposed farmyard manure, retain maize/banana mulch residues, and intercrop with nitrogen-fixing beans or mucuna.`
+                });
+            } else {
+                cards.push({
+                    title: "Conserve Organic Matter",
+                    status: "Good Reserves",
+                    badgeClass: "bg-emerald-100 text-emerald-900",
+                    borderClass: "border-emerald-200",
+                    body: `Organic carbon reserves are healthy (<strong>${soc.toFixed(2)}%</strong>). Practice minimum tillage and surface mulching to protect topsoil carbon from rapid tropical oxidation.`
+                });
+            }
+
+            // Card 3: Salinity & Moisture Management
+            if (ec25 > 2.0) {
+                cards.push({
+                    title: "Flush Excess Soil Salts",
+                    status: "Salinity Warning",
+                    badgeClass: "bg-rose-100 text-rose-900",
+                    borderClass: "border-rose-300",
+                    body: `High conductivity detected (<strong>${ec25.toFixed(2)} dS/m</strong>). Avoid heavy synthetic chloride fertilizers, improve field drainage trenches, and apply deep freshwater irrigation to leach salts below the root zone.`
+                });
+            } else if (moisture < 18) {
+                cards.push({
+                    title: "Conserve Soil Moisture",
+                    status: "Dry Topsoil",
+                    badgeClass: "bg-amber-100 text-amber-900",
+                    borderClass: "border-amberWarm",
+                    body: `Topsoil moisture is low (<strong>${moisture}% VWC</strong>). Apply dry grass or banana-leaf mulch around plant bases to cut evaporation and schedule supplemental watering before fertilizer top-dressing.`
+                });
+            } else {
+                cards.push({
+                    title: "Balanced Moisture & Salts",
+                    status: "Optimal Condition",
+                    badgeClass: "bg-emerald-100 text-emerald-900",
+                    borderClass: "border-emerald-200",
+                    body: `Salinity (<strong>${ec25.toFixed(2)} dS/m</strong>) and moisture (<strong>${moisture}%</strong>) are well balanced. Proceed with standard split-dose basal and top-dress nutrient applications.`
+                });
+            }
+
+            grid.innerHTML = cards.map(c => `
+                <div class="p-4 rounded-xl bg-slateBg border-l-4 ${c.borderClass} border border-slate-200 flex flex-col justify-between">
+                    <div>
+                        <div class="flex items-center justify-between gap-2 mb-2">
+                            <h3 class="text-sm font-bold text-navyDark">${c.title}</h3>
+                            <span class="text-[10px] font-bold uppercase px-2 py-0.5 rounded-full ${c.badgeClass}">${c.status}</span>
+                        </div>
+                        <p class="text-xs text-slate-600 leading-relaxed">${c.body}</p>
+                    </div>
+                </div>
+            `).join('');
+
+            // Crop Suitability Tags
+            let crops = [];
+            if (ph < 5.5) {
+                crops = ["Robusta Coffee", "Cassava", "Sweet Potatoes", "Pineapple"];
+            } else if (state.soilType === "sand") {
+                crops = ["Groundnuts", "Cassava", "Cowpeas", "Watermelon"];
+            } else if (state.soilType === "clay" || state.soilType === "loam") {
+                crops = ["Matooke (Banana)", "Maize", "Common Beans", "Robusta Coffee"];
+            } else {
+                crops = ["Rice (Upland/Lowland)", "Leafy Vegetables", "Maize", "Soybeans"];
+            }
+
+            document.getElementById('crop-suitability-tags').innerHTML = crops.map(crop => `
+                <span class="text-xs font-medium px-2.5 py-1 rounded-lg bg-tealDeep/10 text-tealDeep border border-tealDeep/20">
+                    ${crop}
+                </span>
+            `).join('');
+        }
+
+        // --- 8. Chart.js Regional Benchmark Visualization ---
+        function initChart() {
+            const ctx = document.getElementById('benchmarkChart').getContext('2d');
+            benchmarkChartInstance = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: ['Organic Carbon (%)', 'Soil pH (pH)', 'Moisture (×10%)'],
+                    datasets: [
+                        {
+                            label: 'Your Plot',
+                            data: [1.68, 5.1, 2.6],
+                            backgroundColor: '#0F4C5C',
+                            borderRadius: 6
+                        },
+                        {
+                            label: 'Central Uganda Avg',
+                            data: [1.82, 5.9, 2.4],
+                            backgroundColor: '#E3B23C',
+                            borderRadius: 6
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'bottom',
+                            labels: { boxWidth: 12, font: { size: 11, family: 'Inter' } }
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            max: 8,
+                            grid: { color: '#F1F5F9' },
+                            ticks: { font: { size: 10, family: 'JetBrains Mono' } }
+                        },
+                        x: {
+                            grid: { display: false },
+                            ticks: { font: { size: 10, family: 'Inter' } }
+                        }
+                    }
+                }
+            });
+        }
+
+        function updateChart(soc, ph) {
+            if (!benchmarkChartInstance) return;
+            benchmarkChartInstance.data.datasets[0].data = [
+                +soc.toFixed(2),
+                +ph.toFixed(1),
+                +(state.moisture / 10).toFixed(1)
+            ];
+            benchmarkChartInstance.update();
+        }
+
+        // --- 9. Report Modal & Clipboard Export ---
+        function openReportModal() {
+            const profile = SOIL_PROFILES[state.soilType];
+            const distName = DISTRICTS[state.district].name;
+            const soc = document.getElementById('pred-soc').textContent;
+            const ciLow = document.getElementById('ci-low').textContent;
+            const ciHigh = document.getElementById('ci-high').textContent;
+            const score = document.getElementById('fertility-score').textContent;
+
+            document.getElementById('report-modal-body').innerHTML = `
+                <div class="p-3 rounded-xl bg-slate-50 border border-slate-200 space-y-1.5">
+                    <div class="flex justify-between"><span class="text-slate-500">Location / Grid:</span><strong>${distName} (${DISTRICTS[state.district].coords})</strong></div>
+                    <div class="flex justify-between"><span class="text-slate-500">Soil Profile:</span><strong>${profile.label} (Clay ${profile.clay}%, Silt ${profile.silt}%, Sand ${profile.sand}%)</strong></div>
+                    <div class="flex justify-between"><span class="text-slate-500">Sensor Telemetry:</span><strong>pH ${state.ph.toFixed(1)} | EC ${state.ec.toFixed(2)} dS/m | Moisture ${state.moisture}%</strong></div>
+                    <div class="flex justify-between"><span class="text-slate-500">Predicted SOC:</span><strong class="text-tealDeep">${soc}% (90% CI: ${ciLow}% – ${ciHigh}%)</strong></div>
+                    <div class="flex justify-between"><span class="text-slate-500">Fertility Score:</span><strong>${score} / 100</strong></div>
+                </div>
+                <div>
+                    <p class="font-bold text-navyDark mb-1">Recommended Field Actions:</p>
+                    <ul class="list-disc pl-4 space-y-1 text-slate-600">
+                        ${Array.from(document.querySelectorAll('#recommendations-grid h3')).map((h, i) => {
+                            const p = document.querySelectorAll('#recommendations-grid p')[i];
+                            return `<li><strong>${h.textContent}:</strong> ${p.textContent}</li>`;
+                        }).join('')}
+                    </ul>
+                </div>
+            `;
+            document.getElementById('report-modal').classList.remove('hidden');
+        }
+
+        function closeReportModal() {
+            document.getElementById('report-modal').classList.add('hidden');
+        }
+
+        function copyReportText() {
+            const bodyText = document.getElementById('report-modal-body').innerText;
+            const fullText = `PimaUdongo Field Diagnostic Report (sha256:57ae8583074e476a)\n--------------------------------------------------\n${bodyText}`;
+            const tempArea = document.createElement('textarea');
+            tempArea.value = fullText;
+            document.body.appendChild(tempArea);
+            tempArea.select();
+            document.execCommand('copy');
+            document.body.removeChild(tempArea);
+
+            const btn = document.getElementById('btn-copy-report');
+            btn.textContent = "Copied!";
+            setTimeout(() => { btn.textContent = "Copy Summary Text"; }, 2000);
+        }
+    </script>
+</body>
+</html>

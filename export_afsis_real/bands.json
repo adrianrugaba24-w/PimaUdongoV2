@@ -1,0 +1,51 @@
+{
+ "schema_version": 1,
+ "method": "terciles of the training target distribution",
+ "label_source": "position in the distribution of sampled soils, not a quality grade",
+ "not_tuned": "The cuts are the 33.3rd and 66.7th percentiles of the training targets. They were not adjusted to make any band reachable.",
+ "target": "Total carbon",
+ "unit": "percent (g/100 g)",
+ "n": 926,
+ "observed_range": [
+  0.094848178,
+  11.28760099
+ ],
+ "cuts": [
+  0.650820752,
+  1.4392758610000003
+ ],
+ "bands": [
+  {
+   "key": "lower_third",
+   "label": "Lower third of the sampled soils",
+   "range": [
+    0.094848178,
+    0.650820752
+   ],
+   "n": 309
+  },
+  {
+   "key": "middle_third",
+   "label": "Middle third of the sampled soils",
+   "range": [
+    0.650820752,
+    1.4392758610000003
+   ],
+   "n": 308
+  },
+  {
+   "key": "upper_third",
+   "label": "Upper third of the sampled soils",
+   "range": [
+    1.4392758610000003,
+    11.28760099
+   ],
+   "n": 309
+  }
+ ],
+ "derived_from": {
+  "dataset_version": "afsis-2f-ddd215cc66b5",
+  "model_version": "sha256:57ae8583074e476a",
+  "results_sha256": "c84dcdee75bb68f3551995c7181dfbb89c45020cf472370772acd1b2a98ba6cd"
+ }
+}

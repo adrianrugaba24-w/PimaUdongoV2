@@ -1,0 +1,952 @@
+% =====================================================================
+%  Soil Health Prediction from IoT Sensor Data Using Machine Learning
+%  in Sub-Saharan Africa: A Systematic Literature Review and
+%  Methodological Framework
+%
+%  Adrian Rugaba Asiimwe -- S24B23/054
+%  Department of Computer Science, Uganda Christian University
+%
+%  REVISED SOURCE. Every change from the reviewed version is marked
+%  with a numbered comment, IMP1 ... IMP18, so the two can be diffed.
+%
+%  Anything marked \TBC{} must be filled from the screening log before
+%  submission. None of those values may be inferred or estimated:
+%  they are counts and extractions that only the reviewer's records
+%  can supply.
+%
+%  Figures: prisma.pdf and pipeline.pdf must be placed beside this file.
+% =====================================================================
+\documentclass[conference]{IEEEtran}
+\usepackage{amsmath,amssymb}
+\usepackage{graphicx}
+\usepackage{booktabs}
+\usepackage{array}
+\usepackage{url}
+
+% Visible marker for values that must still be extracted.
+\newcommand{\TBC}{\textbf{[TBC]}}
+\renewcommand{\arraystretch}{1.15}
+
+\begin{document}
+
+% IMP18: title scoped. The first half describes the reviewed literature, where
+% predicting soil properties from IoT sensors is what the studies actually do.
+% The second half now names what this paper contributes, so the sensor claim no
+% longer transfers onto the framework. See the title alternatives in the notes.
+\title{Soil Health Prediction from IoT Sensor Data Using Machine Learning
+in Sub-Saharan Africa: A Systematic Literature Review and a Framework for
+Validation and Sensor-Robustness Testing}
+
+\author{\IEEEauthorblockN{Adrian Rugaba Asiimwe}
+\IEEEauthorblockA{Department of Computer Science\\
+Uganda Christian University, Mukono, Uganda\\
+Reg no: S24B23/054}}
+
+\maketitle
+
+% IMP1: the abstract now states the evidence status of the framework.
+% The reviewed version described the framework as if it were pending;
+% a reference implementation exists, so say so and label its data.
+\begin{abstract}
+Soil degradation threatens agricultural productivity and food security, and
+many farmers in sub-Saharan Africa (SSA) have little access to laboratory
+soil testing, which is slow and requires specialised equipment. Internet of
+Things (IoT) field sensors combined with machine learning (ML) are a possible
+alternative: sensors measure soil properties such as moisture and pH in the
+field, and ML models estimate laboratory values from the sensor readings. This
+systematic literature review (SLR) examines how ML has been used to predict
+soil properties from field sensor data, how the models were validated, and how
+robust they are to noisy sensor inputs. It follows PRISMA 2020 and the
+guidelines of Kitchenham and Charters. Scopus and Google Scholar were searched,
+which returned 262 records; after duplicate removal, screening, full-text
+assessment and backward snowballing, 20 studies were included. No study that
+predicts soil properties from field sensor data with ML on Ugandan soils was
+found in the sources searched. The paper then sets out a methodological
+framework for an empirical study, comprising a sensor simulation and an
+analysis of public soil datasets, and reports a reference implementation of
+that framework. The implementation uses laboratory measurements as proxies and
+a simulated sensor pathway; no part of it yet ingests field sensor data. Its
+results are currently obtained from a labelled synthetic stand-in dataset and
+are reported as such.
+\end{abstract}
+
+\begin{IEEEkeywords}
+soil health, IoT sensors, machine learning, validation design, sensor
+simulation, spatially blocked cross-validation, precision agriculture,
+sub-Saharan Africa, Uganda
+\end{IEEEkeywords}
+
+% =====================================================================
+\section{Introduction}
+% =====================================================================
+Soil degradation affects an estimated 1,036 to 1,470 million hectares worldwide
+and threatens long-term agricultural productivity and food security~\cite{ref1}.
+The range is wide because published estimates define degradation and assess it
+in different ways. Uganda's soils are reported to be highly degraded, low in
+nitrogen, phosphorus and potassium, and generally acidic~\cite{ref2}. Soil
+conditions vary between regions, so this finding applies to the areas covered
+by~\cite{ref2} and not necessarily to all of Uganda.
+
+Farmers can respond only if they know what their soil lacks, yet limited access
+to soil testing services has left many farmers in districts such as
+Nakapiripirit and Amudat struggling with declining fertility~\cite{ref3}.
+Without testing, farmers judge fertility by vegetation cover, weeds, soil colour
+and previous yield. Elaete et al.\ compared these four indicators with Palin
+test-kit results for 461 beneficiaries of an input-subsidy project in
+Uganda~\cite{ref2}. Depending on the indicator, between 61 percent (previous
+yield) and 71 percent (vegetation cover) of farmers misclassified their soil
+fertility.
+
+Laboratory analysis remains the scientific standard for soil health assessment,
+but it is slow and out of reach for many farmers. Typical procedures include
+atomic absorption spectrometry, the Kjeldahl method for total nitrogen, and
+spectrophotometric analysis for boron and phosphorus~\cite{ref1}. All require
+specialised equipment, trained personnel and controlled conditions that are
+seldom available outside major research institutions. Visual indicators are
+unreliable and laboratory tests are hard to reach, so farmers need an automated,
+field-based method that returns nutrient-specific estimates at many points on a
+farm.
+
+Field sensors combined with ML offer such a method. Sensors measure soil
+moisture, pH and nutrient levels in real time~\cite{ref4}. Moisture determines
+water availability, and pH controls how much of each nutrient plants can
+absorb~\cite{ref5}. ML models trained on paired sensor and laboratory data can
+estimate nutrient levels directly from sensor readings; the properties predicted
+include nitrogen, phosphorus and potassium~\cite{ref4,ref6}. Reviews identify
+soil sensors as the most frequently employed technology for soil health
+assessment~\cite{ref7}, and portable spectral analysis with edge artificial
+intelligence has yielded near-laboratory accuracy for in-situ
+measurement~\cite{ref10,ref11}.
+
+\noindent\textbf{Farming context.} About 7 million Ugandan households, 80 percent
+of the total, cultivated land or reared livestock in 2019, with an average
+holding of 1.3~ha~\cite{ref15}. The 2024 census reports that 17 percent of
+households engage in commercial agriculture, from 27 percent in Bunyoro and
+Buganda to 7 percent in Karamoja~\cite{ref16}. The sources found do not describe
+the crops or soil management of commercial farms; the 2008/09 Census of
+Agriculture used a separate form for large-scale and institutional
+farms~\cite{ref17}. The review therefore records farm type (smallholder or
+commercial) for each included study.
+
+\subsection{Problem Statement and Research Gap}
+Ugandan research has compared farmers' indicators with test-kit results and
+called for portable test kits that can be used
+locally~\cite{ref2}, but it has not built or evaluated a predictive model.
+% IMP2: "affordable" removed; the call in [2] is for portable, locally usable
+% kits, and the review does not frame the problem economically.
+Sensor-based ML studies exist elsewhere~\cite{ref4,ref6,ref11}, but the
+literature reviewed here leaves three questions insufficiently examined:
+(i) whether such models work on Ugandan soils; (ii) how the models were
+validated, since random cross-validation on spatially clustered samples can look
+more accurate than it will be on new fields; and (iii) how robust they are to the
+noise expected in field sensor data. Section~\ref{sec:gaps} states each gap from
+the reviewed studies.
+
+\subsection{Aims and Research Questions}
+The review is guided by three research questions.
+
+\begin{itemize}
+\item \textbf{RQ1:} Which IoT or field sensors and soil parameters are used in
+soil health monitoring, and how well do their readings agree with laboratory
+values? \emph{Measured by:} sensor types and parameters per study, agreement
+with laboratory values ($R^2$, RMSE or bias), and the deployment challenges
+reported (connectivity, power, calibration and maintenance, skills, data
+availability, usability).
+\item \textbf{RQ2:} Which machine learning models are most commonly used to
+predict soil properties from sensor data, and how do they perform in terms of
+accuracy and data requirements? \emph{Measured by:} the number of included
+studies using each model family (a study counts once per family), reported
+$R^2$, RMSE or accuracy compared only between studies reporting the same metric
+for a similar task, and dataset sizes.
+\item \textbf{RQ3:} How were the ML models validated, and how robust are they to
+noisy sensor inputs? \emph{Measured by:} the validation type (independent or
+spatially blocked data, random split, or cross-validation only) and whether
+input noise or sensor error was tested.
+\end{itemize}
+
+The objectives are to review field sensing of soil properties, identify the ML
+models used to predict them, examine how those models were validated and tested
+for noise, and identify the gaps that support a methodological framework for an
+empirical study on Ugandan farms.
+
+\subsection{Scope}
+GIS mapping was considered during planning and removed from the scope. The
+studies reviewed did not provide a basis for justifying maps as a component of
+the prediction problem, and mapping adds interpolation choices that are separate
+from the ML question. Spatial information is used here only to design validation,
+by holding out whole areas.
+% IMP3: the second clause of the original sentence named cost; the exclusion of
+% economic analysis is kept, the wording is not.
+Economic analysis is outside the scope of the review.
+
+% =====================================================================
+\section{Method}
+% =====================================================================
+\subsection{Research Approach and Protocol}
+This study is an SLR. A systematic approach makes the search, selection and
+analysis of studies explicit and repeatable, which reduces selection bias
+compared with a narrative review. The review was planned and is reported
+following the PRISMA 2020 statement~\cite{ref12}, supported by the SLR
+guidelines of Kitchenham and Charters~\cite{ref13} and the PRISMA-S extension
+for reporting searches~\cite{ref14}. The protocol sets out the research
+questions, databases, search strings, criteria, quality assessment items and data
+extraction form. The review proceeds in four stages: identification, screening,
+eligibility assessment and final inclusion (Fig.~\ref{fig:prisma}).
+
+\noindent\textbf{Operational definitions.} ``Farmers'' means people who grow crops
+or manage agricultural land, whatever the size of their holding.
+
+\noindent\textbf{Sensor.} A sensor is a field-deployable or proximal device that
+measures a soil property without laboratory processing (for example
+electrochemical, capacitive, optical, spectral or laser-induced breakdown
+spectroscopy devices). Laboratory instruments and airborne or satellite imagery
+are not counted.
+
+\noindent\emph{Scope note.} This definition governs which studies are included.
+The framework in Section~\ref{sec:method} models a sensor of this kind in
+simulation; it does not deploy one, and this paper reports no field sensor data.
+
+\noindent\textbf{Evidence origin.} Each included study is labelled
+\emph{SSA-demonstrated} (data collected in SSA) or \emph{transferable} (data from
+another region, with the authors stating that the method applies to SSA).
+Findings are reported separately for the two labels.
+
+\noindent\textbf{Validation types.} \emph{Independent} validation tests on data
+from separate fields, sites or seasons. \emph{Spatially blocked} validation holds
+out whole areas. \emph{Random split or cross-validation} divides samples at
+random, so near neighbours can appear in both training and test sets.
+
+\subsection{Databases Searched}
+Two sources were searched (Table~\ref{tab:databases}).
+
+\begin{table}[t]
+\caption{Databases searched and records identified.}
+\label{tab:databases}
+\centering
+\footnotesize
+\begin{tabular}{p{1.05cm}p{4.4cm}l}
+\toprule
+Database & Fields searched & Records\\
+\midrule
+Scopus & Title, abstract, keywords & 112\\
+Google Scholar & Title and full text; up to the first 100 results per query, sorted by relevance & 150\\
+\midrule
+Total & & 262\\
+\bottomrule
+\end{tabular}
+\end{table}
+
+Scopus was chosen as the main source for its multidisciplinary index with strong
+agricultural, environmental and engineering coverage. Google Scholar was added as
+a supplementary source for studies missed by Scopus, including regional work. Web
+of Science and ScienceDirect were not searched; this is acknowledged as a
+limitation (Section~\ref{sec:limits}). Google Scholar results change over time and
+cannot be exported directly, so they were retrieved with Publish or Perish. Each
+query was sorted by relevance and limited to the first 100 results, patents were
+excluded, and the pooled results of all queries gave 150 records after
+citation-only entries were removed.
+
+\subsection{Search Keywords and Search Strings}
+Keywords were derived from the research questions and fall into three concept
+groups: soil, technology and context. Synonyms within a group are joined with OR,
+and the three groups with AND. The master Boolean string is:
+
+\begin{quote}
+\footnotesize\ttfamily\raggedright
+("soil health" OR "soil fertility" OR "soil quality" OR "soil nutrient*" OR
+"soil moisture" OR "soil pH" OR "soil organic carbon") AND ("machine learning"
+OR "deep learning" OR "predictive model*" OR "IoT" OR "Internet of Things" OR
+"wireless sensor*" OR "soil sensor*" OR "spectroscopy" OR "edge AI") AND
+("farmer*" OR "farming" OR "precision agriculture" OR "sub-Saharan Africa" OR
+"East Africa" OR "Africa" OR "Uganda" OR "Kenya" OR "Tanzania" OR "Ethiopia" OR
+"Rwanda" OR "Nigeria" OR "Ghana")
+\end{quote}
+
+The technology group deliberately joins the sensor and ML terms with OR so that
+studies using only one of them are retrieved; the requirement of both (IC5) is
+applied during screening. Remote sensing is not used as a search term, because
+the review concerns sensors that farmers or extension workers can operate in the
+field. The context group contains general farming terms, so studies from other
+regions are retrieved and then judged for applicability to SSA under IC6. In
+Scopus the string is wrapped in \texttt{TITLE-ABS-KEY(\ldots)}. Google Scholar
+does not support long Boolean strings, so the string was split into shorter
+queries, each combining one term from each concept group, and the results were
+pooled.
+
+\subsection{Inclusion and Exclusion Criteria}
+A study must meet all inclusion criteria (Table~\ref{tab:include}) and none of
+the exclusion criteria (Table~\ref{tab:exclude}).
+
+\begin{table}[t]
+\caption{Inclusion criteria.}
+\label{tab:include}
+\centering
+\footnotesize
+\begin{tabular}{@{}p{0.75cm}p{6.9cm}@{}}
+\toprule
+ID & Inclusion criterion\\
+\midrule
+IC1 & Peer-reviewed journal article or conference paper\\
+IC2 & Published from January 2015 onward\\
+IC3 & Written in English\\
+IC4 & Addresses soil health, fertility or quality (e.g.\ nutrients, pH, moisture, organic matter)\\
+IC5 & Uses an IoT or field sensor together with ML to predict or estimate a soil property\\
+IC6 & Set in SSA; or set in another tropical or low-resource region \emph{and} the authors explicitly discuss transfer to SSA\\
+IC7 & Reports enough technical detail (sensors, models, data) to allow data extraction\\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\begin{table}[t]
+\caption{Exclusion criteria.}
+\label{tab:exclude}
+\centering
+\footnotesize
+\begin{tabular}{@{}p{0.75cm}p{6.9cm}@{}}
+\toprule
+ID & Exclusion criterion\\
+\midrule
+EC1 & Not peer-reviewed (e.g.\ theses, editorials, white papers, posters)\\
+EC2 & Published before 2015 or not in English\\
+EC3 & Focuses on topics other than soil, such as crop disease, weather or livestock only\\
+EC4 & Does not combine sensor data with ML (fails IC5)\\
+EC5 & Opinion or position paper with no technical or empirical content\\
+EC6 & Duplicate or earlier version of a study already included\\
+EC7 & Full text not accessible\\
+EC8 & Outside SSA and not applicable to it (fails IC6)\\
+EC9 & Insufficient technical detail for data extraction (fails IC7)\\
+\bottomrule
+\end{tabular}
+\end{table}
+
+The start date of 2015 focuses the review on the period in which low-power IoT
+hardware and applied ML became widely used in agriculture. IC6 admits studies
+from other regions only when the authors discuss transfer to SSA, not merely
+because they mention smallholders or the tropics.
+
+\begin{table}[t]
+\caption{Data extraction fields.}
+\label{tab:fields}
+\centering
+\footnotesize
+\begin{tabular}{@{}p{1.5cm}p{4.9cm}c@{}}
+\toprule
+Category & Data extracted & RQ\\
+\midrule
+Study details & Authors, year, title, venue, country or region, crop or farming system, scale, farm type, evidence origin & All\\
+Sensing & Sensor types, soil parameters, power source, connectivity, calibration, deployment setting, agreement with laboratory values & RQ1\\
+Deployment & Reported challenges (connectivity, power, calibration and maintenance, skills, data availability, usability) and proposed solutions & RQ1\\
+Machine learning & Algorithm(s) and model family, input features, dataset size, metrics (accuracy, $R^2$, RMSE) & RQ2\\
+Validation & Validation type (independent set, spatial blocks, random split or cross-validation), and whether robustness to input noise was tested & RQ3\\
+Findings and limitations & Main results, stated limitations and gaps, quality score & All\\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\subsection{Screening, Selection and Duplicate Removal}
+Selection followed six stages: (1) identification, in which all records from the
+database searches were exported and combined; (2) duplicate removal; (3) title
+and abstract screening, where clearly failing records were excluded and uncertain
+ones moved on; (4) full-text assessment, where the reason for each exclusion was
+recorded with codes EC1 to EC9; (5) backward snowballing of the reference lists
+of included studies, with the same screening steps; and (6) final inclusion of
+studies from databases and snowballing for quality assessment, extraction and
+synthesis.
+
+Screening decisions and exclusion reasons were recorded in a screening log.
+Records were exported in RIS or BibTeX format into a reference manager.
+Duplicates were detected first by matching DOIs, then by matching title, first
+author and publication year. Possible matches were checked manually before
+deletion, and the version with the most complete metadata was kept.
+
+\noindent\textbf{Single-reviewer screening.} The author screened all records, so no
+second reviewer was used and inter-rater agreement was not measured. This is the
+main source of selection bias in this review, because one person's reading of the
+criteria decided every inclusion and exclusion. Every decision and its reason was
+logged so that a second reviewer can check it.
+
+\subsection{Data Extraction}
+Data were recorded in a standardised spreadsheet form, which was first tested on
+a small sample of included studies and then refined before full extraction.
+Fields were chosen so that every research question can be answered
+(Table~\ref{tab:fields}). Information a study does not report is recorded as
+``not reported'' instead of being estimated.
+
+\subsection{Quality Assessment}
+Each study receives a quality score out of 6 using the checklist in
+Table~\ref{tab:quality}.
+
+\begin{table}[t]
+\caption{Quality assessment checklist (maximum 6 points).}
+\label{tab:quality}
+\centering
+\footnotesize
+\begin{tabular}{@{}p{0.6cm}p{3.1cm}p{3.8cm}@{}}
+\toprule
+Item & Question & Scoring\\
+\midrule
+Q1 & Are the aim and farming context clearly stated? & 1 yes; 0 no\\
+Q2 & Are the data source and sample size described? & 1 both; 0.5 one; 0 neither\\
+Q3 & Is the method detailed enough to repeat? & 1 yes; 0.5 partly; 0 no\\
+Q4 & Was the result validated on independent data? & 1 independent set or spatially blocked validation; 0.5 random split or $k$-fold CV only; 0 none\\
+Q5 & Are performance metrics reported? & 1 yes; 0.5 partly; 0 no\\
+Q6 & Are limitations discussed? & 1 yes; 0.5 briefly; 0 no\\
+\bottomrule
+\end{tabular}
+\end{table}
+
+The six items cover the main stages of a study (aim, data, method, validation,
+results and reflection), in line with the general quality concerns discussed
+in~\cite{ref13}. They carry equal weight because no agreed weights exist for
+studies that mix sensing and ML, and unequal weights would add subjective
+judgement; a sensitivity check (below) tests whether this choice affects the
+findings.
+
+Validation (Q4) distinguishes testing on independent data from
+cross-validation. Random $k$-fold cross-validation reuses data from the same
+samples and can overstate accuracy on new fields, so it earns half a point; an
+independent dataset or spatially blocked validation earns a full point.
+
+The score is not used to exclude studies. Studies scoring below 3 are retained
+but (i) are marked in every table, (ii) are left out of the numeric ranges for
+accuracy, and (iii) are cited in the synthesis only as supporting evidence beside
+higher-scoring studies. Each finding is also reported with and without these
+studies, so the effect of the weighting can be seen. Because studies are expected
+to differ in sensors, models, datasets and metrics, no meta-analysis is planned,
+and performance figures are compared only between studies reporting the same
+metric for a similar task.
+
+% =====================================================================
+\section{Selection of Studies}\label{sec:selection}
+% =====================================================================
+The searches identified 262 records (Scopus 112, Google Scholar 150). After 31
+duplicates were removed, 231 records were screened by title and abstract, and 174
+were excluded. Of the 57 reports sought for retrieval, 6 could not be retrieved
+(EC7) and 51 were assessed in full text. Full-text assessment excluded 34 reports
+(EC1--EC2: 8; EC3: 9; EC4: 10; EC8: 4; EC9: 3), leaving 17 studies. Backward
+snowballing of their reference lists added 3 studies, giving 20 studies for the
+synthesis (Fig.~\ref{fig:prisma}).
+
+\begin{figure}[t]
+\centering
+% Place the PRISMA diagram beside this file as prisma.pdf (or .png).
+\includegraphics[width=\columnwidth]{prisma.pdf}
+\caption{PRISMA 2020 flow diagram of the study selection process. Reasons for
+full-text exclusion are given in Section~\ref{sec:selection}.}
+\label{fig:prisma}
+\end{figure}
+
+\noindent\textbf{Search yield.} The string requires a term from each of three
+concept groups, so the yield was limited to studies that mention soil, a
+technology and a farming context together. Section~\ref{sec:limits} discusses the
+effect of this on coverage.
+
+% =====================================================================
+\section{Included and Background Studies}
+% =====================================================================
+% IMP4: the reviewed version used one table for two different populations and
+% then contradicted itself: Section IV called its rows background only, while
+% Section VII counted "the seven primary studies in Table VI". The table is
+% split here. Table VI keeps background and review sources, which are cited for
+% context only. Table VIII holds the included studies, one row per study, and is
+% the only source used for the counts in Section V.
+Background studies are cited for context and are not part of the synthesis in
+Section~\ref{sec:results}. A study is background only if it fails IC5, that is,
+if it uses a field sensor or ML but not both. The seven primary background
+studies are marked in Table~\ref{tab:background} together with the two reviews;
+none of them covers field sensing, ML prediction and evaluation in SSA
+together, whereas the proposed direction does.
+
+\begin{table}[t]
+\caption{Background and review sources. None of these rows contributes to the
+counts in Section~\ref{sec:results}.}
+\label{tab:background}
+\centering
+\footnotesize
+\begin{tabular}{@{}p{1.55cm}p{3.2cm}ccc@{}}
+\toprule
+Study & Contribution / limitation & Sensor & ML & SSA\\
+\midrule
+Elaete et al.~\cite{ref2} & Farmer indicators vs Palin test-kit results in Uganda; no predictive model & No & No & Yes\\
+Abdullah et al.~\cite{ref9} & IoT nutrient monitoring system, tested in Indonesia & Yes & No & No\\
+Chlouveraki et al.~\cite{ref1} & Soil properties from hyperspectral imaging and ML & No & Yes & No\\
+Erler et al.~\cite{ref10} & Mobile laser-induced breakdown spectroscopy; field-deployable, so a sensor under Section II-A & Yes & No & No\\
+Mamabolo et al.~\cite{ref7} & Review of precision agriculture technologies & Review & Review & No\\
+Getahun et al.~\cite{ref8} & Systematic review of precision agriculture technologies & Review & Review & No\\
+\midrule
+\multicolumn{5}{@{}p{7.4cm}@{}}{\emph{Included studies are listed in Table~\ref{tab:included}, not here.}}\\
+\midrule
+Proposed direction & Sensor-based ML prediction with spatial validation and noise tests on Ugandan soils & Yes & Yes & Yes\\
+\bottomrule
+\end{tabular}
+\end{table}
+
+% =====================================================================
+\section{Results by Research Question}\label{sec:results}
+% =====================================================================
+% IMP5: this is the substantive change. In the reviewed version Sections V-A to
+% V-C described how the studies would be grouped and then gave no counts; the
+% 20 included studies appeared in no table. The three subsections below are now
+% backed by Table VIII (one row per included study) and Table IX (the RQ3
+% counts). Fill every \TBC from the extraction sheet. Do not estimate any of
+% them, and do not write a count that Table VIII does not support.
+All statements in this section are derived from Table~\ref{tab:included}, which
+records each included study once. Statements marked ``Background'' come from
+Table~\ref{tab:background} and are not findings of the review.
+
+\subsection{RQ1: Sensors and Soil Parameters}
+Table~\ref{tab:included} records the sensor type and soil parameter for each
+study. Agreement with laboratory values is compared only between studies
+reporting the same metric for the same property, and results are reported
+separately for SSA-demonstrated and transferable studies. Deployment challenges
+(connectivity, power, calibration and maintenance, skills, data availability,
+usability) are counted across studies and reported in
+Table~\ref{tab:rq3counts}.
+
+\emph{Reported:} \TBC{} of the 20 included studies report agreement with
+laboratory values; of these, \TBC{} are SSA-demonstrated. The most frequently
+reported deployment challenge is \TBC{} (count \TBC{}).
+
+\noindent\emph{Background.} Field sensors measuring soil moisture, pH and
+nutrient levels in real time are the basis of IoT soil
+monitoring~\cite{ref4}, and reviews report soil sensors as the most frequently
+used technology for soil health assessment~\cite{ref7}.
+
+\subsection{RQ2: Machine Learning Models}
+Models are grouped into families (for example random forest, support vector
+machine, neural network and regression), and a study counts once per family.
+Accuracy is compared only between studies reporting the same metric for a similar
+task, and studies scoring below 3 are left out of the ranges. Dataset sizes are
+recorded because they limit which models can be trained.
+
+\emph{Reported:} Table~\ref{tab:rq3counts} gives the number of included studies
+per model family. The most frequently used family is \TBC{} (\TBC{} of 20
+studies). Reported $R^2$ values range from \TBC{} to \TBC{} across the \TBC{}
+studies reporting $R^2$ for a comparable task, and dataset sizes range from
+\TBC{} to \TBC{} samples.
+
+\noindent\emph{Background.} ML and deep learning models trained on paired sensor
+and laboratory data estimate nutrient levels from sensor
+readings~\cite{ref4,ref6}.
+
+\subsection{RQ3: Validation and Robustness}
+Each ML study is classed as independent, spatially blocked, or random-split or
+cross-validation only, and checked for whether it tested robustness to input
+noise or sensor error (Table~\ref{tab:included}, columns
+\emph{Validation} and \emph{Noise}).
+
+\emph{Reported:} of the 20 included studies, \TBC{} used an independent or
+spatially blocked design, \TBC{} used a random split or cross-validation only,
+and \TBC{} did not report a validation design that could be classified.
+\TBC{} studies tested robustness to input noise. These counts are the central
+evidence for the gap this review identifies: the share of reported accuracy that
+rests on validation which can overstate performance on new fields is \TBC{} of
+the included studies.
+
+% ---------------------------------------------------------------------
+% Table VIII: the included studies. One row per study, 20 rows.
+% Column sources: Study, Region, Sensor, Model, n from Table IV fields
+% "Study details", "Sensing", "Machine learning"; Validation and Noise from
+% the "Validation" field; Q is the score from Table V (maximum 6).
+% ---------------------------------------------------------------------
+\begin{table*}[t]
+\caption{Included studies ($n = 20$), extracted from the standardised form in
+Table~\ref{tab:fields}. Validation: I = independent, SB = spatially blocked,
+R = random split or cross-validation only, NR = not reported. Noise: whether
+robustness to input noise or sensor error was tested. Q = quality score out of 6
+(Table~\ref{tab:quality}); scores below 3 are marked $\dagger$ and excluded from
+the accuracy ranges in Section~V-B.}
+\label{tab:included}
+\centering
+\footnotesize
+\begin{tabular*}{\textwidth}{@{\extracolsep{\fill}}cl p{2.5cm} p{3.0cm} p{1.8cm} r c c c@{}}
+\toprule
+\# & Study & Region & Sensor, parameters & Model family & $n$ & Valid. & Noise & Q\\
+\midrule
+1 & \TBC & \TBC & \TBC & \TBC & \TBC & \TBC & \TBC & \TBC\\
+2 & \TBC & \TBC & \TBC & \TBC & \TBC & \TBC & \TBC & \TBC\\
+3 & \TBC & \TBC & \TBC & \TBC & \TBC & \TBC & \TBC & \TBC\\
+4 & \TBC & \TBC & \TBC & \TBC & \TBC & \TBC & \TBC & \TBC\\
+5 & \TBC & \TBC & \TBC & \TBC & \TBC & \TBC & \TBC & \TBC\\
+6 & \TBC & \TBC & \TBC & \TBC & \TBC & \TBC & \TBC & \TBC\\
+7 & \TBC & \TBC & \TBC & \TBC & \TBC & \TBC & \TBC & \TBC\\
+8 & \TBC & \TBC & \TBC & \TBC & \TBC & \TBC & \TBC & \TBC\\
+9 & \TBC & \TBC & \TBC & \TBC & \TBC & \TBC & \TBC & \TBC\\
+10 & \TBC & \TBC & \TBC & \TBC & \TBC & \TBC & \TBC & \TBC\\
+11 & \TBC & \TBC & \TBC & \TBC & \TBC & \TBC & \TBC & \TBC\\
+12 & \TBC & \TBC & \TBC & \TBC & \TBC & \TBC & \TBC & \TBC\\
+13 & \TBC & \TBC & \TBC & \TBC & \TBC & \TBC & \TBC & \TBC\\
+14 & \TBC & \TBC & \TBC & \TBC & \TBC & \TBC & \TBC & \TBC\\
+15 & \TBC & \TBC & \TBC & \TBC & \TBC & \TBC & \TBC & \TBC\\
+16 & \TBC & \TBC & \TBC & \TBC & \TBC & \TBC & \TBC & \TBC\\
+17 & \TBC & \TBC & \TBC & \TBC & \TBC & \TBC & \TBC & \TBC\\
+18 & \TBC & \TBC & \TBC & \TBC & \TBC & \TBC & \TBC & \TBC\\
+19 & \TBC & \TBC & \TBC & \TBC & \TBC & \TBC & \TBC & \TBC\\
+20 & \TBC & \TBC & \TBC & \TBC & \TBC & \TBC & \TBC & \TBC\\
+\bottomrule
+\end{tabular*}
+\end{table*}
+
+\begin{table}[t]
+\caption{Counts derived from Table~\ref{tab:included}. All cells must be computed
+from the extraction sheet, not estimated.}
+\label{tab:rq3counts}
+\centering
+\footnotesize
+\begin{tabular}{@{}p{4.7cm}r@{}}
+\toprule
+Category & Studies\\
+\midrule
+\multicolumn{2}{@{}l}{\emph{Model family} (RQ2)}\\
+Random forest & \TBC\\
+Support vector machine & \TBC\\
+Neural network or deep learning & \TBC\\
+Regression or PLS & \TBC\\
+Other & \TBC\\
+\midrule
+\multicolumn{2}{@{}l}{\emph{Validation type} (RQ3)}\\
+Independent set & \TBC\\
+Spatially blocked & \TBC\\
+Random split or CV only & \TBC\\
+Not reported & \TBC\\
+\midrule
+\multicolumn{2}{@{}l}{\emph{Noise tested} (RQ3)}\\
+Yes & \TBC\\
+No & \TBC\\
+\midrule
+\multicolumn{2}{@{}l}{\emph{Quality score} (Table~\ref{tab:quality})}\\
+6 (maximum) & \TBC\\
+4--5 & \TBC\\
+3 & \TBC\\
+Below 3 ($\dagger$) & \TBC\\
+\midrule
+\multicolumn{2}{@{}l}{\emph{Evidence origin}}\\
+SSA-demonstrated & \TBC\\
+Transferable & \TBC\\
+\bottomrule
+\end{tabular}
+\end{table}
+
+% =====================================================================
+\section{Discussion}
+% =====================================================================
+Laboratory analysis is the standard for soil health assessment but is out of
+reach for many farmers~\cite{ref1,ref3}. Sensors and ML each address part of the
+problem~\cite{ref4,ref6}, and edge AI shows that near-laboratory accuracy is
+possible with portable tools~\cite{ref10,ref11}. The reviewed literature
+therefore supports predicting soil properties from field sensor data with ML and
+evaluating the models against laboratory results on African soils.
+
+\noindent\textbf{Strength of the evidence.} The final evidence base is 20 studies,
+from two sources and snowballing, screened by one reviewer. Findings from it show
+where the literature points and do not prove that a gap exists. The effect is
+larger where a finding rests on few studies or on studies scoring below 3, and
+each finding in Section~\ref{sec:results} is reported with and without those
+studies for that reason.
+
+\noindent\textbf{Machine learning reliability.} For ML-based soil prediction, the
+validation design affects how far an accuracy figure can be trusted. Soil samples
+from nearby locations are similar, so random splits place near-duplicates in both
+training and test sets and can overstate accuracy; spatially blocked validation,
+which holds out whole areas, gives a harder and more realistic test of
+performance on a new farm. Field sensors add a second problem, because their
+readings are noisier than laboratory values, so a model that performs well on
+clean data may degrade quickly on field data. These points are why the review
+records the validation type (Table~\ref{tab:quality}, Q4) and any noise test for
+every ML study.
+
+\noindent\textbf{Alternative explanations for the gap.} The absence of Ugandan
+work that predicts soil properties from field sensor data with ML may mean that
+none exists. It may also reflect (i) work published as theses, reports or in
+journals that the two sources do not index (excluded here under EC1); (ii)
+different terminology, such as ``rapid soil test'' or ``soil spectroscopy'',
+which the string only partly covers; (iii) language limits, since only
+English-language studies were included; and (iv) timing, since low-power hardware
+and applied ML are recent in this setting. The gap is therefore best stated as
+``not found in the sources searched''.
+
+\noindent\textbf{Transferability.} Results from outside SSA are labelled
+transferable and should not be read as SSA evidence. Sensor readings and ML
+calibrations can depend on soil type, moisture and temperature, so a model trained
+elsewhere may not hold on Ugandan soils until tested there.
+
+% =====================================================================
+\section{Research Gaps}\label{sec:gaps}
+% =====================================================================
+% IMP6: the reviewed version drew its gap statement from Table VI, which
+% Section IV had already declared background only. The counts now come from the
+% included set, which is what the PRISMA figure promises.
+The gaps are stated from the included studies in Table~\ref{tab:included}, and
+from the counts in Table~\ref{tab:rq3counts}:
+
+\begin{enumerate}
+\item \textbf{Regional evidence.} \TBC{} of the 20 included studies are
+SSA-demonstrated and \TBC{} are set in Uganda. No study predicting soil
+properties from field sensor data with ML on Ugandan soils was found in the
+sources searched.
+\item \textbf{Validation design.} \TBC{} of the 20 included studies used a random
+split or cross-validation only, so reported accuracy for those studies is not
+evidence of performance on new fields.
+\item \textbf{Noise robustness.} \TBC{} of the 20 included studies tested the
+effect of sensor noise or input error, although field sensor readings are noisier
+than the laboratory values the models are trained against.
+\item \textbf{Combination.} \TBC{} studies combined field sensing, ML prediction
+and a validation design that holds out ground; the proposed direction combines
+all three.
+\end{enumerate}
+
+% =====================================================================
+\section{Limitations}\label{sec:limits}
+% =====================================================================
+Only two sources were searched. Web of Science, ScienceDirect and African and
+agricultural indexes such as AJOL and AGRIS were not used, so relevant
+publications elsewhere may be missed; extending the search to them is the first
+step for the next version. Google Scholar results were limited to the first 100
+per query. Only English-language studies from 2015 onward were included, which
+excludes French- and Portuguese-language work from SSA. Remote-sensing-based soil
+mapping was outside the search, so studies using satellite or drone imagery may
+be missed. Screening was done by a single reviewer, which raises the risk of
+selection bias, and no inter-rater agreement was measured. GIS mapping and
+economic analysis are outside the scope, so the review says nothing about them.
+The sources found also do not describe land use by commercial farmers in detail,
+so conclusions about commercial farms rest on the farm-type labels in the
+included studies. Finally, the gaps reported here show limits of the evidence
+found and are not proof that no study exists. The framework in
+Section~\ref{sec:method} models a field sensor rather than using one, so the
+sensor findings of this review define a specification for that model and do not
+validate a deployed device.
+
+% =====================================================================
+\section{Methodological Approach for the Proposed Empirical Study}\label{sec:method}
+% =====================================================================
+The proposed study answers the validation and robustness questions directly. It
+has two parts, which share one modelling pipeline: an analysis of public soil
+datasets (Part B) and a simulation of field sensors (Part A). Fig.~\ref{fig:pipe}
+shows the stages, and the steps below define each one.
+
+Neither part ingests field sensor data. Part B uses laboratory measurements as
+proxy variables, and Part A generates sensor readings from a measurement model
+whose parameters are assumptions until they are sourced. The sensor pathway is
+therefore specified and simulated rather than implemented; the hardware stage is
+separate work and is not reported here.
+
+\begin{figure}[t]
+\centering
+% Place the pipeline schematic beside this file as pipeline.pdf (or .png).
+\includegraphics[width=\columnwidth]{pipeline.pdf}
+\caption{Methodological pipeline for the proposed study.}
+\label{fig:pipe}
+\end{figure}
+
+\noindent\textbf{Step 1: data and targets.}
+% IMP7: the reviewed version made pH and SOC equal targets in both parts and
+% called moisture a covariate. In the implementation, Part B predicts SOC with
+% pH as a feature, and moisture exists only as a simulated channel in Part A.
+% Part A predicts both pH and SOC. State it that way.
+Part A predicts soil pH and soil organic carbon (SOC) from simulated sensor
+channels, and moisture is one of those channels rather than a covariate. Part B
+predicts SOC, with pH among its input features; pH is not a target in Part B
+because a pH meter returns pH directly and a model is not needed for it.
+
+Part B uses public datasets that hold coordinates and laboratory values
+(Table~\ref{tab:datasets}). A dataset is selected if it has coordinates and
+laboratory SOC or pH, a documented licence, and samples from Africa. Records with
+missing coordinates or targets are removed, units are harmonised, duplicates are
+dropped, and the dataset version is recorded. The Ugandan subset is counted and
+reported only where the data are measured; a country share computed from
+generated data is not reported as a subset.
+
+\begin{table}[t]
+\caption{Candidate public datasets.}
+\label{tab:datasets}
+\centering
+\footnotesize
+\begin{tabular}{@{}p{1.5cm}p{3.9cm}p{0.9cm}@{}}
+\toprule
+Dataset & Content & Source\\
+\midrule
+Open Soil Spectral Library & 91,631 mid-infrared and 65,063 visible-near-infrared scans with laboratory data from more than 60,000 locations; includes AfSIS and ICRAF-ISRIC libraries and a portable-instrument NIR subset scanned on 9 devices & \cite{ref18}\\
+Africa Soil Profiles Database v1.2 & 18,532 legacy profiles for SSA; analytical data for 15,564, of which 14,197 are georeferenced; profile reliability rated 1--4 & \cite{ref19}\\
+WoSIS snapshot (2019) & 196,498 georeferenced profiles from 173 countries, including organic carbon and pH & \cite{ref20}\\
+% IMP8: AfSIS Phase I is the dataset actually loaded by the implementation and
+% was absent from this table, so the results cited a dataset the paper never
+% listed. The row is added; confirm the citation form in \cite{ref21}.
+AfSIS Phase I soil data & Georeferenced field observations with laboratory wet chemistry (pH, electrical conductivity, particle-size fractions, carbon) for 19 countries; redistributed under the Open Data Commons Attribution licence & \cite{ref21}\\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\noindent\textbf{Step 2: sensor simulation (Part A).} A synthetic field with
+spatially correlated pH, SOC and moisture is surveyed at a fixed number of
+points. Each ``sensor'' reading is the true value passed through a measurement
+model with gain, offset, random noise, calibration drift and cross-sensitivity to
+moisture. Parameters are taken from sensor datasheets or bench tests, and any
+value without a source is labelled an assumption and counted as such in the
+output. SOC in Part A is generated from the same latent fields that the sensors
+observe, through a coupling coefficient $c$; $c$ is therefore an assumption that
+is swept, not a property of soil, and Section~\ref{sec:hyp} states the
+consequence for H3.
+
+% IMP9: nested tuning is a Part B property. Part A uses default hyperparameters
+% by design, and the reviewed version stated the tuning requirement for both.
+\noindent\textbf{Step 3: models.} In Part B, five learners are compared: a
+mean-value baseline, ridge regression, partial least squares, random forest and
+gradient boosting. Hyperparameters are tuned by nested cross-validation inside
+the training folds only, and random seeds are fixed. Part A compares four of
+these learners at their default hyperparameters, because its purpose is to trace
+the effect of sensor error rather than to maximise accuracy; Part A performs no
+tuning.
+
+\noindent\textbf{Step 4: validation.}
+% IMP10: real datasets often ship a spatial hierarchy, and using it is both more
+% defensible and more informative than clustering coordinates; the effective
+% number of units also has to be reported, because it, not the row count, sets
+% the precision of a spatially blocked estimate.
+Every model is evaluated twice on the same data: with random 5-fold
+cross-validation and with spatially blocked cross-validation. Blocks are formed
+from the site and cluster identifiers supplied with the dataset where these
+exist, and by clustering coordinates where they do not; whole groups are held
+out either way. Performance is reported as $R^2$, RMSE and the ratio of
+performance to interquartile distance (RPIQ) (Eq.~\ref{eq:metrics}):
+
+\begin{equation}
+\mathrm{RMSE}=\sqrt{\frac{1}{n}\sum_{i=1}^{n}(y_i-\hat{y}_i)^2},
+\qquad
+\mathrm{RPIQ}=\frac{\mathrm{IQR}(y)}{\mathrm{RMSE}}.
+\label{eq:metrics}
+\end{equation}
+
+The validation gap is the $R^2$ under random folds minus the $R^2$ under spatial
+blocks. Repeating the procedure over multiple seeds gives a spread for each
+figure. Because the precision of a spatially blocked estimate depends on the
+number of independent units and not on the number of rows, the number of distinct
+sites, clusters and blocks used is reported with every result.
+
+Prediction intervals are also reported. Their nominal coverage is fixed in
+advance and their empirical coverage is measured on held-out blocks, so that a
+quoted interval can be checked rather than assumed.
+
+\noindent\textbf{Step 5: noise tests.} Gaussian noise is added to the inputs at
+levels from 0 to 100 percent of each feature's standard deviation. Models are
+tested with clean training and noisy test inputs, and with noisy training and
+noisy test inputs.
+% IMP11: the comparison with instrument-to-instrument variation is not part of
+% the present results and must not be described as though it were. The common
+% multiplier is also disclosed, because it is weaker than channel-specific error.
+The same multiplier is applied to every feature in Part B, so channel-specific
+error is modelled in Part A only. For Part A the noise levels follow the
+simulated sensor model. Comparison with instrument-to-instrument variation in the
+portable-instrument NIR subset of the Open Soil Spectral Library is planned and is
+not part of the present results.
+
+\noindent\textbf{Step 6: controls.} A model trained on shuffled targets must score
+near zero $R^2$, and a mean-value predictor sets the lower baseline. The block
+size used for spatial validation is varied to check that conclusions do not
+depend on it.
+% IMP12: the block size is not the only arbitrary choice; the block boundaries
+% are too, and the implementation varies both.
+Because the boundaries between blocks are as arbitrary as their size, the
+partitioning is also redrawn with a different seed and the resulting spread is
+reported.
+
+\noindent\textbf{Step 7: reporting.} Code, seeds and dataset versions are released
+with the results. Artefacts are bound together by hash, so a model cannot be
+served against a results file it was not produced from; the manifest records the
+dataset version and the model digest. Results from Part A are reported as
+simulations under stated assumptions and are not claims about real sensors.
+Results from Part B are reported for the subset and region actually used, and
+where the data are a labelled synthetic stand-in, every reported figure says so.
+
+% IMP13: the implementation also serves predictions, which no step described.
+\noindent\textbf{Step 8: delivery.} The pipeline is exposed as a service that
+accepts one sample at a time, rejects physically impossible inputs, flags inputs
+outside the range seen in training, and returns the estimate together with its
+interval and the provenance of the model that produced it. A prediction is
+therefore traceable to a specific dataset version and model digest.
+
+% =====================================================================
+\section{Hypotheses for the Proposed Empirical Study}\label{sec:hyp}
+% =====================================================================
+This section is separate from the review findings. The hypotheses follow from the
+research gap and the machine learning concerns above, and will be tested with the
+methodology in Section~\ref{sec:method}. They are not results of this review.
+
+\begin{itemize}
+\item \textbf{H1 (validation design):} On the same dataset, SOC models score
+lower under spatially blocked validation than under random $k$-fold
+cross-validation. The difference is reported per seed, together with the number
+of independent spatial units on which it rests.
+\item \textbf{H2 (noise robustness):} Prediction accuracy falls as input noise
+rises, and the rate of decline differs between model families.
+% IMP14: the reviewed H3 asserted that SOC would not be predicted well from the
+% sensor channels. In Part A, SOC is generated from those same channels through
+% the coupling coefficient, so that clause cannot be falsified: the outcome is
+% set by construction. H3 is restated so that it tests something.
+\item \textbf{H3 (sensor feasibility):} For soil pH, models using simulated sensor
+channels retain a spatially validated $R^2$ of at least 0.50 up to a stated error
+scale, and lose it beyond that scale. For SOC, skill under spatial validation is
+governed by the coupling $c$ with which SOC is generated from the same latent
+fields the sensors observe; it is therefore reported for $c \in \{0, 0.5, 0.9\}$
+and is not evidence about real soils. In its present state the sensor model
+sources none of its parameters from datasheets or bench tests, so the stated
+error scale is an assumption rather than a measured instrument property.
+\end{itemize}
+
+% =====================================================================
+\section{Conclusion}
+% =====================================================================
+This review examined how ML has been used to predict soil properties from field
+sensor data among farmers in SSA. Of the 262 records identified, 20 studies were
+included. In the sources searched, no study that predicts soil properties from
+field sensors with ML on Ugandan soils was found. The review treats validation
+design and noise robustness as the central questions for such models. The
+evidence base is small, so the next steps are to widen the search, add a second
+screener, and carry out the empirical study described in
+Section~\ref{sec:method}.
+
+% IMP15: the artefact's status is stated in the paper rather than left to the
+% reader to discover from the results files.
+A reference implementation of the framework exists and is reported alongside the
+review. Its Part B results are currently produced from a synthetic stand-in
+dataset that is labelled as such in every artefact it generates; its Part A
+results have not yet been produced. No part of the implementation processes field
+sensor data, and neither set of results is a claim about real soils or real
+instruments; the paper says so wherever the figures appear.
+
+\section*{Acknowledgment}
+The author thanks Uganda Christian University and the Department of Computer
+Science for academic support during this study.
+% IMP16: attribution required by the AfSIS data licence.
+The AfSIS Phase I soil data used by the reference implementation are
+redistributed by the World Agroforestry Centre (ICRAF) under the Open Data
+Commons Attribution (ODC-By) licence, and are used here with attribution.
+
+\begin{thebibliography}{00}
+\bibitem{ref1} E.~Chlouveraki \emph{et al.}, ``Estimation of soil properties using hyperspectral imaging and machine learning,'' \emph{Smart Agric. Technol.}, vol.~10, art. no.~100790, 2025.
+\bibitem{ref2} S.~Elaete, J.~Ilukor, R.~E. Isoto, A.~Moruleng, and H.~N. Opolot, ``Comparing indigenous and scientific (Palin test) soil fertility assessment approaches for better soil health monitoring, management, and farm decision-making in Uganda,'' \emph{Discover Soil}, vol.~2, art. no.~29, 2025, doi: 10.1007/s44378-025-00058-z.
+\bibitem{ref3} Food and Agriculture Organization of the United Nations, Global Soil Partnership, ``Uganda rolls out the Global Soil Doctors Programme to bring soil health closer to farmers in Karamoja.'' [Online]. Available: https://www.fao.org/global-soil-partnership/resources/highlights/detail/en/c/1757615/
+\bibitem{ref4} M.~R. Islam, K.~Oliullah, M.~M. Kabir, M.~Alom, and M.~F. Mridha, ``Machine learning enabled IoT system for soil nutrients monitoring and crop recommendation,'' \emph{J. Agric. Food Res.}, vol.~14, art. no.~100880, 2023, doi: 10.1016/j.jafr.2023.100880.
+\bibitem{ref5} D.~Neina, ``The role of soil pH in plant nutrition and soil remediation,'' \emph{Appl. Environ. Soil Sci.}, vol.~2019, art. no.~5794869, 2019, doi: 10.1155/2019/5794869.
+\bibitem{ref6} G.~N. Shwetha and G.~J. Bhat, ``Sensor based framework for soil nutrients prediction using deep learning techniques,'' \emph{Agric. Eng. Int.: CIGR J.}, vol.~27, no.~4, pp.~291--301, 2025.
+\bibitem{ref7} E.~Mamabolo \emph{et al.}, ``Application of precision agriculture technologies for crop protection and soil health,'' \emph{Smart Agric. Technol.}, vol.~12, art. no.~101270, 2025.
+\bibitem{ref8} S.~Getahun, H.~Kefale, and Y.~Gelaye, ``Application of precision agriculture technologies for sustainable crop production and environmental sustainability: A systematic review,'' \emph{Sci. World J.}, vol.~2024, art. no.~2126734, 2024, doi: 10.1155/2024/2126734.
+\bibitem{ref9} A.~Abdullah, E.~I. Raharjo, M.~Iwan, R.~Faizal, and Maryogi, ``Development of an IoT-based soil nutrient monitoring and GIS mapping system for precision agriculture,'' \emph{Adv. Sustain. Sci., Eng. Technol.}, vol.~7, no.~4, 2025.
+\bibitem{ref10} A.~Erler \emph{et al.}, ``Mobile laser-induced breakdown spectroscopy for future application in precision agriculture---A case study,'' \emph{Sensors}, vol.~23, no.~16, art. no.~7178, 2023, doi: 10.3390/s23167178.
+\bibitem{ref11} R.~Kasemi, ``EdgeSoil: Low-cost soil sensor and edge AI fusion in agricultural robotics,'' in \emph{Proc. Austrian Robot. Workshop (ARW)}, Linz, Austria, 2023, pp.~1--6.
+\bibitem{ref12} M.~J. Page \emph{et al.}, ``The PRISMA 2020 statement: An updated guideline for reporting systematic reviews,'' \emph{BMJ}, vol.~372, art. no.~n71, 2021, doi: 10.1136/bmj.n71.
+\bibitem{ref13} B.~Kitchenham and S.~Charters, ``Guidelines for performing systematic literature reviews in software engineering,'' Keele Univ. and Univ. of Durham, EBSE Tech. Rep. EBSE-2007-01, 2007.
+\bibitem{ref14} M.~L. Rethlefsen \emph{et al.}, ``PRISMA-S: An extension to the PRISMA statement for reporting literature searches in systematic reviews,'' \emph{Syst. Rev.}, vol.~10, art. no.~39, 2021, doi: 10.1186/s13643-020-01542-z.
+\bibitem{ref15} Uganda Bureau of Statistics, ``Annual Agricultural Survey 2019: statistical release,'' Kampala, Uganda, 2022. [Online]. Available: https://www.ubos.org/wp-content/uploads/2022/04/Uganda\_UBOS\_StatRelease\_AAS2019-Final.pdf
+\bibitem{ref16} Ministry of Finance, Planning and Economic Development, Uganda, ``Agro-industrialisation: Agriculture remains the backbone of Uganda's economy,'' Knowledge Centre summary of the 2024 National Population and Housing Census, 2025. [Online]. Available: development.finance.go.ug
+\bibitem{ref17} Uganda Bureau of Statistics and Ministry of Agriculture, Animal Industry and Fisheries, ``Census of Agriculture 2008--2009,'' FAO Food and Agriculture Microdata Catalogue. [Online]. Available: https://microdata.fao.org/index.php/catalog/1594
+\bibitem{ref18} J.~L. Safanelli \emph{et al.}, ``Open Soil Spectral Library (OSSL): Building reproducible soil calibration models through open development and community engagement,'' \emph{PLoS ONE}, 2025, doi: 10.1371/journal.pone.0296545.
+\bibitem{ref19} ISRIC---World Soil Information, ``Africa Soil Profiles Database, version 1.2,'' ISRIC Data Hub. [Online]. Available: https://data.isric.org/geonetwork/srv/api/records/b88870b4-6af8-4e78-a3ac-38871d757525
+\bibitem{ref20} ISRIC---World Soil Information, ``Standardised soil profile data for the world (WoSIS snapshot, September 2019),'' doi: 10.17027/isric-wdcsoils.20190901.
+% IMP17: reference for the dataset the implementation actually loads.
+% CONFIRM the citation form before submission: the data are distributed by
+% ICRAF/World Agroforestry as the AfSIS Phase I soil dataset under ODC-By.
+% The entry below is a placeholder in the correct style, not a verified record.
+\bibitem{ref21} World Agroforestry Centre (ICRAF), ``Africa Soil Information Service (AfSIS) Phase I soil data,'' Nairobi, Kenya, 2014. [Online]. Available: https://data.worldagroforestry.org/
+\end{thebibliography}
+
+\end{document}
