@@ -33,6 +33,7 @@ from pydantic import BaseModel, Field
 
 import farmer_view
 import metrics_view
+import recommendation
 import reliability
 
 MODEL_DIR = Path(os.environ.get("MODEL_DIR", "export"))
@@ -170,6 +171,19 @@ app.add_middleware(CORSMiddleware, allow_origins=["*"], allow_methods=["*"],
 
 class Query(BaseModel):
     values: dict = Field(..., description="One entry per training feature")
+
+
+class AdviceQuery(BaseModel):
+    """The sample, plus what the farmer has said about the field so far.
+
+    `context` is optional and additive: without it the engine still answers,
+    from the submitted sample alone.  Everything in it is the farmer's own
+    input - a chosen crop cycle, the words a laboratory printed, the readings
+    kept in that browser - so the page never supplies a placement of its own.
+    """
+    values: dict = Field(..., description="One entry per training feature")
+    context: dict | None = Field(default=None, description=(
+        "Optional: crop cycle, soil-test words, the last two kept readings"))
 
 
 # ---------------------------------------------------------------------------
@@ -458,6 +472,24 @@ def api_farmer_predict(q: Query):
         raise HTTPException(500, {"error": "metrics_unavailable",
                                  "message": METRICS_ERROR})
     return farmer_view.build(METRICS, _api_prediction(q.values))
+
+
+@app.post("/api/farmer/advice")
+def api_farmer_advice(q: AdviceQuery):
+    """The ranked next steps for one sample, and the evidence each rests on.
+
+    The prediction is computed here rather than accepted from the page: the
+    engine reads the placement's own `rules` to decide whether the tool could
+    place the soil, so a page that supplied its own placement could talk the
+    engine into a different ranking.  Input validation is `_validate`, so an
+    impossible reading is the same 422 it is everywhere else.
+    """
+    if METRICS is None:                                         # pragma: no cover
+        raise HTTPException(500, {"error": "metrics_unavailable",
+                                 "message": METRICS_ERROR})
+    prediction = _api_prediction(q.values)
+    return farmer_view.build_advice(
+        recommendation.recommend(prediction, METRICS, q.context))
 
 
 @app.get("/api/login")

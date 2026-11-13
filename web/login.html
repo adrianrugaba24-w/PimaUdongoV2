@@ -15,11 +15,11 @@
        color:#fff;background:#4C7A3A}
   [hidden]{display:none!important}
   :focus-visible{outline:3px solid var(--or);outline-offset:2px}
-  .login{position:fixed;inset:0;display:grid;place-items:center;
+  .login{position:fixed;inset:0;display:flex;
          padding:calc(16px + env(safe-area-inset-top,0px)) 16px calc(16px + env(safe-area-inset-bottom,0px));
          overflow:auto}
   .login>svg{position:absolute;inset:0;width:100%;height:100%}
-  .gl{position:relative;width:min(440px,100%);padding:30px 26px;border-radius:26px;color:#fff;
+  .gl{position:relative;margin:auto;width:min(440px,100%);padding:30px 26px;border-radius:26px;color:#fff;
       background:rgba(10,30,18,.42);border:1.5px solid rgba(255,255,255,.55);
       backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px)}
   .badge{display:inline-block;font-size:12px;font-weight:700;letter-spacing:.05em;
@@ -50,6 +50,12 @@
   .banner{margin-top:14px;padding-top:12px;border-top:1px solid rgba(255,255,255,.3)}
   .ft{width:min(440px,100%);margin:14px auto 0;font-size:13px;text-align:center}
   .ft a{color:#fff}
+  /* A short window cannot hold the whole panel; tighten it rather than letting
+     the top scroll out of reach. */
+  @media (max-height:600px){
+    .gl{padding:20px 22px}.gl h1{font-size:28px;margin-top:6px}.gl p{margin-bottom:12px}
+    .gl label{margin:10px 0 4px}.gl input{height:44px}.go{height:46px;margin-top:12px}
+  }
   @media (prefers-reduced-motion:reduce){*{transition:none!important}}
 </style>
 </head>
@@ -61,6 +67,7 @@
     <span class="badge" id="label"></span>
     <h1 id="title"></h1>
     <p id="lead"></p>
+    <small id="body"></small>
     <div class="seg" role="tablist" id="tabs">
       <button type="button" role="tab" id="tab-farmer" aria-selected="true"></button>
       <button type="button" role="tab" id="tab-researcher" aria-selected="false"></button>
@@ -117,6 +124,7 @@
     $("label").textContent = L.label;
     $("title").textContent = L.title;
     $("lead").textContent = L.lead;
+    $("body").textContent = L.body;
     $("tabs").setAttribute("aria-label", L.role_label);
     $("tab-farmer").textContent = L.farmer_label;
     $("tab-researcher").textContent = L.researcher_label;
@@ -151,10 +159,10 @@
     box.hidden = false;
   }
 
-  // The form never submits.  What is typed is compared here, in this browser,
-  // with the account printed under the chosen type; on a match the password is
-  // cleared and the page moves to that view's address.  No request carries it
-  // and nothing is stored.
+  // The form never submits.  Both fields have to be filled so that pressing the
+  // button is a deliberate act, but neither is checked: the chosen tab decides
+  // which view opens.  The password is cleared as the page leaves, and no request
+  // carries what was typed.
   $("signin").addEventListener("submit", function(ev){
     ev.preventDefault();
     if (!L) { return; }
@@ -162,15 +170,8 @@
     if (!u && !q) { refuse(L.err_both); $("username").focus(); return; }
     if (!u) { refuse(L.err_user); $("username").focus(); return; }
     if (!q) { refuse(L.err_pass); $("password").focus(); return; }
-    var c = copyFor(role);
-    if (u.toLowerCase() !== role || q !== L.demo_password) {
-      refuse(L.err_wrong.replace("{role}", c.label.toLowerCase()));
-      $("password").value = "";
-      $("password").focus();
-      return;
-    }
     $("password").value = "";
-    window.location.assign(c.href);
+    window.location.assign(copyFor(role).href);
   });
 })();
 </script>

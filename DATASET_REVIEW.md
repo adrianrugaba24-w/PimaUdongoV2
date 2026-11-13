@@ -47,6 +47,7 @@ Practical criteria, weighted equally:
 | S10 | **Africa RISING / CIMMYT trial data** (Dataverse) | Trial-level yield and management data, includes Ugandan sites | Uganda **TBC** | Per dataset | L3 | Shortlist for L3 |
 | S11 | UBOS annual agricultural survey | Farm and area statistics, no soil | Uganda | Open | — | Reject |
 | S12 | LUCAS Soil (EU) | Rich, measured, multi-indicator | Europe | Open | L1 | Reject — geography |
+| S13 | **Soil of Farmers 2025 Reviewed** (held in `Soil of Farmers 2025 Reviewed.xlsx`) | 258 farmer demo plots, 224 hosts, 11 crops; pH, OM, N, P, K, Na, Ca, Mg, sand/clay/silt, Fe, Zn, S, B; no EC | Uganda (258 rows) | Not stated on the record — confirm | L1 | **Loadable, not yet usable** — see 4a |
 
 ---
 
@@ -86,6 +87,36 @@ comparison sets.
 Without a response layer, any action the app suggests is a threshold judgement, not an
 evidenced outcome. This must be stated plainly on the poster, or the recommendation
 section should not claim outcome benefit.
+
+---
+
+## 4a. S13, the 2025 farmer workbook
+
+Prepared by `prepare_uganda_2025.py` into `data/uganda_2025/`, in the same layout as
+S1, so `afsis_data.load_raw` / `detect_schema` / `clean` serve it unchanged.
+258 samples survive cleaning at 254 (three have no coordinates, one longitude reads
+3244196 — a projected value, not a degree).
+
+What it supplies: the most Ugandan field context in the project, and the only source
+whose pH, texture and organic matter come from named farms.
+
+What it cannot supply yet:
+
+1. **No EC.** The five-feature model cannot score these rows; a run must pass
+   `--drop-features EC`.
+2. **No measured carbon.** The target is `Total carbon = OM / 1.724` (Van Bemmelen).
+   The manifest marks it `measured: false` and says why the two scales are assumed
+   equal: below about pH 6.5 carbonate is not expected, and 10 of 254 samples sit
+   above that line.
+3. **The chemistry columns are a filled-down table, not measurements.** OM, N, P, K,
+   Na, Ca, Mg, sand, clay and silt repeat verbatim in blocks of 16–23 rows while pH
+   varies: 79 distinct vectors across 258 rows, 214 rows sharing one. Every row carries
+   a `record_pattern` id, and the manifest records the defect under `known_defect`.
+   Until the workbook is corrected, or folds are grouped on `record_pattern`, a
+   cross-validated score from this root is inflated and must not be quoted.
+
+Verdict: keep as the Ugandan *context* source and the template for what a corrected
+sheet must contain. Do not treat a model score from it as evidence.
 
 ---
 

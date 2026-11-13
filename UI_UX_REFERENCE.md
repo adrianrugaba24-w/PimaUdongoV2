@@ -9,13 +9,14 @@ from one entry page.
 | Route | File | Audience | Payload |
 |---|---|---|---|
 | `/`, `/login` | `web/login.html` | the entry page | `GET /api/login` |
-| `/farmer` | `web/farmer.html` | someone holding a soil sample | `GET /api/farmer`, `POST /api/farmer/predict` |
+| `/farmer` | `web/farmer.html` | someone holding a soil sample | `GET /api/farmer`, `POST /api/farmer/predict`, `POST /api/farmer/advice` |
 | `/researcher` | `web/index.html` | examiner, supervisor, reviewer | `GET /results`, `/model-info`, `/health`, `/api/metrics` |
 
 `/` is the entry page and is a chooser, not authentication. Every technical chart
 and table lives in the researcher view; none of them appear on a farmer screen.
-§3–§13 describe the researcher view. §14 describes the farmer view and the entry
-page, and governs anything added to either.
+§3–§13 describe the researcher view. §14–§19 describe the farmer side: the view
+itself, the session view, the supplied layout as built, readings over time, the
+entry gate, and — in §19 — the ranked next steps and the sensor list.
 
 **How to use this.** Before adding, moving or restyling an element, find it in §3 and §4 (researcher)
 or §14 (farmer). Every element has a named data source and a defined behaviour when that source is
@@ -329,6 +330,9 @@ Recorded from the review of an externally produced dashboard, kept as a rejectio
 
 ## 12. Change checklist
 
+`UI_BUILD_REPORT.md` records the interface as it stands and the gap list behind this checklist; this
+section is the gate a change has to pass.
+
 Before any UI change is merged:
 
 - [ ] `python -m pytest tests/test_api.py -q` — all pass
@@ -531,8 +535,10 @@ and the routes do not.
 - No abbreviations. "Per cent" on screen, never "%". `target.unit_short` is used to *choose* the
   words, never printed.
 - The target is "Soil carbon", with a one-line explainer. Never "total carbon (%)", never "SOC".
-- No advice and no imperative verbs. The next-step card is a statement about what would settle the
-  question - a laboratory measurement - not an instruction to do anything to the soil.
+- No agronomic advice, and no imperative that touches the soil. The next-step card is a statement
+  about what would settle the question - a laboratory measurement. §19.3 records the one deliberate
+  exception: the ranked steps are written as imperatives, and every one of them is about measuring,
+  sampling or keeping a record - never about putting something on a field.
 - No sentence that only reassures, and none that only alarms. The uncertainty is the content.
 
 ### 14.8 Rejected on this view
@@ -542,7 +548,7 @@ and the routes do not.
 | A colour-only traffic light | Not a signal to every reader; every light carries icon and words |
 | Rounding a wide interval into a band | It converts "we cannot say" into "we said" |
 | Quoting a break-even figure the bundle does not contain | The card says the test never found it instead |
-| A model-driven recommendation | The experiment supports no such claim, and §9 forbids advice |
+| A model-driven recommendation | The model records no ordering of its inputs, so it has none to give. The ranked steps in §19 are rule-driven, and name no input, rate or product |
 | Hard-coding a sentence in the page | It escapes the banned-term scan and drifts from the numbers |
 | Linking to a route that is not served | `/`, `/login`, `/farmer`, `/researcher` and `/session` are each tested to return 200 |
 | A password field checked against a stored list | There are no accounts; the field is a door, and the page says so in words |
@@ -564,8 +570,9 @@ a feature), a 0–100 fertility index, lime and manure rates per acre, a crop li
 half-width of 0.24 where the calibrated one is 2.11. It loaded Tailwind and Chart.js from CDNs.
 That is five entries of §11 in one file, plus C5, C6 and C8.
 
-The file is retained unchanged in `_retired/` as a layout reference. It is not served, not linked,
-and nothing in it is quoted here or in the report.
+The file is retained unchanged in `_retired/` as a layout reference. It is not served and not
+linked; its appearance is the only thing drawn on, and §16 records exactly which parts were taken
+and which were refused. Nothing it computed is quoted here or in the report.
 
 ### 15.2 Binding map
 
@@ -621,20 +628,54 @@ external request, no baked result literal, no banned vocabulary, and the placeme
 preview*, so its figures were placeholders; the layout and the reading order are what it fixes,
 and this section records how that order is served from real payload only.
 
+The visual language comes from the second supplied file, the mock retained at
+`_retired/pimaudongo_field_soil_health_agronomic_advisor.mock.html` (§15.1). Only its appearance
+was taken: the dark topbar, the card grid, the value chips and the composition bars. Its Tailwind
+and Chart.js are gone — the tokens are hand-written in the page's own `<style>` — and none of its
+computed figures, weights, index or rates came across. What it showed and this page refuses to
+show is recorded in §16.3.
+
 ### 16.1 Shape
 
-One scrolling page, no tabs. In order: the soil test (five sliders), the answer card (headline,
-traffic light, track with **words** at the ends, caption, caveat), the next step, then ten guide
-blocks: how far to trust the check, your soil at a glance, should I get a laboratory test, how to
-take a good soil sample, what your readings mean, who can help, general practices (marked "Not
-based on your reading"), what is soil carbon, how sure are we, what this check uses. The sensor
-card closes the page; the footer keeps both links and the data notice.
+One scrolling page, no tabs. A dark topbar carries the brand, the required banner and three pills
+(for researchers, start again, theme). The body is a wrap of panels on a soft off-white ground, in
+a two-column grid that closes to one column below 900 px. Teal marks what can be pressed; no
+colour means anything about a soil.
 
-Once an answer arrives, a crop card appears between the next step and the guide. It asks one
-question with three buttons (replanted each season, stays for years, both on one field), and each
-answer changes what the reading supports, the next step, and which of the four general practices
-apply. The crop answer never re-runs the estimate and never produces a rating: `crop.health_note`
-says the tool places carbon in a sample and does not rate the soil.
+In order: the soil test (five sliders, each with a value chip) beside the texture panel; the
+one-line explainer; the answer card (headline, traffic light, track with **words** at the ends,
+caption, caveat) beside the next step; the crop card and the advice card (§19); the readings card
+(§17) and the soil-test card beside it; the sensor card; then ten guide blocks in the same grid:
+how far to trust the check, your soil at a glance, should I get a laboratory test, how to take a
+good soil sample, what your readings mean, who can help, general practices (marked "Not based on
+your reading"), what is soil carbon, how sure are we, what this check uses. The footer keeps the
+data notice.
+
+Each measurement is a label, a value chip and a foot row. The chip prints the number the control
+holds and, after it, the field's unit in words (`per cent` for a share, nothing for a bare index).
+The foot row holds an exact number box and the hint. Either control writes the same value to both
+and to the chip, so the chip cannot disagree with the input it describes.
+
+The texture panel (`#texture`) opens when the payload marks two or more fields as shares —
+`form.fields[].share`, set from a `percent` unit. It draws one bar per share, sized by that share's
+part of the total entered so far, then a total row, then, if the three do not add to a hundred, one
+sentence saying so. It is a readout of what was typed, never a calculator: it fills no field, and
+the request still carries exactly the numbers the farmer entered.
+
+Two controls the earlier build did not have. A theme pill in the topbar flips `data-theme` on
+`<html>`, starting from `prefers-color-scheme`, so the page follows the device and can be
+overridden. A print sheet drops the topbar, the form, the buttons and the choice rows and keeps
+each card whole, so the answer can leave the screen as one page.
+
+Once an answer arrives, the crop card appears beside the advice card, between the next step and
+the guide. It asks one question with three buttons (replanted each season, stays for years, both
+on one field), and each answer changes what the reading supports, the next step, and which of the
+four general practices apply. The crop answer never re-runs the estimate and never produces a
+rating: `crop.health_note` says the tool places carbon in a sample and does not rate the soil.
+
+Beside the crop card sits the advice card (§19): a button that asks
+`POST /api/farmer/advice` for the ranked steps, and the steps themselves once an answer arrives.
+It is hidden until a result exists, and the API is not called until the button is pressed.
 
 The track ends read "Less carbon" and "More carbon". The numbers moved into the spoken label,
 which is assembled from `bar.aria_template`, so a screen reader still hears the low, the high and
@@ -645,20 +686,25 @@ the single best answer.
 | Element | Source | If absent |
 | --- | --- | --- |
 | `#form-fields` | `form.fields[]`: label, hint, `lowest`, `highest`, `placeholder` (training median) | a field with no median starts empty and the slider cannot open |
+| value chip `.chipval` | the field's own control, plus `form.fields[].unit_words` | unit omitted when the payload sends none |
+| `#texture`, `#texture-bars`, `#texture-note` | `form.texture.{title,lead,total,off}` and the fields marked `share` | panel hidden unless two or more shares |
 | `#form-start` | `form.start_note` | paragraph omitted |
 | `#light` | `result.light.icon` + `.words` | never absent; build() raises |
 | `#end-low`, `#end-high` | `bar.low_words`, `bar.high_words` | track hidden when `bar` is null |
 | `#guide-blocks` | `guide.blocks[]`: `kind` (`para`/`list`/`steps`/`pairs`), `title`, `intro`, `items[]`, `note` | section omitted |
 | `#crop-choices`, `#crop-answer` | `crop.options[]`: `button`, `name`, `reading`, `step`, `practices[]` | card stays hidden until a result exists |
 | `#crop-health` | `crop.health_note` | paragraph omitted |
+| `#advice-title`, `#advice-lead`, `#advice-limits` | `advice.title`, `.lead`, `.limits` | card stays hidden until a result exists |
+| `#advice-body` | `advice.verdict`, `advice.items[]`, `advice.cap_note` (when `advice.unshown`) | `advice.empty` |
 | `#s-value` | `sensor.value` else `sensor.low` | line left empty |
+| `#theme` | `nav.theme` | pill stays blank; the label is never written in the page |
 
 Every guide string is built inside `farmer_view.build()` and therefore passes `_banned_guard`:
 a technical word in the guide fails the build, not just a test.
 
 ### 16.3 Deviations from the supplied layout
 
-Three, each because the page cannot honour the original without inventing something:
+Five, each because the page cannot honour the original without inventing something:
 
 1. **No sensor readings.** The tool receives five typed or dragged numbers; there is no node, so
    nothing is labelled "readings from your sensor".
@@ -666,11 +712,21 @@ Three, each because the page cannot honour the original without inventing someth
    instead of displaying values no endpoint returns.
 3. **The sliders open at the sample's median**, and `form.start_note` says so in words. A
    starting point that looked like a measurement would be the one lie a slider can tell.
+4. **The soil-type presets became a readout.** The mock offered four buttons — clay, loam, sandy,
+   silty — that filled the texture fields with fixed percentages. A preset is a measurement nobody
+   took, which is the fault that retired the mock (§15.1). The panel instead shows the shares that
+   were typed, their total, and a sentence when the three do not come to a hundred. It fills
+   nothing: a farmer with a texture result from a laboratory types it, and those same numbers reach
+   the estimate unchanged.
+5. **None of the mock's computed figures came across.** Its carbon estimate, feature weights,
+   fertility index, lime and manure rates, half-width and its Chart.js benchmark are all absent, and
+   so are its district presets and the simulated sensor burst. Every number on this page arrives in
+   `result`, `advice` or `strip`.
 
-Two lines of the supplied copy are kept but are the only place this project departs from the
+One line of the supplied copy is kept but is the only place this project departs from the
 ban on cost framing: "You are about to spend money on lime, compost or seed" (a trigger for
-paying a laboratory, not a claim about this tool) and the general practices list, which is
-carried under "Not based on your reading" and "Sources to be added before wider use".
+paying a laboratory, not a claim about this tool). The general practices list is carried under
+"Not based on your reading" and "Sources to be added before wider use".
 
 ### 16.4 Tests
 
@@ -678,6 +734,12 @@ carried under "Not based on your reading" and "Sources to be added before wider 
 title and a shape, the laboratory decision has its four cases, sampling is a five-step numbered
 sequence, the practices block carries its two disclaimers, no block quotes a figure, the guide is
 inside the build scan, and the page is one page rather than four tabs.
+
+`TestFarmerPage` holds the shell invariants: the farmer region is marked for the scanner, no
+banned term survives in it, the page writes none of its own prose (`textContent = "…"` is absent),
+the required banner is present, the page fetches and bakes no number outside `<style>`, and no
+`role="tablist"` turns it into tabs. `test_the_farmer_page_keeps_readings_on_the_device_only`
+counts `localStorage.setItem` once and proves `saveReading` and `clearReadings` reach no network.
 
 `TestCropQuestion` — nine tests: three cycles in a fixed order, each with a reading and a next
 step, the two cycles do not share their wording, each uses only the four practices already
@@ -797,19 +859,20 @@ the button text. Both types carry the same six payload fields — label, action,
 username, placeholder, hint, href — and a test fails if either is blank, so a
 missing key shows up as an empty control rather than an invented sentence.
 
-### 18.3 The check is printed, so it is not a hiding place
+### 18.3 A door, not a check
 
-This gate refuses what it does not recognise, which the previous one did not. It
-is only honest because what it checks against is printed on the page before
-anything is typed: the demo name for the chosen type and the word `demo`. The
-comparison runs in the browser against `demo_password` from the payload, the
-password field is cleared on both refusal and success, nothing is sent and
-nothing is stored. `LOGIN.body` says all of that, and `TestEntryGate` holds the
-hint and the check to the same word — if one changes without the other, the
-suite fails rather than the page lying quietly.
+The gate requires both fields to be filled — pressing the button should be a
+deliberate act — but neither is compared with anything. The chosen account type
+decides which view opens, and any name and any password open it. The password is
+cleared as the page leaves, nothing is sent and nothing is stored.
 
-Refusals are payload strings too: both fields empty, one field empty, and a
-mismatch whose message names the account type it wanted.
+The first build of this gate compared the two fields with the demo account
+printed under each type and refused everything else. That made the page a check,
+and a check a person cannot pass reads as a broken page rather than a strict
+one: the first thing typed into it was refused. The demo account is now an
+example to type, `LOGIN.body` says plainly that any name and any password will
+do, and a test refuses to let a comparison with a printed password reappear.
+The only refusals left are for an empty field, and they are payload strings.
 
 ### 18.4 What the panel no longer claims
 
@@ -825,13 +888,161 @@ fails if the word "cannot" returns to the note.
 `TestLogin` keeps what survived the rebuild: the demo label, both destinations
 served, the two field labels in the markup, the ban on any request carrying what
 is typed, the ban on storage, the banner, the no-figure rule, and the payload's
-wording being rendered rather than written. Two tests were replaced rather than
-kept: "any name and any password will let you in" is no longer true, so it
-became "it prints the account it will accept"; and "no sign-in is checked"
-became "not a real sign-in".
+wording being rendered rather than written. Two of its tests follow the gate's
+behaviour: the body must still say that any name and any password will do, and
+that what is typed is not stored.
 
-`TestEntryGate` — eight tests: both types carry six non-empty fields, the types
+`TestEntryGate` — seven tests: both types carry six non-empty fields, the types
 share neither a name nor a destination, the tabs cannot submit, the password can
-be read back, every refusal is written in the payload, the refusal names the
-type it wanted, the printed password is the accepted one, and the page does not
-claim the views are walled off.
+be read back, every refusal is written in the payload, nothing typed is compared
+with anything, and the page does not claim the views are walled off.
+
+---
+
+## 19. The ranked next steps, and the sensor list
+
+Two things that share one rule: neither may state a fact the artefacts do not carry. The steps rank
+what a farmer could do next from evidence already on the page; the sensor list says how good an
+instrument has to be, and derives every ceiling it prints from the bundle.
+
+### 19.1 The engine is rules, not the model
+
+`recommendation.py` returns a ranked list from three dictionaries: one `/api/predict`-shaped answer,
+the `/api/metrics` payload, and the farmer's side — crop cycle, soil-test words, the last two kept
+readings. It fits nothing, fetches nothing and reads no clock, so a whole ranking is testable by
+handing it three dicts.
+
+The order is written down rather than scored, because a score invites tuning and this project has
+nothing to tune it against:
+
+| Rank | Head | What it is |
+|---|---|---|
+| 1 | A | the tool could not place the soil: a laboratory test is the only way out |
+| 2 | C | two crops on one field, so one reading cannot be the field's reading |
+| 3 | D | a soil-test word and a reading pointing at the same question |
+| 4 | B | the record read against itself: a move, no move, or no second reading yet |
+| 5 | E | one general practice that belongs to the chosen crop |
+| 6 | F | the record itself, always last, always true |
+
+Uncertainty comes first because everything under it is an answer about *this* soil: if the tool
+cannot place the soil, the useful next step is the one that ends the uncertainty, not one built on
+it. The list is capped at three, and `advice.cap_note` says how many were held back — a step past the
+cap still counts in `total`, so nothing is dropped in silence.
+
+### 19.2 The endpoint and the payload
+
+`POST /api/farmer/advice` takes `{values, context}` and answers with the card. The placement is
+**re-derived server-side** from `values`, through the same `_api_prediction` path
+`/api/farmer/predict` uses, so the page cannot hand back a band it chose and the steps cannot
+disagree with the answer printed above them.
+
+The payload:
+
+| Field | Meaning |
+|---|---|
+| `items[]` | `key`, `rank`, `basis`, `title`, `why`, `now`, `words`, and `moves` on a move |
+| `verdict` | the situation, said once: `title`, `body`, `basis`, `words` — `null` when the list is empty |
+| `total`, `shown`, `unshown`, `cap` | how much was found, how much is printed, how much was held back |
+| `context_used` | `crop`, `bands`, `has_reading`, `has_previous` — what the ranking was allowed to see |
+
+`context_used` carries no band, so a reviewer can check the claim in §19.4 without reading the
+source. `words` is always one of the five phrases in `RECOMMEND_BASIS`, printed beside the step, so
+a step arrives with its evidence rather than on trust.
+
+### 19.3 The one place imperatives are allowed
+
+§14.7 bans imperative verbs on this view, and this card writes five of them. The ban exists to keep a
+rate, an input or a product off a farmer's screen; these stay on the evidence side — get this soil
+tested, sample two parts separately, read the same spot again, keep the reading, write down the field
+and the day. None names a material, a rate or an outcome. The one step that is about the land rather
+than the record is the practice, and it is printed with `advice.practice_note`: a general practice for
+that kind of crop, not a reading of this soil.
+
+The card also states its own boundary. `advice.limits` says that none of it says what to buy or how
+much to put on a field; what it says is what would make the answer firmer.
+
+### 19.4 The band is not an input, and three things say so
+
+The gate places the soil in a tercile of the sampled soils. That is a position in a distribution, not
+a grade: the upper third is the upper third of the soils in this dataset, not a good soil. A step
+recommended because of the tercile would be recommended for a reason this project does not have, so
+the engine reads only which rules the gate fired:
+
+1. **By construction.** It reads `gate.rules` and `gate.out_of_range`, and nothing else.
+2. **By behaviour.** Two placements that differ only in their band, and in nothing else, produce
+   byte-identical output — `test_two_bands_give_the_same_answer`.
+3. **By source.** `band_key` appears in the module only inside the docstring that says it is not
+   read, and the only keys taken from the gate are `rules` and `out_of_range`.
+
+### 19.5 Where the sentences live
+
+Every sentence is in `farmer_view.py` — `RECOMMEND`, `RECOMMEND_ITEMS`, `RECOMMEND_VERDICTS`,
+`RECOMMEND_BASIS` — and `build_advice()` passes each one through `_banned_guard`, so a technical word
+in a step fails the build, not just a test. Two of the sentences are templates and are filled with
+figures the engine read from `metrics`: the drift a move is set against, which is the same half-spread
+the readings card prints, and the plain names of inputs that fell outside the sampled soils.
+
+### 19.6 The sensor list (`SENSORS.md`, `sensor_plan.py`)
+
+Two field instruments and one laboratory method cover the five quantities the check takes. Soil
+carbon is not among them: it is estimated from the five, which is why each has to be good enough to
+be worth carrying.
+
+| Obtained with | Covers |
+|---|---|
+| pH meter with temperature compensation | soil reaction |
+| conductivity cell, compensated to 25 °C | electrical conductivity |
+| particle-size analysis in a laboratory | clay, sand and silt as one sample |
+
+The ceilings are **derived, never typed**. The bundle records a noise sweep; its break-even is the
+level at which the check stopped beating a field mean. Multiply that fraction by each input's own
+spread and the result is a ceiling in that input's own units:
+
+```
+ceiling = break-even fraction x spread(feature)
+```
+
+Three consequences are printed beside the figures, because each one changes how a requirement is
+read:
+
+- **A shared budget, not five separate limits.** Error was added to every input at once, so being
+  well inside one ceiling buys no headroom on another.
+- **A floor for usefulness, not a target.** At the ceiling the check is no better than an average of
+  the soils it was built on; comfortably below it is the requirement.
+- **Rounded down, never up.** A requirement rounded up is one an instrument may just miss.
+
+The default bundle is `export_afsis_real`, deliberately not `MODEL_DIR`: a tolerance derived from the
+synthetic stand-in would be a number about a generated dataset. Where a bundle recorded no break-even
+— which is exactly the synthetic case — the document prints `not derived` and says the sweep never
+reached one, rather than borrowing a figure.
+
+```
+python sensor_plan.py            # the document, to stdout
+python sensor_plan.py --write    # regenerate SENSORS.md
+python sensor_plan.py --check    # exit 1 when the document is out of date
+python sensor_plan.py --json     # the derived figures
+```
+
+`--check` runs in the suite, so a figure edited by hand into the document fails the build. The
+document is generated between `<!-- sensors:begin -->` and `<!-- sensors:end -->`, carries no date
+and no clock, and renders identically twice from the same bundle.
+
+It refuses three things on purpose: to rank the inputs (the bundle records no ordering, and a budget
+allocated by guesswork would look exactly like a budget allocated by evidence); to call a ceiling an
+accuracy (it is measured against a field mean, not a laboratory value); and to say anything about
+cost, availability or robustness, which decide what is bought rather than what is adequate.
+
+### 19.7 Tests
+
+`tests/test_recommendation.py` — 63 tests in three kinds: what the engine does (ordering, the cap,
+the verdict named after the first step, every step carrying its basis); what it must not read (the
+band, by behaviour and by source); and what it must not say (every printable sentence passes the
+banned-term scan, and a poisoned template raises instead of shipping).
+
+`tests/test_sensor_plan.py` — 61 tests: the rounding rule floors and never rounds to nearest, no
+figure is invented for a value that is missing or not finite, the smallest arm is the break-even and
+the model name is not an arm, one row per input in the bundle's order, a ceiling is never above the
+arithmetic it came from, the document is deterministic and clockless and names its provenance, a
+bundle without a break-even produces `not derived` rather than a number, and the committed
+`SENSORS.md` is byte-equal to a fresh render of the committed bundle.
+

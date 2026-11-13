@@ -434,7 +434,7 @@ class TestLogin:
     def test_it_says_what_it_does_not_do(self, client):
         body = client.get("/api/login").json()["login"]["body"].lower()
         assert "not stored" in body
-        assert "not a real sign-in" in body
+        assert "any name and any password" in body
 
     def test_it_offers_both_destinations(self, client):
         lg = client.get("/api/login").json()["login"]
@@ -457,13 +457,13 @@ class TestLogin:
         assert 'type="password"' in region
         assert 'for="username"' in region and 'for="password"' in region
 
-    def test_it_prints_the_account_it_will_accept(self, client):
-        """A form that refuses must say, before you type, what it accepts."""
+    def test_it_prints_an_example_account(self, client):
+        """The hint is one that works, not the only one that works."""
         lg = client.get("/api/login").json()["login"]
         for role in ("farmer", "researcher"):
             hint = lg[f"{role}_hint"].lower()
             assert role in hint
-            assert lg["demo_password"] in hint
+            assert "demo" in hint
 
     def test_the_form_never_sends_what_is_typed(self):
         """Nothing typed leaves the browser: no request, no body, no header."""
@@ -540,6 +540,12 @@ class TestEntryGate:
             for role in ("farmer", "researcher"):
                 assert lg[f"{role}_{field}"], (role, field)
 
+    def test_every_payload_string_reaches_the_page(self, client):
+        """A key the page never reads is a sentence nobody ever sees."""
+        region = login_region()
+        for key in self._login(client):
+            assert key in region, key
+
     def test_the_types_share_neither_a_name_nor_a_destination(self, client):
         lg = self._login(client)
         assert lg["farmer_label"] != lg["researcher_label"]
@@ -561,17 +567,16 @@ class TestEntryGate:
 
     def test_every_refusal_is_written_in_the_payload(self):
         region = login_region()
-        for key in ("err_both", "err_user", "err_pass", "err_wrong"):
+        for key in ("err_both", "err_user", "err_pass"):
             assert "L." + key in region, key
 
-    def test_the_refusal_names_the_type_it_wanted(self, client):
-        assert self._login(client)["err_wrong"].count("{role}") == 1
-
-    def test_the_check_compares_against_the_printed_password(self, client):
-        """The word in the hint is the word the form accepts, or it lies."""
-        lg = self._login(client)
-        assert f'password "{lg["demo_password"]}"' in lg["farmer_hint"]
-        assert "L.demo_password" in login_region()
+    def test_nothing_typed_is_compared_with_anything(self, client):
+        """A door, not a check: the tab decides, the fields are not judged."""
+        body = self._login(client)["body"].lower()
+        assert "any name and any password" in body
+        region = login_region()
+        assert "demo_password" not in region
+        assert "err_wrong" not in region
 
     def test_it_does_not_claim_the_two_views_are_walled_off(self, client):
         """No session exists, so the page must not promise one."""

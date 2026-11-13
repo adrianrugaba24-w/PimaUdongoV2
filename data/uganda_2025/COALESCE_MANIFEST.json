@@ -1,0 +1,136 @@
+{
+  "purpose": "canonical Ugandan dataset for afsis_experiment.py",
+  "source": {
+    "file": "Soil of Farmers 2025 Reviewed.xlsx",
+    "sheet": "Sheet1",
+    "sha256": "963a28a6ba26ece107e6dff8df7691ff416083ae0d9d2ef6301d77ee4ec34ab5"
+  },
+  "column_map": {
+    "No": "SSN (UG25-<sample number>)",
+    "Latitude": "Latitude",
+    "Longitude": "Longitude",
+    "pH": "pH_H2O",
+    "Clay": "Clay percent",
+    "Sand": "Sand percent",
+    "Silt": "Silt percent",
+    "OM": "OM percent, and Total carbon = OM / 1.724",
+    "Demo host": "SiteName (reporting only)",
+    "Agronomist": "Agronomist (reporting only)",
+    "Crop on Demo": "Crop (reporting only)"
+  },
+  "absent_at_source": {
+    "EC": "the workbook has no electrical conductivity column; EC is written empty so the table keeps the project's five inputs"
+  },
+  "derived_target": {
+    "column": "Total carbon",
+    "from": "OM percent",
+    "formula": "OM percent / 1.7241 (Van Bemmelen, 1/0.58)",
+    "measured": false,
+    "why": "the workbook measures organic matter, not carbon; the pipeline targets total carbon, so a conversion is required or the dataset has no target at all",
+    "limitation": "OM/1.724 estimates organic carbon; AfSIS total carbon includes any inorganic fraction, so the two scales are assumed equal here, not proved equal",
+    "support": "carbonate is not expected below about pH 6.5; the count of samples above that line is reported in quality.ph",
+    "traceability": "carbon_source column repeats the conversion per row"
+  },
+  "layout": {
+    "georeferences": "Georeferences/georeferences.csv",
+    "wet_chemistry": "Wet_Chemistry/FARMERS2025/Wet_Chemistry_FARMERS2025.csv",
+    "join": "SSN, one row per sample"
+  },
+  "grouping": "SSN, one row per sample. SiteName (demo host) is reported but is deliberately not named SiteID: clean() deduplicates on [group key, lab], so a coarser key would keep one row per farm and discard the rest.",
+  "cleaning": "nothing imputed, aggregated or clamped here; out-of-bounds values are left for afsis_data.clean() to report",
+  "counts": {
+    "joined_rows": 258,
+    "with_coordinates": 255,
+    "distinct_hosts": 224,
+    "distinct_crops": 11
+  },
+  "quality": {
+    "rows_in_sheet": 282,
+    "rows_dropped_as_not_samples": {
+      "units row": 1,
+      "rating legend below the table": 9,
+      "in-sheet subtotals (Average / Critical Value)": 12,
+      "blank rows": 2
+    },
+    "duplicate_sample_numbers": 0,
+    "sample_rows": 258,
+    "coordinate_defects": {
+      "missing": 3,
+      "out_of_range": 1,
+      "out_of_range_values": [
+        3244196.0
+      ],
+      "repaired_trailing_apostrophe": 1
+    },
+    "non_numeric_cells": {
+      "pH": 0,
+      "OM": 0,
+      "Clay": 0,
+      "Sand": 0,
+      "Silt": 0
+    },
+    "out_of_bounds_values": {
+      "pH_H2O": 0,
+      "EC": 0,
+      "Clay percent": 0,
+      "Sand percent": 0,
+      "Silt percent": 0,
+      "Total carbon": 0
+    },
+    "texture_sum": {
+      "complete_rows": 258,
+      "off_by_more_than_5": 0,
+      "min": 100.0,
+      "max": 102.0
+    },
+    "om": {
+      "median_percent": 1.78,
+      "min_percent": 0.84,
+      "max_percent": 3.55,
+      "complete_rows": 258
+    },
+    "carbon": {
+      "factor_om_to_c": 1.7241,
+      "median_percent": 1.032,
+      "measured": false
+    },
+    "ph": {
+      "median": 5.8,
+      "max": 6.9,
+      "rows_above_ph_6.5_where_carbonates_are_possible": 10
+    },
+    "complete_rows_all_five_inputs": 0,
+    "complete_rows_four_inputs_no_ec": 258,
+    "rows_with_target": 258,
+    "repeated_records": {
+      "columns_compared": [
+        "OM",
+        "N",
+        "P",
+        "K",
+        "Na",
+        "Ca",
+        "Mg",
+        "Sand",
+        "Clay",
+        "Silt"
+      ],
+      "rows": 258,
+      "distinct_patterns": 79,
+      "surplus_rows": 179,
+      "rows_in_a_repeated_pattern": 214,
+      "largest_pattern": 23,
+      "patterns_appearing_once": 44,
+      "note": "the ten OM..Silt columns repeat verbatim in blocks of 16-23 rows while pH varies, so they carry a filled-down value rather than a per-farm measurement. record_pattern names each distinct vector: identical rows must share a fold, or a cross-validated score measures recall of that table instead of prediction."
+    }
+  },
+  "target": "Total carbon",
+  "target_note": "not measured: estimated from organic matter, see derived_target",
+  "attribution": {
+    "credit": "2025 farmer demonstration soils; the agronomists who collected them are named in the Georeferences table",
+    "warning": "afsis_experiment.py labels any root without a synthetic marker as 'afsis_real' and prints the AfSIS credit, which is the wrong attribution for this dataset. Until a run can be told this source kind, a bundle produced from this root must not be cited."
+  },
+  "run": "python afsis_experiment.py --root data/uganda_2025 --target \"Total carbon\" --drop-features EC",
+  "run_note": "--drop-features EC is required: EC is absent at source, so a five-feature model cannot score or train on these rows",
+  "known_defect": "the repeated chemistry blocks in quality.repeated_records inflate any cross-validated score computed from this root, because identical rows are split across folds; the workbook needs correcting, or the run needs to group on record_pattern, before a score from it means anything"
+}

@@ -1,82 +1,138 @@
 <!doctype html>
-<html lang="en" data-theme="light">
+<html lang="en">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Soil carbon - demo</title>
 <style>
   :root{
-    --bg:#f7f7f5; --card:#fff; --ink:#1c1c1a; --muted:#5c5c56; --line:#e2e2dc;
-    --accent:#2f6b4f; --accent-ink:#fff; --green:#2e7d32; --amber:#a86400;
-    --red:#b3261e; --track:#ecece6;
+    --bg:#f4f6f3; --panel:#fff; --ink:#10231f; --muted:#5f6f68; --line:#dbe3de;
+    --navy:#0f2a2e; --navy-ink:#e8f1ee; --navy-muted:#a9c2bb;
+    --teal:#0f766e; --teal-soft:#e6f3f0; --amber:#a86400; --amber-soft:#fdf3e2;
+    --green:#2e7d32; --red:#b3261e; --track:#e7ece8; --soft:#f7f9f7;
+    --shadow:0 1px 2px rgba(16,35,31,.05), 0 10px 24px rgba(16,35,31,.045);
   }
   @media (prefers-color-scheme: dark){
-    :root{ --bg:#16171a; --card:#1e2024; --ink:#eceae5; --muted:#a9a69f; --line:#33363c;
-           --track:#33363c; --green:#7bc47f; --amber:#e0a54a; --red:#f28b82; }
+    :root:not([data-theme="light"]){
+      --bg:#12171a; --panel:#1a2124; --ink:#e9efec; --muted:#a2b0aa; --line:#2f3a3d;
+      --navy:#0b1e21; --navy-ink:#e8f1ee; --navy-muted:#8fa9a2;
+      --teal:#6cc3b8; --teal-soft:#1f2f2e; --amber:#e0a54a; --amber-soft:#2d251a;
+      --green:#7bc47f; --red:#f28b82; --track:#2b3436; --soft:#1e2629;
+      --shadow:0 1px 2px rgba(0,0,0,.3);
+    }
   }
-  [data-theme="dark"]{ --bg:#16171a; --card:#1e2024; --ink:#eceae5; --muted:#a9a69f;
-    --line:#33363c; --track:#33363c; --green:#7bc47f; --amber:#e0a54a; --red:#f28b82; }
+  [data-theme="dark"]{
+    --bg:#12171a; --panel:#1a2124; --ink:#e9efec; --muted:#a2b0aa; --line:#2f3a3d;
+    --navy:#0b1e21; --navy-ink:#e8f1ee; --navy-muted:#8fa9a2;
+    --teal:#6cc3b8; --teal-soft:#1f2f2e; --amber:#e0a54a; --amber-soft:#2d251a;
+    --green:#7bc47f; --red:#f28b82; --track:#2b3436; --soft:#1e2629;
+    --shadow:0 1px 2px rgba(0,0,0,.3);
+  }
   *{box-sizing:border-box}
-  body{margin:0;font:16px/1.6 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+  html,body{margin:0}
+  body{font:16px/1.6 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
        background:var(--bg);color:var(--ink)}
   .skip{position:absolute;left:-999px}
-  .skip:focus{left:8px;top:8px;background:var(--card);padding:8px;z-index:20}
-  header{display:flex;flex-wrap:wrap;gap:10px;align-items:center;
-         padding:14px 20px;border-bottom:1px solid var(--line);background:var(--card)}
-  .brand{display:flex;align-items:center;gap:9px;font-weight:650;font-size:17px}
-  .dot{width:11px;height:11px;border-radius:50%;background:var(--accent)}
-  .banner{margin-left:auto;font-size:13px;color:var(--muted);max-width:46ch}
-  main{max-width:760px;margin:0 auto;padding:22px 20px 60px}
-  h2{font-size:26px;line-height:1.25;margin:8px 0 10px}
-  .lead{font-size:17px;margin:0 0 18px}
+  .skip:focus{left:8px;top:8px;background:var(--panel);padding:8px;z-index:40}
+
+  /* The bar across the top: who this is for, and the way out. */
+  .topbar{background:var(--navy);color:var(--navy-ink);position:sticky;top:0;z-index:30;
+          border-bottom:1px solid rgba(255,255,255,.08)}
+  .topbar-in{display:flex;flex-wrap:wrap;align-items:center;gap:12px 18px;padding:12px 18px}
+  .brand{display:flex;align-items:center;gap:10px;font-weight:700;font-size:18px;
+         letter-spacing:-.01em}
+  .brand .dot{width:10px;height:10px;border-radius:50%;background:var(--teal);
+              box-shadow:0 0 0 3px rgba(108,195,184,.18)}
+  .banner{margin-left:auto;font-size:12.5px;color:var(--navy-muted);max-width:44ch;
+          border:1px solid rgba(255,255,255,.14);border-radius:999px;padding:4px 12px}
+  .navpill{display:flex;flex-wrap:wrap;gap:8px}
+  .navpill a,.navpill button{font:inherit;font-size:13px;text-decoration:none;
+    color:var(--navy-ink);background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.16);
+    border-radius:999px;padding:6px 13px;cursor:pointer}
+  .navpill a:hover,.navpill button:hover{background:rgba(255,255,255,.14)}
+  .navpill button[aria-pressed="true"]{background:var(--teal);border-color:var(--teal);color:#08221f}
+
+  /* Layout: one column until there is room for two. */
+  .wrap{max-width:1120px;margin:0 auto;padding:22px 18px 64px}
+  .grid{display:grid;gap:16px;margin:0 0 16px}
+  .grid-2{grid-template-columns:repeat(auto-fit,minmax(330px,1fr))}
+  .grid-2>*{min-width:0}
+  .panel,.card{background:var(--panel);border:1px solid var(--line);border-radius:16px;
+        padding:20px;box-shadow:var(--shadow);margin:0 0 16px}
+  .grid>.panel,.grid>.card{margin:0}
+  h2{font-size:25px;line-height:1.25;margin:2px 0 10px;letter-spacing:-.01em}
+  h3{font-size:17px;margin:0 0 8px}
+  .lead{font-size:17px;margin:0 0 16px}
   .note{color:var(--muted);font-size:14px}
-  .tabs{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:20px}
-  .tabs button{border:1px solid var(--line);background:var(--card);color:var(--ink);
-    padding:9px 14px;border-radius:999px;font:inherit;font-size:14px;cursor:pointer}
-  .tabs button[aria-selected="true"]{background:var(--accent);color:var(--accent-ink);
-    border-color:var(--accent)}
-  .card{background:var(--card);border:1px solid var(--line);border-radius:14px;
-        padding:20px;margin:0 0 16px}
-  .fields{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:14px}
-  .field{display:flex;flex-direction:column;gap:4px}
-  .lab{font-weight:600}
-  .row{display:flex;align-items:center;gap:10px}
-  .row input[type=range]{flex:1;padding:0;border:0;background:transparent;accent-color:var(--accent)}
-  .row input.exact{width:92px;text-align:right}
-  input{font:inherit;padding:10px 12px;border:1px solid var(--line);border-radius:9px;
-        background:var(--bg);color:var(--ink)}
-  .hint{font-size:13px;color:var(--muted)}
-  button.primary{font:inherit;font-weight:600;background:var(--accent);color:var(--accent-ink);
-    border:0;border-radius:10px;padding:12px 18px;cursor:pointer;margin-top:16px}
+  .hint{font-size:12.5px;color:var(--muted)}
+  .explain{max-width:62ch;margin:0 0 18px}
+
+  /* One measured quantity: name, the number it holds, the slider, the box. */
+  .fields{display:grid;gap:12px}
+  .meas{border:1px solid var(--line);border-radius:14px;padding:13px 14px;background:var(--soft)}
+  .meas-head{display:flex;align-items:baseline;justify-content:space-between;gap:10px}
+  .lab{font-weight:650}
+  .chipval{font-variant-numeric:tabular-nums;font-weight:700;font-size:21px;line-height:1.1;
+           color:var(--teal);background:var(--teal-soft);border-radius:10px;padding:3px 10px}
+  .chipval .unit{font-size:12px;font-weight:600;color:var(--muted);margin-left:5px}
+  .meas input[type=range]{width:100%;margin:11px 0 8px;padding:0;border:0;background:transparent;
+                          accent-color:var(--teal)}
+  .meas-foot{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+  input[type=number]{width:104px;font:inherit;font-variant-numeric:tabular-nums;
+        padding:6px 9px;border:1px solid var(--line);border-radius:9px;
+        background:var(--panel);color:var(--ink)}
+  button.primary{font:inherit;font-weight:650;background:var(--teal);color:#fff;border:0;
+    border-radius:11px;padding:12px 18px;cursor:pointer;margin-top:18px;width:100%}
+  button.primary:hover{filter:brightness(1.08)}
+  button.primary:disabled{opacity:.6;cursor:default}
+
+  /* The three shares, added up beside the form. */
+  .texrow{display:grid;grid-template-columns:74px 1fr 48px;align-items:center;gap:9px;
+          margin:0 0 9px}
+  .texlab{font-size:13px;font-weight:600}
+  .texnum{font-size:13px;font-variant-numeric:tabular-nums;text-align:right;color:var(--muted)}
+  .texbar{display:block;height:9px;border-radius:999px;background:var(--track);overflow:hidden}
+  .texfill{display:block;height:100%;background:var(--teal);border-radius:999px}
+  .textotal{border-top:1px solid var(--line);padding-top:10px;margin-top:12px}
+  .textotal .texlab,.textotal .texnum{color:var(--ink);font-weight:700}
+
+  /* The answer. */
   .light{display:inline-flex;align-items:center;gap:9px;font-weight:650;
-    padding:8px 13px;border-radius:999px;border:1px solid currentColor;margin:6px 0 14px}
-  .light .ico{font-size:17px;line-height:1}
+    padding:7px 14px;border-radius:999px;border:1px solid currentColor;margin:2px 0 16px}
+  .light .ico{font-size:16px;line-height:1}
   .light.green{color:var(--green)}
   .light.amber{color:var(--amber)}
   .light.red{color:var(--red)}
-  .track{position:relative;height:26px;border-radius:8px;background:var(--track);margin:14px 0 6px}
-  .fill{position:absolute;top:0;bottom:0;background:var(--accent);opacity:.35;border-radius:8px}
+  .track{position:relative;height:26px;border-radius:9px;background:var(--track);margin:14px 0 6px}
+  .fill{position:absolute;top:0;bottom:0;background:var(--teal);opacity:.32;border-radius:9px}
   .pin{position:absolute;top:-5px;bottom:-5px;width:3px;background:var(--ink);border-radius:2px}
-  .ends{display:flex;justify-content:space-between;font-size:13px;color:var(--muted)}
+  .ends{display:flex;justify-content:space-between;font-size:12.5px;color:var(--muted)}
   .step h3{margin:0 0 8px;font-size:17px}
   .step p{margin:0 0 10px}
+
+  /* Cards built in the page from payload blocks. */
   .block h3{margin:0 0 8px;font-size:17px}
   .block p{margin:0 0 10px}
   .block ul,.block ol{margin:0 0 10px;padding-left:20px}
   .block li{margin:0 0 7px}
   .block li strong{display:block;font-weight:650}
   .block .note{font-size:13px}
-  .choices{display:flex;flex-wrap:wrap;gap:8px;margin:12px 0 14px}
-  .choices button{font:inherit;font-size:14px;padding:9px 14px;border-radius:999px;
-    border:1px solid var(--line);background:var(--bg);color:var(--ink);cursor:pointer}
-  .choices button[aria-pressed="true"]{background:var(--accent);color:var(--accent-ink);
-    border-color:var(--accent)}
+  .choices{display:flex;flex-wrap:wrap;gap:8px;margin:11px 0 13px}
+  .choices button{font:inherit;font-size:14px;padding:8px 14px;border-radius:999px;
+    border:1px solid var(--line);background:var(--soft);color:var(--ink);cursor:pointer}
+  .choices button:hover{border-color:var(--teal)}
+  .choices button[aria-pressed="true"]{background:var(--teal);color:#fff;border-color:var(--teal)}
   #crop-answer h4{margin:6px 0 8px;font-size:17px}
   #crop-answer h5{margin:14px 0 6px;font-size:15px}
   #crop-answer ul{margin:0;padding-left:20px}
   #crop-answer li{margin:0 0 7px}
   #crop-answer li strong{display:block;font-weight:650}
-  .drift{font-size:13px;color:var(--muted)}
+  .drift{font-size:12.5px;color:var(--muted)}
+  .advice-now{display:block;margin-top:5px}
+  .advice-why{display:block;margin-top:4px;font-size:12.5px;color:var(--muted)}
+  #advice-body h4{margin:12px 0 4px;font-size:17px}
+  #advice-body ol{margin:0;padding-left:20px}
+  #advice-body li{margin:0 0 12px}
   #strip-compare h4{margin:14px 0 8px;font-size:17px}
   .cmp{margin:0;padding-left:20px}
   .cmp li{margin:0 0 7px}
@@ -84,116 +140,169 @@
   #pair-answer h4{margin:14px 0 6px;font-size:17px}
   #pair-answer h5{margin:12px 0 6px;font-size:15px}
   #pair-answer p{margin:0 0 10px}
-  footer{margin-top:26px;padding-top:14px;border-top:1px solid var(--line);
-         display:flex;flex-wrap:wrap;gap:12px;align-items:center;font-size:14px;color:var(--muted)}
-  footer a{color:var(--accent);font-weight:600}
+
+  footer{margin-top:26px;padding-top:16px;border-top:1px solid var(--line);
+         display:flex;flex-wrap:wrap;gap:10px 16px;align-items:center;
+         font-size:13.5px;color:var(--muted)}
+  footer a{color:var(--teal);font-weight:650;text-decoration:none}
+  footer a:hover{text-decoration:underline}
   [hidden]{display:none !important}
+
+  @media (max-width:640px){
+    .banner{margin-left:0;order:3;max-width:none;width:100%}
+    h2{font-size:22px}
+    .wrap{padding:16px 14px 56px}
+    .panel,.card{padding:17px}
+  }
+  @media (prefers-reduced-motion:reduce){
+    *{transition:none !important;animation:none !important}
+  }
+  @media print{
+    :root{--bg:#fff;--panel:#fff;--ink:#000;--muted:#333;--line:#bbb;--shadow:none}
+    .topbar{position:static;background:#fff;color:#000;border-bottom:1px solid #bbb}
+    .brand .dot{background:#000}
+    .banner{color:#000;border-color:#bbb}
+    .navpill,.skip,#screen-form,#theme,button,.choices{display:none !important}
+    .wrap{max-width:none;padding:0}
+    .panel,.card{box-shadow:none;break-inside:avoid;page-break-inside:avoid}
+    #screen-result.hidden{display:block}
+  }
 </style>
 </head>
 <body>
 <!-- farmer:begin -->
 <a class="skip" href="#main">Skip to the answer</a>
 
-<header>
-  <div class="brand"><span class="dot" aria-hidden="true"></span><span id="brand"></span></div>
-  <div class="banner" role="note">Not validated on field sensors or Ugandan farms.</div>
+<header class="topbar">
+  <div class="topbar-in">
+    <div class="brand"><span class="dot" aria-hidden="true"></span><span id="brand"></span></div>
+    <div class="banner" role="note">Not validated on field sensors or Ugandan farms.</div>
+    <nav class="navpill">
+      <a id="researcher-link" href="/researcher"></a>
+      <a id="start-link" href="/"></a>
+      <button id="theme" type="button" aria-pressed="false"></button>
+    </nav>
+  </div>
 </header>
 
 <main id="main" aria-busy="true">
-  <section id="screen-form">
-    <div class="card">
-      <h2 id="form-title"></h2>
-      <p class="note" id="form-hint"></p>
-      <div class="fields" id="form-fields"></div>
-      <p class="note" id="form-start"></p>
-      <button class="primary" id="go" type="button"></button>
-    </div>
-    <p class="note" id="explainer"></p>
-  </section>
+  <div class="wrap">
 
-  <section id="screen-result" hidden>
-    <div class="card">
-      <h2 id="r-headline"></h2>
-      <p class="lead" id="r-sub"></p>
-      <div id="light" class="light"></div>
-      <div class="track" id="track" role="img">
-        <span class="fill" id="fill"></span><span class="pin" id="pin"></span>
+    <section id="screen-form" class="grid grid-2">
+      <div class="panel">
+        <h2 id="form-title"></h2>
+        <p class="note" id="form-hint"></p>
+        <div class="fields" id="form-fields"></div>
+        <p class="note" id="form-start"></p>
+        <button class="primary" id="go" type="button"></button>
       </div>
-      <div class="ends"><span id="end-low"></span><span id="end-high"></span></div>
-      <p class="note" id="bar-caption"></p>
-      <p class="note" id="r-caveat"></p>
-    </div>
-    <div class="card step">
-      <h3 id="step-title"></h3>
-      <p id="step-body"></p>
-      <p id="step-read"></p>
-      <p class="note" id="step-lab"></p>
-    </div>
-  </section>
+      <aside class="panel" id="texture" hidden>
+        <h3 id="texture-title"></h3>
+        <p class="note" id="texture-lead"></p>
+        <div id="texture-bars"></div>
+        <p class="note" id="texture-note" hidden></p>
+      </aside>
+    </section>
+    <p class="note explain" id="explainer"></p>
 
-  <section id="screen-guide" aria-live="polite">
-    <div id="guide-blocks"></div>
-  </section>
-
-  <section id="screen-crop" hidden>
-    <div class="card">
-      <h3 id="crop-title"></h3>
-      <p class="note" id="crop-lead"></p>
-      <div class="choices" id="crop-choices"></div>
-      <div id="crop-answer" aria-live="polite"></div>
-      <p class="note" id="crop-health"></p>
-    </div>
-  </section>
-
-  <section id="screen-strip">
-    <div class="card">
-      <h3 id="strip-title"></h3>
-      <p class="note" id="strip-lead"></p>
-      <div class="fields" id="strip-fields"></div>
-      <div class="field">
-        <label class="lab" for="strip-date" id="strip-date-label"></label>
-        <input type="date" id="strip-date">
-        <span class="hint" id="strip-date-hint"></span>
+    <section id="screen-result" hidden>
+      <div class="grid grid-2">
+        <div class="panel">
+          <h2 id="r-headline"></h2>
+          <p class="lead" id="r-sub"></p>
+          <div id="light" class="light"></div>
+          <div class="track" id="track" role="img">
+            <span class="fill" id="fill"></span><span class="pin" id="pin"></span>
+          </div>
+          <div class="ends"><span id="end-low"></span><span id="end-high"></span></div>
+          <p class="note" id="bar-caption"></p>
+          <p class="note" id="r-caveat"></p>
+        </div>
+        <div class="panel step">
+          <h3 id="step-title"></h3>
+          <p id="step-body"></p>
+          <p id="step-read"></p>
+          <p class="note" id="step-lab"></p>
+        </div>
       </div>
-      <div class="choices">
-        <button type="button" id="strip-save"></button>
-        <button type="button" id="strip-clear"></button>
+    </section>
+
+    <div class="grid grid-2">
+      <section id="screen-crop" hidden>
+        <div class="card">
+          <h3 id="crop-title"></h3>
+          <p class="note" id="crop-lead"></p>
+          <div class="choices" id="crop-choices"></div>
+          <div id="crop-answer" aria-live="polite"></div>
+          <p class="note" id="crop-health"></p>
+        </div>
+      </section>
+
+      <section id="screen-advice" hidden>
+        <div class="card block">
+          <h3 id="advice-title"></h3>
+          <p class="note" id="advice-lead"></p>
+          <div class="choices"><button type="button" id="advice-go"></button></div>
+          <div id="advice-body" aria-live="polite"></div>
+          <p class="note" id="advice-limits"></p>
+        </div>
+      </section>
+    </div>
+
+    <div class="grid grid-2">
+      <section id="screen-strip">
+        <div class="card">
+          <h3 id="strip-title"></h3>
+          <p class="note" id="strip-lead"></p>
+          <div class="fields" id="strip-fields"></div>
+          <div class="field">
+            <label class="lab" for="strip-date" id="strip-date-label"></label>
+            <input type="date" id="strip-date">
+            <span class="hint" id="strip-date-hint"></span>
+          </div>
+          <div class="choices">
+            <button type="button" id="strip-save"></button>
+            <button type="button" id="strip-clear"></button>
+          </div>
+          <p class="note" id="strip-status"></p>
+          <div id="strip-compare" aria-live="polite"></div>
+          <p class="note" id="strip-note"></p>
+        </div>
+      </section>
+
+      <section id="screen-pairing">
+        <div class="card">
+          <h3 id="pair-title"></h3>
+          <p class="note" id="pair-lead"></p>
+          <p class="hint" id="pair-band-note"></p>
+          <div id="pair-fields"></div>
+          <div id="pair-answer" aria-live="polite"></div>
+        </div>
+      </section>
+    </div>
+
+    <section id="screen-sensor">
+      <div class="panel">
+        <h2 id="s-title"></h2>
+        <p class="lead" id="s-headline"></p>
+        <p id="s-body"></p>
+        <p><strong id="s-value"></strong></p>
       </div>
-      <p class="note" id="strip-status"></p>
-      <div id="strip-compare" aria-live="polite"></div>
-      <p class="note" id="strip-note"></p>
-    </div>
-  </section>
+    </section>
 
-  <section id="screen-pairing">
-    <div class="card">
-      <h3 id="pair-title"></h3>
-      <p class="note" id="pair-lead"></p>
-      <p class="hint" id="pair-band-note"></p>
-      <div id="pair-fields"></div>
-      <div id="pair-answer" aria-live="polite"></div>
-    </div>
-  </section>
+    <section id="screen-guide" aria-live="polite">
+      <div id="guide-blocks" class="grid grid-2"></div>
+    </section>
 
-  <section id="screen-sensor">
-    <div class="card">
-      <h2 id="s-title"></h2>
-      <p class="lead" id="s-headline"></p>
-      <p id="s-body"></p>
-      <p><strong id="s-value"></strong></p>
+    <div class="card" id="learn" hidden>
+      <h3 id="learn-title"></h3>
+      <p id="learn-body"></p>
     </div>
-  </section>
 
-  <div class="card" id="learn" hidden>
-    <h3 id="learn-title"></h3>
-    <p id="learn-body"></p>
+    <footer>
+      <span id="data-notice"></span>
+    </footer>
   </div>
-
-  <footer>
-    <a id="researcher-link" href="/researcher"></a>
-    <a id="start-link" href="/"></a>
-    <span id="data-notice"></span>
-  </footer>
 </main>
 
 <script>
@@ -201,7 +310,7 @@
   "use strict";
   var V = null;
   var STORE = "pima.readings.v1";
-  var S = { crop: null, hist: [], bands: {} };
+  var S = { crop: null, hist: [], bands: {}, values: null, advice: false };
 
   function $(id){ return document.getElementById(id); }
   function esc(s){
@@ -214,9 +323,17 @@
     var f = Number(v);
     return isFinite(f) ? f.toFixed(dp === undefined ? 2 : dp) : "";
   }
+  function trim(v){
+    var s = String(v);
+    if (s.indexOf(".") >= 0) { s = s.replace(/0+$/, "").replace(/\.$/, ""); }
+    return s;
+  }
+  function fmt(v){
+    return (typeof v === "number" && isFinite(v)) ? trim(num(v, 3)) : String(v);
+  }
 
-  // The guide is rendered from the payload, one block at a time.  The page
-  // decides which element a block gets, never what it says.
+  // Every node below carries a word from the payload.  The page decides which
+  // element a sentence gets, never what it says.
   function el(tag, cls, text){
     var e = document.createElement(tag);
     if (cls) { e.className = cls; }
@@ -225,7 +342,68 @@
     }
     return e;
   }
+  function clear(node){
+    while (node.firstChild) { node.removeChild(node.firstChild); }
+  }
 
+  // ---- the shares beside the form: added up, never adjusted ----
+  function shareFields(){
+    var out = [];
+    (V.form.fields || []).forEach(function(f){ if (f.share) { out.push(f); } });
+    return out;
+  }
+
+  function inputOf(name){
+    return $("in-" + String(name).replace(/[^A-Za-z0-9_-]/g, "_"));
+  }
+
+  function drawTexture(){
+    var t = V.form.texture;
+    if (!t || shareFields().length < 2) { return; }
+    $("texture").hidden = false;
+    $("texture-title").textContent = t.title;
+    $("texture-lead").textContent = t.lead;
+    updateTexture();
+  }
+
+  function updateTexture(){
+    var t = V.form.texture;
+    var fs = shareFields();
+    if (!t || fs.length < 2) { return; }
+    var sum = 0;
+    var rows = [];
+    fs.forEach(function(f){
+      var r = inputOf(f.name);
+      var v = r ? Number(r.value) : 0;
+      if (!isFinite(v)) { v = 0; }
+      sum += v;
+      rows.push({ f: f, v: v });
+    });
+    var host = $("texture-bars");
+    clear(host);
+    rows.forEach(function(row){
+      var line = el("div", "texrow");
+      line.appendChild(el("span", "texlab", row.f.label));
+      var bar = el("span", "texbar");
+      var fill = el("span", "texfill");
+      var part = sum > 0 ? Math.max(0, Math.min(100, (row.v / sum) * 100)) : 0;
+      fill.style.width = part + "%";
+      bar.appendChild(fill);
+      line.appendChild(bar);
+      line.appendChild(el("span", "texnum", fmt(row.v)));
+      host.appendChild(line);
+    });
+    var total = el("div", "texrow textotal");
+    total.appendChild(el("span", "texlab", t.total));
+    total.appendChild(el("span", "texbar"));
+    total.appendChild(el("span", "texnum", fmt(sum)));
+    host.appendChild(total);
+    var off = Math.abs(sum - 100) > 0.5;
+    $("texture-note").hidden = !off;
+    if (off) { $("texture-note").textContent = t.off; }
+  }
+
+  // ---- the guide: one block at a time, in the shape the payload names ----
   function drawBlock(b){
     var card = el("div", "card block");
     card.appendChild(el("h3", null, b.title));
@@ -249,10 +427,11 @@
     if (!g) { return; }
     document.title = V.target.label;
     var host = $("guide-blocks");
-    while (host.firstChild) { host.removeChild(host.firstChild); }
+    clear(host);
     (g.blocks || []).forEach(function(b){ host.appendChild(drawBlock(b)); });
   }
 
+  // ---- the crop question ----
   function drawCrop(){
     var c = V.crop;
     if (!c) { return; }
@@ -260,7 +439,7 @@
     $("crop-lead").textContent = c.lead;
     $("crop-health").textContent = c.health_note;
     var host = $("crop-choices");
-    while (host.firstChild) { host.removeChild(host.firstChild); }
+    clear(host);
     (c.options || []).forEach(function(o){
       var b = el("button", null, o.button);
       b.type = "button";
@@ -274,13 +453,13 @@
 
   function showCropIdle(){
     var box = $("crop-answer");
-    while (box.firstChild) { box.removeChild(box.firstChild); }
+    clear(box);
     box.appendChild(el("p", "note", V.crop.idle));
   }
 
   function chooseCrop(o){
     var box = $("crop-answer");
-    while (box.firstChild) { box.removeChild(box.firstChild); }
+    clear(box);
     var btns = $("crop-choices").querySelectorAll("button");
     for (var i = 0; i < btns.length; i++) {
       btns[i].setAttribute("aria-pressed",
@@ -288,6 +467,7 @@
     }
     S.crop = o.key;
     drawPairAnswer();
+    if (S.advice) { askAdvice(); }
     box.appendChild(el("h4", null, o.name));
     box.appendChild(el("p", null, o.reading));
     box.appendChild(el("p", "note", o.step));
@@ -304,17 +484,7 @@
     }
   }
 
-  // ---- the short end: readings kept on this device, and the pairing card ----
-  function trim(v){
-    var s = String(v);
-    if (s.indexOf(".") >= 0) { s = s.replace(/0+$/, "").replace(/\.$/, ""); }
-    return s;
-  }
-
-  function fmt(v){
-    return (typeof v === "number" && isFinite(v)) ? trim(num(v, 3)) : String(v);
-  }
-
+  // ---- readings kept on this device, and the soil test beside them ----
   function readStore(){
     try {
       var raw = localStorage.getItem(STORE);
@@ -387,7 +557,7 @@
       $("strip-date").value = new Date().toISOString().slice(0, 10);
     }
     var host = $("strip-fields");
-    while (host.firstChild) { host.removeChild(host.firstChild); }
+    clear(host);
     t.fields.forEach(function(x){
       host.appendChild(x.kind === "choice" ? choiceRow(x) : numberRow(x));
     });
@@ -417,21 +587,21 @@
     $("strip-status").textContent = V.strip.saved;
     drawCompare();
     drawPairAnswer();
+    if (S.advice) { askAdvice(); }
   }
 
   function clearReadings(){
     if (!V) { return; }
     S.hist = [];
     writeStore(S.hist);
-    var box = $("strip-compare");
-    while (box.firstChild) { box.removeChild(box.firstChild); }
+    clear($("strip-compare"));
     $("strip-status").textContent = V.strip.empty;
     drawPairAnswer();
   }
 
   function drawCompare(){
     var box = $("strip-compare");
-    while (box.firstChild) { box.removeChild(box.firstChild); }
+    clear(box);
     var t = V.strip;
     if (!S.hist.length) { return; }
     if (S.hist.length === 1) {
@@ -511,7 +681,7 @@
     $("pair-lead").textContent = p.lead;
     $("pair-band-note").textContent = p.band_note + " " + p.marks.words;
     var host = $("pair-fields");
-    while (host.firstChild) { host.removeChild(host.firstChild); }
+    clear(host);
     p.nutrients.forEach(function(nu){
       var wrap = el("div", "field");
       wrap.appendChild(el("label", "lab", nu.label));
@@ -535,7 +705,7 @@
     var p = V.pairing;
     if (!p) { return; }
     var box = $("pair-answer");
-    while (box.firstChild) { box.removeChild(box.firstChild); }
+    clear(box);
     var any = false;
     p.nutrients.forEach(function(nu){ if (S.bands[nu.key]) { any = true; } });
     if (!any) { box.appendChild(el("p", "note", p.idle)); return; }
@@ -572,6 +742,71 @@
     drawPairAnswer();
   }
 
+  // ---- the ranked next steps: fetched last, drawn from the payload alone ----
+  function drawAdviceIdle(){
+    var box = $("advice-body");
+    clear(box);
+    box.appendChild(el("p", "note", V.advice.idle));
+    S.advice = false;
+  }
+
+  function drawAdvice(a){
+    var box = $("advice-body");
+    clear(box);
+    if (!a.total) { box.appendChild(el("p", "note", a.empty || V.failure.sub)); return; }
+    var v = a.verdict || {};
+    if (v.title) { box.appendChild(el("h4", null, v.title)); }
+    if (v.body) { box.appendChild(el("p", "note", v.body)); }
+    var ol = document.createElement("ol");
+    (a.items || []).forEach(function(it){
+      var li = document.createElement("li");
+      li.appendChild(el("strong", null, it.title));
+      if (it.why) { li.appendChild(document.createTextNode(it.why)); }
+      if (it.now) { li.appendChild(el("span", "advice-now", it.now)); }
+      if (it.ask) { li.appendChild(el("span", "advice-now", it.ask)); }
+      if (it.words) { li.appendChild(el("span", "advice-why", it.words)); }
+      ol.appendChild(li);
+    });
+    box.appendChild(ol);
+    if (a.unshown > 0) {
+      box.appendChild(el("p", "note", a.cap_note
+        .split("{shown}").join(String(a.shown))
+        .split("{total}").join(String(a.total))));
+    }
+  }
+
+  // What the farmer has said, gathered in one place.  The answer itself is not
+  // in here: the server works that out again, so this cannot change it.
+  function adviceContext(){
+    return {
+      crop: S.crop,
+      bands: S.bands,
+      reading: S.hist.length ? S.hist[S.hist.length - 1] : null,
+      previous: S.hist.length > 1 ? S.hist[S.hist.length - 2] : null
+    };
+  }
+
+  function askAdvice(){
+    if (!S.values) { return; }
+    $("advice-go").disabled = true;
+    fetch("/api/farmer/advice", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ values: S.values, context: adviceContext() })
+    }).then(function(res){ return res.json(); }).then(function(a){
+      S.advice = true;
+      drawAdvice(a);
+    }).catch(function(){
+      $("advice-body").textContent = V.failure.sub;
+    }).then(function(){ $("advice-go").disabled = false; });
+  }
+
+  // ---- the shell ----
+  function applyTheme(dark){
+    document.documentElement.setAttribute("data-theme", dark ? "dark" : "light");
+    $("theme").setAttribute("aria-pressed", dark ? "true" : "false");
+  }
+
   function drawChrome(){
     $("brand").textContent = V.target.label;
     $("explainer").textContent = V.target.explainer;
@@ -580,6 +815,8 @@
     $("researcher-link").setAttribute("href", V.nav.researcher_href);
     $("start-link").textContent = V.nav.start;
     $("start-link").setAttribute("href", V.nav.start_href);
+    $("theme").textContent = V.nav.theme;
+    $("theme").setAttribute("aria-label", V.nav.theme);
 
     var f = V.form;
     $("form-title").textContent = f.title;
@@ -597,33 +834,46 @@
         hi = (hi === null || hi === undefined) ? med : Math.max(Number(hi), med);
       }
       var at = (med === null || !isFinite(med)) ? "" : med;
-      // One slider for the hand, one box for the laboratory figure.  Both
-      // carry the same value; only the slider is read when the answer is asked
-      // for, so a field can never be sent twice.
-      h += '<div class="field">' +
-           '<label class="lab" for="' + id + '">' + esc(x.label) + "</label>" +
-           '<span class="row">' +
-             '<input type="range" id="' + id + '" data-name="' + esc(x.name) + '" ' +
+      // One slider for the hand, one box for the laboratory figure, and one
+      // display between them.  Only the slider is read when the answer is
+      // asked for, so a field can never be sent twice.
+      h += '<div class="meas">' +
+           '<div class="meas-head">' +
+             '<label class="lab" for="' + id + '">' + esc(x.label) + "</label>" +
+             '<span class="chipval"><b data-val="' + esc(x.name) + '"></b>' +
+               (x.unit_words ? '<span class="unit">' + esc(x.unit_words) + "</span>" : "") +
+             "</span>" +
+           "</div>" +
+           '<input type="range" id="' + id + '" data-name="' + esc(x.name) + '" ' +
              (lo === null || lo === undefined ? "" : 'min="' + esc(lo) + '" ') +
              (hi === null || hi === undefined ? "" : 'max="' + esc(hi) + '" ') +
              'step="any" value="' + esc(at) + '" aria-describedby="hint-' + id + '">' +
+           '<div class="meas-foot">' +
              '<input type="number" class="exact" data-mirror="' + esc(x.name) + '" ' +
-             'inputmode="decimal" value="' + esc(at) + '" ' +
-             'aria-label="' + esc(x.label) + '">' +
-           '</span>' +
-           '<span class="hint" id="hint-' + id + '">' + esc(x.hint) + "</span>" +
-           '</div>';
+               'inputmode="decimal" value="' + esc(at) + '" ' +
+               'aria-label="' + esc(x.label) + '">' +
+             '<span class="hint" id="hint-' + id + '">' + esc(x.hint) + "</span>" +
+           "</div>" +
+           "</div>";
     });
     $("form-fields").innerHTML = h;
     var ranges = $("form-fields").querySelectorAll("input[type=range]");
     for (var i = 0; i < ranges.length; i++) {
       (function(r){
-        var box = $("form-fields").querySelector(
-          'input[data-mirror="' + r.getAttribute("data-name") + '"]');
-        r.addEventListener("input", function(){ box.value = r.value; });
-        box.addEventListener("input", function(){ r.value = box.value; });
+        var name = r.getAttribute("data-name");
+        var box = $("form-fields").querySelector('input[data-mirror="' + name + '"]');
+        var chip = $("form-fields").querySelector('[data-val="' + name + '"]');
+        function show(v){
+          if (box) { box.value = v; }
+          if (chip) { chip.textContent = trim(num(v, 3)); }
+          updateTexture();
+        }
+        show(r.value);
+        r.addEventListener("input", function(){ show(r.value); });
+        box.addEventListener("input", function(){ r.value = box.value; show(box.value); });
       })(ranges[i]);
     }
+    drawTexture();
 
     var s = V.sensor;
     $("s-title").textContent = s.title;
@@ -638,6 +888,10 @@
     $("s-value").textContent = line;
 
     var l = V.learn_more;
+    $("advice-title").textContent = V.advice.title;
+    $("advice-lead").textContent = V.advice.lead;
+    $("advice-go").textContent = V.advice.button;
+    $("advice-limits").textContent = V.advice.limits;
     $("learn").hidden = !l.visible;
     if (l.visible) {
       $("learn-title").textContent = l.title;
@@ -694,6 +948,7 @@
       vals[inputs[i].getAttribute("data-name")] = v;
     }
     $("go").disabled = true;
+    S.values = vals;
     fetch("/api/farmer/predict", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -703,9 +958,11 @@
       drawResult();
       $("screen-result").hidden = false;
       $("screen-crop").hidden = false;
+      $("screen-advice").hidden = false;
       S.crop = null;
       drawCrop();
       drawPairAnswer();
+      drawAdviceIdle();
       $("screen-result").scrollIntoView({ block: "start" });
     }).catch(function(){
       $("r-headline").textContent = V.failure.headline;
@@ -715,8 +972,16 @@
   }
 
   $("go").addEventListener("click", submit);
+  $("advice-go").addEventListener("click", askAdvice);
   $("strip-save").addEventListener("click", saveReading);
   $("strip-clear").addEventListener("click", clearReadings);
+  $("theme").addEventListener("click", function(){
+    applyTheme($("theme").getAttribute("aria-pressed") !== "true");
+  });
+
+  var prefersDark = window.matchMedia &&
+    window.matchMedia("(prefers-color-scheme: dark)").matches;
+  $("theme").setAttribute("aria-pressed", prefersDark ? "true" : "false");
 
   fetch("/api/farmer").then(function(res){ return res.json(); }).then(function(j){
     V = j;

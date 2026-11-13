@@ -328,21 +328,20 @@ CROPS = dict(
 )
 
 
-# The entry gate.  It looks like a sign-in and, for the two accounts printed on
-# it, behaves like one: the demo name for a view and the word "demo".  Anything
-# else is refused, and the page prints what it accepts before anything is typed,
-# so the comparison is against a visible constant rather than a secret.  Nothing
-# typed is stored and nothing is sent anywhere.  (The farmer page does keep the
-# readings a farmer chooses to keep, in that browser only; this is about the
-# sign-in, and says so.)
+# The entry gate.  It looks like a sign-in and behaves like a door: the chosen
+# account type decides which view opens, and any name and any password open it.
+# Nothing typed is stored and nothing is sent anywhere.  That is what the page
+# says, above the button, rather than leaving a refusal to explain it.  The demo
+# account printed under each type is an example to type, not a requirement.  (The
+# farmer page does keep the readings a farmer chooses to keep, in that browser
+# only; this is about the sign-in, and says so.)
 LOGIN = dict(
     label="Demo only",
     title="Pima",
     lead="Sign in to check your soil.",
-    body=("This is a demonstration. The two demo accounts are printed under each "
-          "account type below and anything else is refused, so this is a "
-          "comparison against a visible name, not a real sign-in. What you type "
-          "here is not stored."),
+    body=("This is a demonstration. Any name and any password will open either "
+          "view; the demo accounts are printed below only so you know one that "
+          "works. What you type here is not stored."),
     note=("An account opens one of the two views. Both views also answer at "
           "their own address, so the choice here decides where you land, not "
           "what you may see."),
@@ -350,7 +349,6 @@ LOGIN = dict(
     password_label="Password",
     show="Show",
     hide="Hide",
-    demo_password="demo",
     farmer_label="Farmer",
     farmer_action="Open the farmer view",
     farmer_username="Phone number or username",
@@ -366,14 +364,14 @@ LOGIN = dict(
     err_both="Enter your username and password.",
     err_user="Enter your username.",
     err_pass="Enter your password.",
-    err_wrong="That username or password does not match a {role} account.",
 )
 
 NAV = dict(back_to_farmer="Farmer",
            researcher="For researchers",
            researcher_href="/researcher",
            start="Start again",
-           start_href="/")
+           start_href="/",
+           theme="Theme")
 
 # Field labels.  Keyed by the bundle's own feature names; anything unknown
 # falls back to a neutral label and is marked, rather than inventing a meaning.
@@ -391,6 +389,17 @@ FIELD_COPY = {
 }
 FALLBACK_FIELD = dict(label="A soil measurement",
                       hint="One of the numbers the tool needs.")
+
+# A unit said the way the screen says it.  "dimensionless" beside a number
+# tells a reader nothing, and a texture share is a share of a sample rather
+# than a per-cent of anything measured.  Nothing is converted: the value keeps
+# its own scale, and the researcher view still prints the bundle's string.
+FIELD_UNITS = {"dimensionless": "", "percent (g/100 g)": "per cent"}
+
+
+def _field_unit(unit) -> str:
+    """The unit of one input, in the words the farmer screen uses."""
+    return FIELD_UNITS.get(unit or "", unit or "")
 
 
 # ---------------------------------------------------------------------------
@@ -522,6 +531,156 @@ PAIR_RULES = (
 )
 
 
+# ---------------------------------------------------------------------------
+# What to do next
+# ---------------------------------------------------------------------------
+# `recommendation.py` decides which of these apply, in what order, and how many
+# are shown.  The sentences live here for the same reason every other sentence
+# does: one file to read, one list to scan, no second place for a word to go
+# technical.  The engine formats two of them with figures it read from the
+# bundle, which is arithmetic; it writes none of its own prose.
+#
+# The engine never reads the band the soil fell into.  A band is a position in
+# the sampled soils, not a grade, so a step recommended because of it would be
+# a step recommended for a reason this project does not have.
+#
+# No item names a product, a rate or a quantity, and none promises an outcome.
+
+RECOMMEND = dict(
+    title="What to do next",
+    lead=("The steps are ordered by how much each one would add to the answer. "
+          "The top one adds most."),
+    button="Show what to do next",
+    idle=("The steps are worked out from the answer above and from what you have "
+          "kept. Ask for them when you are ready."),
+    empty=("Nothing applies to this soil yet. Keep a reading, then ask again "
+           "after a second visit."),
+    limits=("None of this says what to buy or how much to put on a field. It "
+            "says what would make the answer firmer, and which general "
+            "practice belongs to the crop you chose."),
+    cap_note="Showing the first {shown} of {total}. The rest follow on from them.",
+    practice_note=("A general practice for this kind of crop. It is not a "
+                   "reading of your soil."),
+)
+
+# The steps.  `why` says what the step rests on, `now` says what the step is.
+# Two are templates: `recommendation.py` fills {names}, {label}, {moved} and
+# {drift} from the bundle, so the figure a farmer reads is the one the tool
+# measured rather than one typed here.
+RECOMMEND_ITEMS = dict(
+    unsure=dict(
+        title="Get a laboratory test for this soil",
+        why=("This check could not place the soil in one part of our sample, so "
+             "there is no part of the answer to act on yet."),
+        now=("Take a sample the same way as this one and send it to a "
+             "laboratory. Ask for soil carbon."),
+    ),
+    outside_one=dict(
+        title="Get a laboratory test for this soil",
+        why="{names} sits outside the soils this tool was built from.",
+        now=("A laboratory test is the only way to know the carbon in a soil "
+             "the tool has not met before."),
+    ),
+    outside_many=dict(
+        title="Get a laboratory test for this soil",
+        why="{names} sit outside the soils this tool was built from.",
+        now=("A laboratory test is the only way to know the carbon in a soil "
+             "the tool has not met before."),
+    ),
+    mixed=dict(
+        title="Sample the two parts of the field separately",
+    ),
+    first=dict(
+        title="Keep this reading before you change anything",
+        why=("One reading shows one day. A second reading of the same spot, "
+             "taken the same way, is what shows a change."),
+        now=("Keep it on this page with the field and the day, so the next "
+             "reading has something to be set against."),
+    ),
+    moved=dict(
+        title="Read the same spot again before acting on the change",
+        why=("{label} moved {moved}, more than the {drift} this tool treats as "
+             "the smallest change it can see."),
+        now=("Take a second reading at the same spot, in the same way, and keep "
+             "it. Two readings that agree say more than one does."),
+    ),
+    moved_word=dict(
+        title="Read the same spot again before acting on the change",
+        why="The moisture word changed from {before} to {now}.",
+        now=("Take a second reading at the same spot, in the same way, and keep "
+             "it. Two readings that agree say more than one does."),
+    ),
+    steady=dict(
+        title="Nothing in the reading has changed",
+        why=("The readings sit where they sat last time, so no change is larger "
+             "than the tool can see."),
+        now=("A laboratory test of the same spot is what would show a change "
+             "smaller than this."),
+    ),
+    record=dict(
+        title="Write down the field and the day",
+        why=("A reading with no field and no date cannot be set against the "
+             "next one, so the record does not do its work."),
+        now=("Keep the field name, the spot in the field, and the date with "
+             "every reading you save."),
+    ),
+)
+
+# One verdict per head of the ranked list: what the situation is, said before
+# the steps that follow from it.  `basis` names the evidence the sentence rests
+# on, and `RECOMMEND_BASIS` is the phrase printed with it, so a farmer can see
+# where a line came from instead of taking it on trust.
+RECOMMEND_VERDICTS = {
+    "A1": dict(title="Not enough here to place this soil",
+               body=("The answer does not point to one part of our sample. What "
+                     "is left is a question for a laboratory, not a choice "
+                     "made from this screen."),
+               basis="placement"),
+    "A2": dict(title="A reading far from our experience",
+               body=("The tool cannot place a soil it has not met. A laboratory "
+                     "test ends the uncertainty rather than moving it."),
+               basis="placement"),
+    "C1": dict(title="Two parts of one field",
+               body=("One reading cannot stand for two crops sharing a field, "
+                     "so the next thing worth doing concerns the part you mean "
+                     "to change."),
+               basis="crop"),
+    "D1": dict(title="The soil test and the reading agree",
+               body=("Two measured things point at the same question. The "
+                     "question is for the laboratory; the practice is general."),
+               basis="soil_test"),
+    "B1": dict(title="This is a starting point",
+               body=("Nothing can be said about change from one reading. "
+                     "Keeping it is what makes the next one worth taking."),
+               basis="previous"),
+    "B2": dict(title="Something moved",
+               body=("A change between two readings is worth confirming before "
+                     "anything is done about it."),
+               basis="previous"),
+    "B3": dict(title="Nothing here has moved",
+               body=("The reading is where it was. There is nothing in it to "
+                     "react to, and the step below is about the record."),
+               basis="previous"),
+    "E1": dict(title="A practice that belongs to this crop",
+               body=("This is general practice for the crop you chose. It does "
+                     "not follow from your reading, and it would be the same "
+                     "for any soil of that kind."),
+               basis="crop"),
+    "F1": dict(title="The record is the last step",
+               body=("A reading is worth what can be set against it later. The "
+                     "field and the date are what make that possible."),
+               basis="record"),
+}
+
+RECOMMEND_BASIS = dict(
+    placement="rests on how sure this check is",
+    previous="rests on the readings you kept",
+    soil_test="rests on your soil test and your reading together",
+    crop="rests on the crop you chose",
+    record="rests on the record you keep",
+)
+
+
 def _pct(value, lo, hi):
     span = (hi - lo) or 1.0
     return round(100.0 * (value - lo) / span, 1)
@@ -565,6 +724,7 @@ def _form(metrics: dict) -> dict:
         copy = FIELD_COPY.get(name) or FALLBACK_FIELD
         rng = f.get("training_range") or {}
         bounds = f.get("physical_bounds") or [None, None]
+        unit = f.get("unit")
         fields.append(dict(
             name=name,
             label=copy["label"],
@@ -574,6 +734,10 @@ def _form(metrics: dict) -> dict:
             lowest=bounds[0] if len(bounds) > 0 else None,
             highest=bounds[1] if len(bounds) > 1 else None,
             handbook=name in FIELD_COPY,
+            unit_words=_field_unit(unit),
+            # A share of the same sample: these are the ones the page can add
+            # up beside the form.  Anything else is a reading, not a share.
+            share=(unit or "").startswith("percent"),
         ))
     return dict(
         title="The soil test numbers",
@@ -586,6 +750,18 @@ def _form(metrics: dict) -> dict:
                     "at your soil. Move them to the numbers on your soil test."),
         submit="Show the answer",
         fields=fields,
+        # The shares are shown added up beside the form, because three shares
+        # of one sample should come to a hundred and a set that does not is
+        # worth seeing before the answer is asked for.  The page prints the
+        # arithmetic; it does not correct it.
+        texture=dict(
+            title="Clay, sand and silt",
+            lead=("These three are shares of one sample, so they should add to "
+                  "a hundred. The bars show the numbers you have entered."),
+            total="Added up",
+            off=("These do not add to a hundred. The tool reads each share as "
+                 "you entered it, so check the numbers on the sheet."),
+        ),
     )
 
 
@@ -710,30 +886,40 @@ def _strip(metrics: dict) -> dict:
     )
 
 
+def marks(metrics: dict) -> dict:
+    """
+    The two marks that decide whether a reading counts as low or high.
+
+    Read from the bundle's own sample percentiles, never chosen here, so the
+    sentence a farmer reads describes the soils the tool was built on and
+    nothing wider.  The page and `recommendation.py` both call this, so there is
+    one answer to "is this reading low" rather than two that can drift apart.
+    """
+    by_name = {f.get("name"): f for f in (metrics or {}).get("features") or []}
+
+    def at(name, which):
+        return ((by_name.get(name) or {}).get("training_range") or {}).get(which)
+
+    return dict(ph_low=at("pH_H2O", "p5"), ph_high=at("pH_H2O", "p95"),
+                ec_high=at("EC", "p95"))
+
+
 def _pairing(metrics: dict) -> dict:
     """
     A soil-test word read beside a reading.
 
-    The two marks that decide whether a reading counts as low or high are read
-    from the bundle's own sample percentiles, not chosen here, so the sentence
-    a farmer reads describes the soils the tool was built on and nothing wider.
-    The page picks the first rule whose word and reading both match; when none
-    matches it renders the fallback rather than inventing a verdict.
+    The marks are `marks()`, so the engine that ranks next steps reads the same
+    two numbers this card draws.  The page picks the first rule whose word and
+    reading both match; when none matches it renders the fallback rather than
+    inventing a verdict.
     """
-    by_name = {f.get("name"): f for f in metrics.get("features") or []}
-
-    def mark(name, which):
-        rng = ((by_name.get(name) or {}).get("training_range") or {})
-        return rng.get(which)
-
     return dict(
         title=PAIRING["title"], lead=PAIRING["lead"],
         band_note=PAIRING["band_note"],
         bands=[dict(b) for b in PAIRING["bands"]],
         nutrients=[dict(n) for n in PAIRING["nutrients"]],
         idle=PAIRING["idle"], need_readings=PAIRING["need_readings"],
-        marks=dict(ph_low=mark("pH_H2O", "p5"), ph_high=mark("pH_H2O", "p95"),
-                   ec_high=mark("EC", "p95"), words=PAIRING["marks_words"]),
+        marks=dict(marks(metrics), words=PAIRING["marks_words"]),
         horizon_title=PAIRING["horizon_title"],
         horizon_idle=PAIRING["horizon_idle"],
         ask_label=PAIRING["ask_label"],
@@ -897,7 +1083,34 @@ def result_block(metrics: dict, prediction: dict) -> dict:
     )
 
 
-def build(metrics: dict, prediction: dict | None = None) -> dict:
+def build_advice(advice: dict | None = None) -> dict:
+    """
+    The next-steps card: the wording from here, the ranking from the engine.
+
+    Called with nothing, it returns the card's vocabulary and no steps - which
+    is what the first screen needs, because the steps cannot be worked out until
+    a sample has been submitted.  Called with `recommendation.recommend(...)`,
+    it returns the same vocabulary with the ranked steps attached.
+    """
+    advice = advice or {}
+    out = dict(
+        title=RECOMMEND["title"], lead=RECOMMEND["lead"],
+        button=RECOMMEND["button"], idle=RECOMMEND["idle"],
+        empty=RECOMMEND["empty"], limits=RECOMMEND["limits"],
+        cap_note=RECOMMEND["cap_note"], practice_note=RECOMMEND["practice_note"],
+        items=[dict(i) for i in advice.get("items") or []],
+        verdict=dict(advice["verdict"]) if advice.get("verdict") else None,
+        shown=advice.get("shown") or 0,
+        total=advice.get("total") or 0,
+        unshown=advice.get("unshown") or 0,
+    )
+    for _, text in iter_strings(out):
+        _banned_guard(text)
+    return out
+
+
+def build(metrics: dict, prediction: dict | None = None,
+          advice: dict | None = None) -> dict:
     """The whole farmer payload. Raises if any string carries a banned term."""
     target = metrics.get("target") or {}
     view = dict(
@@ -920,11 +1133,12 @@ def build(metrics: dict, prediction: dict | None = None) -> dict:
         sensor=_sensor(metrics),
         guide=_guide(metrics),
         crop=_crop(),
+        advice=build_advice(advice),
         next_step=dict(NEXT_STEP),
         learn_more=dict(LEARN_MORE),
         failure=dict(FAILURE),
-        screens=["form", "result", "crop", "strip", "pairing", "sensor",
-                 "guide"],
+        screens=["form", "result", "advice", "crop", "strip", "pairing",
+                 "sensor", "guide"],
         sources=dict(
             note=("Every number on this screen is read from the same files the "
                   "research view uses. Nothing here is typed into the page.")),

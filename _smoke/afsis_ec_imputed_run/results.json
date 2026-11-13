@@ -1,0 +1,4024 @@
+{
+ "schema_version": 2,
+ "generated_at_utc": "2026-11-13T14:08:36+00:00",
+ "runtime_seconds": 374.1,
+ "command": "python afsis_experiment.py --root _smoke/afsis_ec_imputed --export _smoke/afsis_ec_imputed_run --target Total carbon --blocks 10 --seeds 5",
+ "git_commit": "8a3de89-dirty",
+ "package_versions": {
+  "scikit-learn": "1.8.0",
+  "numpy": "2.3.3",
+  "pandas": "3.0.0"
+ },
+ "data": {
+  "kind": "afsis_real",
+  "is_real_data": true,
+  "root": "_smoke\\afsis_ec_imputed",
+  "stand_in_marker": false,
+  "dataset_version": "afsis-2f-8f91568c0168",
+  "files": [
+   {
+    "file": "Georeferences/georeferences.csv",
+    "bytes": 51837,
+    "sha256": "c3d854bb42294cdeb1c0ee79b14df3980e04a3fd52bd16372c9d4ad9e644758c"
+   },
+   {
+    "file": "Wet_Chemistry/COALESCED/Wet_Chemistry_COALESCED.csv",
+    "bytes": 143349,
+    "sha256": "066bbfcdb7425c0fcc8a097a613c4d75e227a802b29ba06b7837054cfca7a030"
+   }
+  ],
+  "licence": "AfSIS Phase I - ODbL / ODC-By per the AWS Open Data registry; credit: Africa Soil Information Service (AfSIS) and partners.",
+  "synthetic_specification": null,
+  "cleaning_log": [
+   {
+    "step": "loaded",
+    "n_before": 926,
+    "n_removed": 0,
+    "n_after": 926,
+    "reason": "rows after Georeferences x Wet_Chemistry merge"
+   },
+   {
+    "step": "exact_duplicate_rows",
+    "n_before": 926,
+    "n_removed": 0,
+    "n_after": 926,
+    "reason": "rows identical in every column"
+   },
+   {
+    "step": "missing_identifier",
+    "n_before": 926,
+    "n_removed": 0,
+    "n_after": 926,
+    "reason": "no profile/site/SSN id -> cannot group folds",
+    "key_column": "SSN"
+   },
+   {
+    "step": "missing_coordinates",
+    "n_before": 926,
+    "n_removed": 0,
+    "n_after": 926,
+    "reason": "latitude or longitude absent"
+   },
+   {
+    "step": "impossible_coordinates",
+    "n_before": 926,
+    "n_removed": 0,
+    "n_after": 926,
+    "reason": "lat/lon out of range, non-numeric, or a 0/0 placeholder"
+   },
+   {
+    "step": "same_record_same_lab",
+    "n_before": 926,
+    "n_removed": 0,
+    "n_after": 926,
+    "reason": "repeated rows for one site/depth within one lab (post-cleaning repeats)",
+    "key": [
+     "SSN",
+     "lab"
+    ]
+   },
+   {
+    "step": "depth_selection",
+    "n_before": 926,
+    "n_removed": 0,
+    "n_after": 926,
+    "reason": "no depth column detected - the 0-5 cm rule could NOT be applied; rows are whatever the source table provides",
+    "applied": false,
+    "target_cm": 5.0
+   },
+   {
+    "step": "multi_lab_replicates",
+    "n_before": 926,
+    "n_removed": 0,
+    "n_after": 926,
+    "reason": "same site/depth measured by >1 lab; kept the alphabetically first lab (mode=first; 0 rows were replicates of the same record)",
+    "key": [
+     "SSN"
+    ]
+   },
+   {
+    "step": "missing_target",
+    "n_before": 926,
+    "n_removed": 0,
+    "n_after": 926,
+    "reason": "target absent; a row with no label cannot be trained on"
+   },
+   {
+    "step": "impossible_target",
+    "n_before": 926,
+    "n_removed": 0,
+    "n_after": 926,
+    "reason": "target outside (0.0, 100.0] for units=percent (g/100 g)"
+   },
+   {
+    "step": "impossible_value:pH_H2O",
+    "n_before": 926,
+    "n_removed": 0,
+    "n_after": 926,
+    "reason": "0 values outside [0.0, 14.0] set to NaN (imputed inside training folds, not deleted)",
+    "bounds": [
+     0.0,
+     14.0
+    ]
+   },
+   {
+    "step": "impossible_value:EC",
+    "n_before": 926,
+    "n_removed": 0,
+    "n_after": 926,
+    "reason": "0 values outside [0.0, 50.0] set to NaN (imputed inside training folds, not deleted)",
+    "bounds": [
+     0.0,
+     50.0
+    ]
+   },
+   {
+    "step": "impossible_value:Clay percent",
+    "n_before": 926,
+    "n_removed": 0,
+    "n_after": 926,
+    "reason": "0 values outside [0.0, 100.0] set to NaN (imputed inside training folds, not deleted)",
+    "bounds": [
+     0.0,
+     100.0
+    ]
+   },
+   {
+    "step": "impossible_value:Sand percent",
+    "n_before": 926,
+    "n_removed": 0,
+    "n_after": 926,
+    "reason": "0 values outside [0.0, 100.0] set to NaN (imputed inside training folds, not deleted)",
+    "bounds": [
+     0.0,
+     100.0
+    ]
+   },
+   {
+    "step": "impossible_value:Silt percent",
+    "n_before": 926,
+    "n_removed": 0,
+    "n_after": 926,
+    "reason": "0 values outside [0.0, 100.0] set to NaN (imputed inside training folds, not deleted)",
+    "bounds": [
+     0.0,
+     100.0
+    ]
+   },
+   {
+    "step": "impossible_texture_sum",
+    "n_before": 926,
+    "n_removed": 0,
+    "n_after": 926,
+    "reason": "0 rows with clay+sand > 100.5 -> both set to NaN"
+   },
+   {
+    "step": "final",
+    "n_before": 926,
+    "n_removed": 0,
+    "n_after": 926,
+    "reason": "usable rows (features may still contain NaN; imputation happens inside each training fold)",
+    "n_sites": 926,
+    "target_units": "percent (g/100 g)",
+    "units_basis": "median 0.93 < 15, read as a percentage"
+   }
+  ],
+  "data_card": {
+   "n_rows": 926,
+   "n_sites": 926,
+   "group_column": "SSN",
+   "countries": {
+    "Tanzania": 112,
+    "Mozambique": 96,
+    "Nigeria": 80,
+    "Mali": 64,
+    "Ethiopia": 64,
+    "Zambia": 63,
+    "Angola": 63,
+    "South Africa": 49,
+    "Ghana": 48,
+    "Kenya": 48,
+    "Zimbabwe": 47,
+    "Malawi": 32,
+    "Guinea": 32,
+    "Uganda": 32,
+    "Botswana": 32,
+    "Burkina Faso": 16,
+    "Cameroon": 16,
+    "Madagascar": 16,
+    "Niger": 16
+   },
+   "target": "Total carbon",
+   "target_units": "percent (g/100 g)",
+   "features": [
+    "pH_H2O",
+    "EC",
+    "Clay percent",
+    "Sand percent",
+    "Silt percent"
+   ],
+   "n_feature_nan": {
+    "pH_H2O": 0,
+    "EC": 0,
+    "Clay percent": 0,
+    "Sand percent": 0,
+    "Silt percent": 0
+   },
+   "focus_subset": {
+    "country": "Uganda",
+    "n_rows": 32,
+    "n_sites": 32,
+    "share_of_rows": 0.03455723542116631,
+    "target_mean": 3.0289611741874998,
+    "target_sd": 1.2483646858084936
+   }
+  },
+  "depth_rule": {
+   "target_cm": 5.0,
+   "applied": false
+  },
+  "units": "percent (g/100 g)",
+  "units_basis": "median 0.93 < 15, read as a percentage"
+ },
+ "target": {
+  "name": "Total carbon",
+  "kind": "soc",
+  "units": "percent (g/100 g)",
+  "log_transform": true,
+  "column_detection": "override"
+ },
+ "features": [
+  "pH_H2O",
+  "EC",
+  "Clay percent",
+  "Sand percent",
+  "Silt percent"
+ ],
+ "feature_ranges": {
+  "pH_H2O": {
+   "p5": 4.7615,
+   "p95": 8.2575,
+   "min": 3.61,
+   "max": 9.274,
+   "median": 6.144,
+   "sd": 1.0153712670084762
+  },
+  "EC": {
+   "p5": 0.04503896239177482,
+   "p95": 0.34287054725829724,
+   "min": 0.0276356755189255,
+   "max": 1.0283503777056278,
+   "median": 0.0963583679653679,
+   "sd": 0.10170206098478653
+  },
+  "Clay percent": {
+   "p5": 0.15258333300000002,
+   "p95": 22.80125,
+   "min": 0.0,
+   "max": 86.25,
+   "median": 4.135,
+   "sd": 9.717302071099171
+  },
+  "Sand percent": {
+   "p5": 45.03375,
+   "p95": 97.59875,
+   "min": 0.0,
+   "max": 100.0,
+   "median": 88.885,
+   "sd": 19.292924419195938
+  },
+  "Silt percent": {
+   "p5": 1.05,
+   "p95": 21.53725,
+   "min": 0.0,
+   "max": 44.365,
+   "median": 6.6758333335,
+   "sd": 6.418575133469364
+  }
+ },
+ "feature_bounds": {
+  "pH_H2O": [
+   0.0,
+   14.0
+  ],
+  "EC": [
+   0.0,
+   50.0
+  ],
+  "Clay percent": [
+   0.0,
+   100.0
+  ],
+  "Sand percent": [
+   0.0,
+   100.0
+  ],
+  "Silt percent": [
+   0.0,
+   100.0
+  ]
+ },
+ "feature_units": {
+  "pH_H2O": "dimensionless",
+  "EC": "dS/m",
+  "Clay percent": "percent (g/100 g)",
+  "Sand percent": "percent (g/100 g)",
+  "Silt percent": "percent (g/100 g)"
+ },
+ "blocked_as_features": [],
+ "validation": {
+  "folds": 5,
+  "inner_folds": 3,
+  "seeds": [
+   20261104,
+   20261105,
+   20261106,
+   20261107,
+   20261108
+  ],
+  "n_seeds": 5,
+  "blocks": 10,
+  "spatial_grouping": "KMeans on per-site coordinate centroids -> GroupKFold; records of one site/profile always share a fold",
+  "group_column": "SSN",
+  "blocking_diagnostics": {
+   "blocks": 10,
+   "n_sites": 926,
+   "cluster_sizes": {
+    "0": 144,
+    "1": 96,
+    "2": 63,
+    "3": 112,
+    "4": 49,
+    "5": 80,
+    "6": 126,
+    "7": 48,
+    "8": 96,
+    "9": 112
+   },
+   "cluster_label": [
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    5,
+    5,
+    5,
+    5,
+    5,
+    5,
+    5,
+    5,
+    5,
+    5,
+    5,
+    5,
+    5,
+    5,
+    5,
+    5,
+    5,
+    5,
+    5,
+    5,
+    5,
+    5,
+    5,
+    5,
+    5,
+    5,
+    5,
+    5,
+    5,
+    5,
+    5,
+    5,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    3,
+    3,
+    3,
+    3,
+    3,
+    3,
+    3,
+    3,
+    3,
+    3,
+    3,
+    3,
+    3,
+    3,
+    3,
+    3,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    9,
+    9,
+    9,
+    9,
+    9,
+    9,
+    9,
+    9,
+    9,
+    9,
+    9,
+    9,
+    9,
+    9,
+    9,
+    9,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    9,
+    9,
+    9,
+    9,
+    9,
+    9,
+    9,
+    9,
+    9,
+    9,
+    9,
+    9,
+    9,
+    9,
+    9,
+    9,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    7,
+    7,
+    7,
+    7,
+    7,
+    7,
+    7,
+    7,
+    7,
+    7,
+    7,
+    7,
+    7,
+    7,
+    7,
+    7,
+    7,
+    7,
+    7,
+    7,
+    7,
+    7,
+    7,
+    7,
+    7,
+    7,
+    7,
+    7,
+    7,
+    7,
+    7,
+    7,
+    3,
+    3,
+    3,
+    3,
+    3,
+    3,
+    3,
+    3,
+    3,
+    3,
+    3,
+    3,
+    3,
+    3,
+    3,
+    3,
+    3,
+    3,
+    3,
+    3,
+    3,
+    3,
+    3,
+    3,
+    3,
+    3,
+    3,
+    3,
+    3,
+    3,
+    3,
+    3,
+    8,
+    8,
+    8,
+    8,
+    8,
+    8,
+    8,
+    8,
+    8,
+    8,
+    8,
+    8,
+    8,
+    8,
+    8,
+    8,
+    8,
+    8,
+    8,
+    8,
+    8,
+    8,
+    8,
+    8,
+    8,
+    8,
+    8,
+    8,
+    8,
+    8,
+    8,
+    8,
+    8,
+    8,
+    8,
+    8,
+    8,
+    8,
+    8,
+    8,
+    8,
+    8,
+    8,
+    8,
+    8,
+    8,
+    8,
+    8,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    8,
+    8,
+    8,
+    8,
+    8,
+    8,
+    8,
+    8,
+    8,
+    8,
+    8,
+    8,
+    8,
+    8,
+    8,
+    8,
+    7,
+    7,
+    7,
+    7,
+    7,
+    7,
+    7,
+    7,
+    7,
+    7,
+    7,
+    7,
+    7,
+    7,
+    7,
+    7,
+    3,
+    3,
+    3,
+    3,
+    3,
+    3,
+    3,
+    3,
+    3,
+    3,
+    3,
+    3,
+    3,
+    3,
+    3,
+    3,
+    3,
+    3,
+    3,
+    3,
+    3,
+    3,
+    3,
+    3,
+    3,
+    3,
+    3,
+    3,
+    3,
+    3,
+    3,
+    3,
+    5,
+    5,
+    5,
+    5,
+    5,
+    5,
+    5,
+    5,
+    5,
+    5,
+    5,
+    5,
+    5,
+    5,
+    5,
+    5,
+    5,
+    5,
+    5,
+    5,
+    5,
+    5,
+    5,
+    5,
+    5,
+    5,
+    5,
+    5,
+    5,
+    5,
+    5,
+    5,
+    4,
+    4,
+    4,
+    4,
+    4,
+    4,
+    4,
+    4,
+    4,
+    4,
+    4,
+    4,
+    4,
+    4,
+    4,
+    4,
+    4,
+    4,
+    4,
+    4,
+    4,
+    4,
+    4,
+    4,
+    4,
+    4,
+    4,
+    4,
+    4,
+    4,
+    4,
+    4,
+    4,
+    4,
+    4,
+    4,
+    4,
+    4,
+    4,
+    4,
+    4,
+    4,
+    4,
+    4,
+    4,
+    4,
+    4,
+    4,
+    4,
+    9,
+    9,
+    9,
+    9,
+    9,
+    9,
+    9,
+    9,
+    9,
+    9,
+    9,
+    9,
+    9,
+    9,
+    9,
+    9,
+    9,
+    9,
+    9,
+    9,
+    9,
+    9,
+    9,
+    9,
+    9,
+    9,
+    9,
+    9,
+    9,
+    9,
+    9,
+    9,
+    9,
+    9,
+    9,
+    9,
+    9,
+    9,
+    9,
+    9,
+    9,
+    9,
+    9,
+    9,
+    9,
+    9,
+    9,
+    9,
+    9,
+    9,
+    9,
+    9,
+    9,
+    9,
+    9,
+    9,
+    9,
+    9,
+    9,
+    9,
+    9,
+    9,
+    9,
+    9,
+    3,
+    3,
+    3,
+    3,
+    3,
+    3,
+    3,
+    3,
+    3,
+    3,
+    3,
+    3,
+    3,
+    3,
+    3,
+    3,
+    3,
+    3,
+    3,
+    3,
+    3,
+    3,
+    3,
+    3,
+    3,
+    3,
+    3,
+    3,
+    3,
+    3,
+    3,
+    3,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    6,
+    6,
+    6,
+    6,
+    6,
+    6,
+    6,
+    6,
+    6,
+    6,
+    6,
+    6,
+    6,
+    6,
+    6,
+    6,
+    6,
+    6,
+    6,
+    6,
+    6,
+    6,
+    6,
+    6,
+    6,
+    6,
+    6,
+    6,
+    6,
+    6,
+    6,
+    9,
+    9,
+    9,
+    9,
+    9,
+    9,
+    9,
+    9,
+    9,
+    9,
+    9,
+    9,
+    9,
+    9,
+    9,
+    9,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    8,
+    8,
+    8,
+    8,
+    8,
+    8,
+    8,
+    8,
+    8,
+    8,
+    8,
+    8,
+    8,
+    8,
+    8,
+    8,
+    5,
+    5,
+    5,
+    5,
+    5,
+    5,
+    5,
+    5,
+    5,
+    5,
+    5,
+    5,
+    5,
+    5,
+    5,
+    5,
+    8,
+    8,
+    8,
+    8,
+    8,
+    8,
+    8,
+    8,
+    8,
+    8,
+    8,
+    8,
+    8,
+    8,
+    8,
+    8,
+    2,
+    2,
+    2,
+    2,
+    2,
+    2,
+    2,
+    2,
+    2,
+    2,
+    2,
+    2,
+    2,
+    2,
+    2,
+    2,
+    2,
+    2,
+    2,
+    2,
+    2,
+    2,
+    2,
+    2,
+    2,
+    2,
+    2,
+    2,
+    2,
+    2,
+    2,
+    2,
+    2,
+    2,
+    2,
+    2,
+    2,
+    2,
+    2,
+    2,
+    2,
+    2,
+    2,
+    2,
+    2,
+    2,
+    2,
+    2,
+    2,
+    2,
+    2,
+    2,
+    2,
+    2,
+    2,
+    2,
+    2,
+    2,
+    2,
+    2,
+    2,
+    2,
+    2,
+    6,
+    6,
+    6,
+    6,
+    6,
+    6,
+    6,
+    6,
+    6,
+    6,
+    6,
+    6,
+    6,
+    6,
+    6,
+    6,
+    6,
+    6,
+    6,
+    6,
+    6,
+    6,
+    6,
+    6,
+    6,
+    6,
+    6,
+    6,
+    6,
+    6,
+    6,
+    6,
+    6,
+    6,
+    6,
+    6,
+    6,
+    6,
+    6,
+    6,
+    6,
+    6,
+    6,
+    6,
+    6,
+    6,
+    6,
+    6,
+    6,
+    6,
+    6,
+    6,
+    6,
+    6,
+    6,
+    6,
+    6,
+    6,
+    6,
+    6,
+    6,
+    6,
+    6,
+    6,
+    6,
+    6,
+    6,
+    6,
+    6,
+    6,
+    6,
+    6,
+    6,
+    6,
+    6,
+    6,
+    6,
+    6,
+    6,
+    6,
+    6,
+    6,
+    6,
+    6,
+    6,
+    6,
+    6,
+    6,
+    6,
+    6,
+    6,
+    6,
+    6,
+    6,
+    6
+   ]
+  },
+  "tuning": "GridSearchCV inside every training fold (nested CV); imputation and scaling fitted on training folds only",
+  "metrics": {
+   "r2": "pooled out-of-fold, original target scale",
+   "rmse": "pooled out-of-fold",
+   "mae": "pooled out-of-fold",
+   "rpiq": "IQR(y)/RMSE, Bellon-Maurel et al. 2010"
+  },
+  "noise_levels": [
+   0.0,
+   0.1,
+   0.25,
+   0.5,
+   1.0
+  ],
+  "noise_arms": [
+   "train_clean",
+   "train_noisy"
+  ],
+  "block_sizes": [
+   5,
+   10,
+   20,
+   50
+  ],
+  "spatial_partition_note": "The main comparison builds the spatial partition ONCE (KMeans seeded with --seed0) and reuses it for every model, seed and scheme, so random-vs-spatial is a paired comparison. The SD across seeds of a spatial-CV cell therefore measures learner randomness only and is exactly 0.000 for deterministic models (ridge, PLS). The two uncertainties the fixed partition hides are reported separately: where the block boundaries fall (results.partition_sensitivity, methods kmeans_seed and grid_offset) and how many blocks are used (results.block_sensitivity). Family kmeans_seed: 5 KMeans seeds at 10 blocks (partitions compared up to cluster renumbering, which is arbitrary) gave 4 distinct partition(s), so part of the spatial-score spread is fold-placement uncertainty. Family grid_offset: boundaries redrawn with a random rotation and grid origin at a 5x5 grain, 5 seed run(s) -> 5 distinct partition(s); spread: random forest R2 -0.076 +/- 0.046; ridge R2 -0.105 +/- 0.013. Both families are in results.partition_sensitivity (per-partition rows in results.partition_rows, learner seed held constant), and the effect of the block COUNT is in results.block_sensitivity. Only the SPATIAL arm is run here, so none of these numbers is a validation gap: do not difference them against the random-CV column of the main table.",
+  "experiment_scope": {
+   "quick": false,
+   "main_tune": true,
+   "main_seeds": 5,
+   "noise_seeds": 2,
+   "noise_models": [
+    "ridge",
+    "random_forest",
+    "gradient_boosting"
+   ],
+   "noise_scheme": "spatial",
+   "control_seeds": 2,
+   "block_seeds": 2,
+   "partition_seeds": 5,
+   "partition_models": [
+    "random_forest",
+    "ridge"
+   ],
+   "partition_methods": [
+    "kmeans_seed",
+    "grid_offset"
+   ],
+   "grid_target_groups": 10,
+   "grid_cells_side": 5,
+   "grid_jobs": {
+    "random_forest": 4,
+    "gradient_boosting": 4
+   },
+   "note": "Parallelism affects wall-clock only: every grid candidate is a separate seeded fit, so R2 is identical at n_jobs=1 and n_jobs=4 (checked). --quick additionally skips nested tuning; it is for tests, never for reported numbers."
+  }
+ },
+ "results": {
+  "main": [
+   {
+    "experiment": "main",
+    "model": "mean_baseline",
+    "cv": "random",
+    "noise": 0.0,
+    "arm": "train_clean",
+    "n_seeds": 5,
+    "r2_mean": -0.002223714876602001,
+    "r2_sd": 0.0010740981372125231,
+    "rmse_mean": 1.4015055556030904,
+    "rmse_sd": 0.0007508797530665795,
+    "mae_mean": 0.9887071551734031,
+    "mae_sd": 0.00033327043454563975,
+    "rpiq_mean": 0.8486826527654229,
+    "rpiq_sd": 0.0004545413861752231,
+    "tuned_params": [
+     [],
+     [],
+     [],
+     [],
+     []
+    ]
+   },
+   {
+    "experiment": "main",
+    "model": "mean_baseline",
+    "cv": "spatial",
+    "noise": 0.0,
+    "arm": "train_clean",
+    "n_seeds": 5,
+    "r2_mean": -0.030298998057239013,
+    "r2_sd": 0.0,
+    "rmse_mean": 1.42100031697369,
+    "rmse_sd": 0.0,
+    "mae_mean": 0.9999895536441044,
+    "mae_sd": 0.0,
+    "rpiq_mean": 0.8370393486492251,
+    "rpiq_sd": 0.0,
+    "tuned_params": [
+     [],
+     [],
+     [],
+     [],
+     []
+    ]
+   },
+   {
+    "experiment": "main",
+    "model": "ridge",
+    "cv": "random",
+    "noise": 0.0,
+    "arm": "train_clean",
+    "n_seeds": 5,
+    "r2_mean": -0.002042056713685536,
+    "r2_sd": 0.0040955641423612256,
+    "rmse_mean": 1.4013763593678707,
+    "rmse_sd": 0.002861001037569033,
+    "mae_mean": 0.8944514958841694,
+    "mae_sd": 0.0015227240524188044,
+    "rpiq_mean": 0.8487635244481051,
+    "rpiq_sd": 0.0017293374214930044,
+    "tuned_params": [
+     [
+      {
+       "fold": 0,
+       "alpha": 10.0
+      },
+      {
+       "fold": 1,
+       "alpha": 0.3
+      },
+      {
+       "fold": 2,
+       "alpha": 10.0
+      },
+      {
+       "fold": 3,
+       "alpha": 10.0
+      },
+      {
+       "fold": 4,
+       "alpha": 0.3
+      }
+     ],
+     [
+      {
+       "fold": 0,
+       "alpha": 10.0
+      },
+      {
+       "fold": 1,
+       "alpha": 10.0
+      },
+      {
+       "fold": 2,
+       "alpha": 3.0
+      },
+      {
+       "fold": 3,
+       "alpha": 0.3
+      },
+      {
+       "fold": 4,
+       "alpha": 0.3
+      }
+     ],
+     [
+      {
+       "fold": 0,
+       "alpha": 3.0
+      },
+      {
+       "fold": 1,
+       "alpha": 0.3
+      },
+      {
+       "fold": 2,
+       "alpha": 0.3
+      },
+      {
+       "fold": 3,
+       "alpha": 0.3
+      },
+      {
+       "fold": 4,
+       "alpha": 10.0
+      }
+     ],
+     [
+      {
+       "fold": 0,
+       "alpha": 10.0
+      },
+      {
+       "fold": 1,
+       "alpha": 10.0
+      },
+      {
+       "fold": 2,
+       "alpha": 10.0
+      },
+      {
+       "fold": 3,
+       "alpha": 10.0
+      },
+      {
+       "fold": 4,
+       "alpha": 10.0
+      }
+     ],
+     [
+      {
+       "fold": 0,
+       "alpha": 10.0
+      },
+      {
+       "fold": 1,
+       "alpha": 10.0
+      },
+      {
+       "fold": 2,
+       "alpha": 10.0
+      },
+      {
+       "fold": 3,
+       "alpha": 0.3
+      },
+      {
+       "fold": 4,
+       "alpha": 10.0
+      }
+     ]
+    ]
+   },
+   {
+    "experiment": "main",
+    "model": "ridge",
+    "cv": "spatial",
+    "noise": 0.0,
+    "arm": "train_clean",
+    "n_seeds": 5,
+    "r2_mean": -0.07050524275553083,
+    "r2_sd": 0.0,
+    "rmse_mean": 1.4484614305289705,
+    "rmse_sd": 0.0,
+    "mae_mean": 0.9357797600370986,
+    "mae_sd": 0.0,
+    "rpiq_mean": 0.8211700737627685,
+    "rpiq_sd": 0.0,
+    "tuned_params": [
+     [
+      {
+       "fold": 0,
+       "alpha": 10.0
+      },
+      {
+       "fold": 1,
+       "alpha": 10.0
+      },
+      {
+       "fold": 2,
+       "alpha": 10.0
+      },
+      {
+       "fold": 3,
+       "alpha": 10.0
+      },
+      {
+       "fold": 4,
+       "alpha": 10.0
+      }
+     ],
+     [
+      {
+       "fold": 0,
+       "alpha": 10.0
+      },
+      {
+       "fold": 1,
+       "alpha": 10.0
+      },
+      {
+       "fold": 2,
+       "alpha": 10.0
+      },
+      {
+       "fold": 3,
+       "alpha": 10.0
+      },
+      {
+       "fold": 4,
+       "alpha": 10.0
+      }
+     ],
+     [
+      {
+       "fold": 0,
+       "alpha": 10.0
+      },
+      {
+       "fold": 1,
+       "alpha": 10.0
+      },
+      {
+       "fold": 2,
+       "alpha": 10.0
+      },
+      {
+       "fold": 3,
+       "alpha": 10.0
+      },
+      {
+       "fold": 4,
+       "alpha": 10.0
+      }
+     ],
+     [
+      {
+       "fold": 0,
+       "alpha": 10.0
+      },
+      {
+       "fold": 1,
+       "alpha": 10.0
+      },
+      {
+       "fold": 2,
+       "alpha": 10.0
+      },
+      {
+       "fold": 3,
+       "alpha": 10.0
+      },
+      {
+       "fold": 4,
+       "alpha": 10.0
+      }
+     ],
+     [
+      {
+       "fold": 0,
+       "alpha": 10.0
+      },
+      {
+       "fold": 1,
+       "alpha": 10.0
+      },
+      {
+       "fold": 2,
+       "alpha": 10.0
+      },
+      {
+       "fold": 3,
+       "alpha": 10.0
+      },
+      {
+       "fold": 4,
+       "alpha": 10.0
+      }
+     ]
+    ]
+   },
+   {
+    "experiment": "main",
+    "model": "pls",
+    "cv": "random",
+    "noise": 0.0,
+    "arm": "train_clean",
+    "n_seeds": 5,
+    "r2_mean": -0.002708988202914142,
+    "r2_sd": 0.005255535635623066,
+    "rmse_mean": 1.4018411259918326,
+    "rmse_sd": 0.0036740223311836715,
+    "mae_mean": 0.8957143075431933,
+    "mae_sd": 0.0017892731133671443,
+    "rpiq_mean": 0.8484839648840564,
+    "rpiq_sd": 0.00222405250977028,
+    "tuned_params": [
+     [
+      {
+       "fold": 0,
+       "n_components": 1
+      },
+      {
+       "fold": 1,
+       "n_components": 2
+      },
+      {
+       "fold": 2,
+       "n_components": 3
+      },
+      {
+       "fold": 3,
+       "n_components": 3
+      },
+      {
+       "fold": 4,
+       "n_components": 3
+      }
+     ],
+     [
+      {
+       "fold": 0,
+       "n_components": 2
+      },
+      {
+       "fold": 1,
+       "n_components": 1
+      },
+      {
+       "fold": 2,
+       "n_components": 1
+      },
+      {
+       "fold": 3,
+       "n_components": 3
+      },
+      {
+       "fold": 4,
+       "n_components": 3
+      }
+     ],
+     [
+      {
+       "fold": 0,
+       "n_components": 3
+      },
+      {
+       "fold": 1,
+       "n_components": 3
+      },
+      {
+       "fold": 2,
+       "n_components": 3
+      },
+      {
+       "fold": 3,
+       "n_components": 3
+      },
+      {
+       "fold": 4,
+       "n_components": 3
+      }
+     ],
+     [
+      {
+       "fold": 0,
+       "n_components": 3
+      },
+      {
+       "fold": 1,
+       "n_components": 1
+      },
+      {
+       "fold": 2,
+       "n_components": 1
+      },
+      {
+       "fold": 3,
+       "n_components": 1
+      },
+      {
+       "fold": 4,
+       "n_components": 3
+      }
+     ],
+     [
+      {
+       "fold": 0,
+       "n_components": 3
+      },
+      {
+       "fold": 1,
+       "n_components": 3
+      },
+      {
+       "fold": 2,
+       "n_components": 2
+      },
+      {
+       "fold": 3,
+       "n_components": 3
+      },
+      {
+       "fold": 4,
+       "n_components": 3
+      }
+     ]
+    ]
+   },
+   {
+    "experiment": "main",
+    "model": "pls",
+    "cv": "spatial",
+    "noise": 0.0,
+    "arm": "train_clean",
+    "n_seeds": 5,
+    "r2_mean": -0.07853697752520206,
+    "r2_sd": 0.0,
+    "rmse_mean": 1.453884999670193,
+    "rmse_sd": 0.0,
+    "mae_mean": 0.9453760879143772,
+    "mae_sd": 0.0,
+    "rpiq_mean": 0.8181067828747233,
+    "rpiq_sd": 1.2412670766236366e-16,
+    "tuned_params": [
+     [
+      {
+       "fold": 0,
+       "n_components": 1
+      },
+      {
+       "fold": 1,
+       "n_components": 3
+      },
+      {
+       "fold": 2,
+       "n_components": 1
+      },
+      {
+       "fold": 3,
+       "n_components": 1
+      },
+      {
+       "fold": 4,
+       "n_components": 3
+      }
+     ],
+     [
+      {
+       "fold": 0,
+       "n_components": 1
+      },
+      {
+       "fold": 1,
+       "n_components": 3
+      },
+      {
+       "fold": 2,
+       "n_components": 1
+      },
+      {
+       "fold": 3,
+       "n_components": 1
+      },
+      {
+       "fold": 4,
+       "n_components": 3
+      }
+     ],
+     [
+      {
+       "fold": 0,
+       "n_components": 1
+      },
+      {
+       "fold": 1,
+       "n_components": 3
+      },
+      {
+       "fold": 2,
+       "n_components": 1
+      },
+      {
+       "fold": 3,
+       "n_components": 1
+      },
+      {
+       "fold": 4,
+       "n_components": 3
+      }
+     ],
+     [
+      {
+       "fold": 0,
+       "n_components": 1
+      },
+      {
+       "fold": 1,
+       "n_components": 3
+      },
+      {
+       "fold": 2,
+       "n_components": 1
+      },
+      {
+       "fold": 3,
+       "n_components": 1
+      },
+      {
+       "fold": 4,
+       "n_components": 3
+      }
+     ],
+     [
+      {
+       "fold": 0,
+       "n_components": 1
+      },
+      {
+       "fold": 1,
+       "n_components": 3
+      },
+      {
+       "fold": 2,
+       "n_components": 1
+      },
+      {
+       "fold": 3,
+       "n_components": 1
+      },
+      {
+       "fold": 4,
+       "n_components": 3
+      }
+     ]
+    ]
+   },
+   {
+    "experiment": "main",
+    "model": "random_forest",
+    "cv": "random",
+    "noise": 0.0,
+    "arm": "train_clean",
+    "n_seeds": 5,
+    "r2_mean": 0.1794769019921496,
+    "r2_sd": 0.013871152164032983,
+    "rmse_mean": 1.2680765483952392,
+    "rmse_sd": 0.010744248055665324,
+    "mae_mean": 0.7923041917594082,
+    "mae_sd": 0.010627254610776788,
+    "rpiq_mean": 0.9380362889528024,
+    "rpiq_sd": 0.007985864060331763,
+    "tuned_params": [
+     [
+      {
+       "fold": 0,
+       "max_features": 0.5,
+       "min_samples_leaf": 3
+      },
+      {
+       "fold": 1,
+       "max_features": null,
+       "min_samples_leaf": 1
+      },
+      {
+       "fold": 2,
+       "max_features": null,
+       "min_samples_leaf": 1
+      },
+      {
+       "fold": 3,
+       "max_features": null,
+       "min_samples_leaf": 1
+      },
+      {
+       "fold": 4,
+       "max_features": null,
+       "min_samples_leaf": 1
+      }
+     ],
+     [
+      {
+       "fold": 0,
+       "max_features": 0.5,
+       "min_samples_leaf": 1
+      },
+      {
+       "fold": 1,
+       "max_features": 0.5,
+       "min_samples_leaf": 1
+      },
+      {
+       "fold": 2,
+       "max_features": null,
+       "min_samples_leaf": 1
+      },
+      {
+       "fold": 3,
+       "max_features": null,
+       "min_samples_leaf": 3
+      },
+      {
+       "fold": 4,
+       "max_features": null,
+       "min_samples_leaf": 1
+      }
+     ],
+     [
+      {
+       "fold": 0,
+       "max_features": null,
+       "min_samples_leaf": 3
+      },
+      {
+       "fold": 1,
+       "max_features": null,
+       "min_samples_leaf": 1
+      },
+      {
+       "fold": 2,
+       "max_features": null,
+       "min_samples_leaf": 1
+      },
+      {
+       "fold": 3,
+       "max_features": null,
+       "min_samples_leaf": 3
+      },
+      {
+       "fold": 4,
+       "max_features": null,
+       "min_samples_leaf": 1
+      }
+     ],
+     [
+      {
+       "fold": 0,
+       "max_features": null,
+       "min_samples_leaf": 1
+      },
+      {
+       "fold": 1,
+       "max_features": null,
+       "min_samples_leaf": 1
+      },
+      {
+       "fold": 2,
+       "max_features": null,
+       "min_samples_leaf": 3
+      },
+      {
+       "fold": 3,
+       "max_features": null,
+       "min_samples_leaf": 1
+      },
+      {
+       "fold": 4,
+       "max_features": 0.5,
+       "min_samples_leaf": 3
+      }
+     ],
+     [
+      {
+       "fold": 0,
+       "max_features": null,
+       "min_samples_leaf": 1
+      },
+      {
+       "fold": 1,
+       "max_features": 0.5,
+       "min_samples_leaf": 1
+      },
+      {
+       "fold": 2,
+       "max_features": null,
+       "min_samples_leaf": 3
+      },
+      {
+       "fold": 3,
+       "max_features": null,
+       "min_samples_leaf": 3
+      },
+      {
+       "fold": 4,
+       "max_features": null,
+       "min_samples_leaf": 3
+      }
+     ]
+    ]
+   },
+   {
+    "experiment": "main",
+    "model": "random_forest",
+    "cv": "spatial",
+    "noise": 0.0,
+    "arm": "train_clean",
+    "n_seeds": 5,
+    "r2_mean": -0.08871187055430005,
+    "r2_sd": 0.006154876911903986,
+    "rmse_mean": 1.4607221905799546,
+    "rmse_sd": 0.004129333652464758,
+    "mae_mean": 0.964501515825542,
+    "mae_sd": 0.005152597398184267,
+    "rpiq_mean": 0.8142826835321582,
+    "rpiq_sd": 0.002302282550909598,
+    "tuned_params": [
+     [
+      {
+       "fold": 0,
+       "max_features": 0.5,
+       "min_samples_leaf": 3
+      },
+      {
+       "fold": 1,
+       "max_features": 0.5,
+       "min_samples_leaf": 3
+      },
+      {
+       "fold": 2,
+       "max_features": 0.5,
+       "min_samples_leaf": 3
+      },
+      {
+       "fold": 3,
+       "max_features": 0.5,
+       "min_samples_leaf": 3
+      },
+      {
+       "fold": 4,
+       "max_features": 0.5,
+       "min_samples_leaf": 3
+      }
+     ],
+     [
+      {
+       "fold": 0,
+       "max_features": 0.5,
+       "min_samples_leaf": 3
+      },
+      {
+       "fold": 1,
+       "max_features": 0.5,
+       "min_samples_leaf": 3
+      },
+      {
+       "fold": 2,
+       "max_features": 0.5,
+       "min_samples_leaf": 3
+      },
+      {
+       "fold": 3,
+       "max_features": null,
+       "min_samples_leaf": 3
+      },
+      {
+       "fold": 4,
+       "max_features": 0.5,
+       "min_samples_leaf": 3
+      }
+     ],
+     [
+      {
+       "fold": 0,
+       "max_features": 0.5,
+       "min_samples_leaf": 3
+      },
+      {
+       "fold": 1,
+       "max_features": 0.5,
+       "min_samples_leaf": 3
+      },
+      {
+       "fold": 2,
+       "max_features": 0.5,
+       "min_samples_leaf": 3
+      },
+      {
+       "fold": 3,
+       "max_features": null,
+       "min_samples_leaf": 1
+      },
+      {
+       "fold": 4,
+       "max_features": 0.5,
+       "min_samples_leaf": 3
+      }
+     ],
+     [
+      {
+       "fold": 0,
+       "max_features": 0.5,
+       "min_samples_leaf": 1
+      },
+      {
+       "fold": 1,
+       "max_features": 0.5,
+       "min_samples_leaf": 3
+      },
+      {
+       "fold": 2,
+       "max_features": 0.5,
+       "min_samples_leaf": 3
+      },
+      {
+       "fold": 3,
+       "max_features": null,
+       "min_samples_leaf": 3
+      },
+      {
+       "fold": 4,
+       "max_features": 0.5,
+       "min_samples_leaf": 3
+      }
+     ],
+     [
+      {
+       "fold": 0,
+       "max_features": 0.5,
+       "min_samples_leaf": 3
+      },
+      {
+       "fold": 1,
+       "max_features": 0.5,
+       "min_samples_leaf": 3
+      },
+      {
+       "fold": 2,
+       "max_features": 0.5,
+       "min_samples_leaf": 3
+      },
+      {
+       "fold": 3,
+       "max_features": null,
+       "min_samples_leaf": 3
+      },
+      {
+       "fold": 4,
+       "max_features": 0.5,
+       "min_samples_leaf": 3
+      }
+     ]
+    ]
+   },
+   {
+    "experiment": "main",
+    "model": "gradient_boosting",
+    "cv": "random",
+    "noise": 0.0,
+    "arm": "train_clean",
+    "n_seeds": 5,
+    "r2_mean": 0.12703591027929864,
+    "r2_sd": 0.01640012021053212,
+    "rmse_mean": 1.307962475028156,
+    "rmse_sd": 0.012331617931661834,
+    "mae_mean": 0.8254803020469351,
+    "mae_sd": 0.009655236653270519,
+    "rpiq_mean": 0.9094438197529504,
+    "rpiq_sd": 0.00863751628300124,
+    "tuned_params": [
+     [
+      {
+       "fold": 0,
+       "learning_rate": 0.1,
+       "max_depth": 3
+      },
+      {
+       "fold": 1,
+       "learning_rate": 0.1,
+       "max_depth": 3
+      },
+      {
+       "fold": 2,
+       "learning_rate": 0.1,
+       "max_depth": 2
+      },
+      {
+       "fold": 3,
+       "learning_rate": 0.05,
+       "max_depth": 3
+      },
+      {
+       "fold": 4,
+       "learning_rate": 0.1,
+       "max_depth": 3
+      }
+     ],
+     [
+      {
+       "fold": 0,
+       "learning_rate": 0.05,
+       "max_depth": 3
+      },
+      {
+       "fold": 1,
+       "learning_rate": 0.05,
+       "max_depth": 3
+      },
+      {
+       "fold": 2,
+       "learning_rate": 0.1,
+       "max_depth": 3
+      },
+      {
+       "fold": 3,
+       "learning_rate": 0.1,
+       "max_depth": 3
+      },
+      {
+       "fold": 4,
+       "learning_rate": 0.1,
+       "max_depth": 3
+      }
+     ],
+     [
+      {
+       "fold": 0,
+       "learning_rate": 0.1,
+       "max_depth": 2
+      },
+      {
+       "fold": 1,
+       "learning_rate": 0.05,
+       "max_depth": 3
+      },
+      {
+       "fold": 2,
+       "learning_rate": 0.1,
+       "max_depth": 3
+      },
+      {
+       "fold": 3,
+       "learning_rate": 0.1,
+       "max_depth": 3
+      },
+      {
+       "fold": 4,
+       "learning_rate": 0.05,
+       "max_depth": 3
+      }
+     ],
+     [
+      {
+       "fold": 0,
+       "learning_rate": 0.05,
+       "max_depth": 3
+      },
+      {
+       "fold": 1,
+       "learning_rate": 0.1,
+       "max_depth": 3
+      },
+      {
+       "fold": 2,
+       "learning_rate": 0.1,
+       "max_depth": 3
+      },
+      {
+       "fold": 3,
+       "learning_rate": 0.1,
+       "max_depth": 3
+      },
+      {
+       "fold": 4,
+       "learning_rate": 0.05,
+       "max_depth": 3
+      }
+     ],
+     [
+      {
+       "fold": 0,
+       "learning_rate": 0.05,
+       "max_depth": 3
+      },
+      {
+       "fold": 1,
+       "learning_rate": 0.05,
+       "max_depth": 3
+      },
+      {
+       "fold": 2,
+       "learning_rate": 0.05,
+       "max_depth": 3
+      },
+      {
+       "fold": 3,
+       "learning_rate": 0.05,
+       "max_depth": 3
+      },
+      {
+       "fold": 4,
+       "learning_rate": 0.05,
+       "max_depth": 3
+      }
+     ]
+    ]
+   },
+   {
+    "experiment": "main",
+    "model": "gradient_boosting",
+    "cv": "spatial",
+    "noise": 0.0,
+    "arm": "train_clean",
+    "n_seeds": 5,
+    "r2_mean": -0.0957707501750356,
+    "r2_sd": 0.00035179965474742216,
+    "rmse_mean": 1.4654546500811718,
+    "rmse_sd": 0.000235235272197234,
+    "mae_mean": 0.9677427482046836,
+    "mae_sd": 0.00020876625329485928,
+    "rpiq_mean": 0.811647910224065,
+    "rpiq_sd": 0.0001302766034520744,
+    "tuned_params": [
+     [
+      {
+       "fold": 0,
+       "learning_rate": 0.05,
+       "max_depth": 2
+      },
+      {
+       "fold": 1,
+       "learning_rate": 0.05,
+       "max_depth": 2
+      },
+      {
+       "fold": 2,
+       "learning_rate": 0.05,
+       "max_depth": 2
+      },
+      {
+       "fold": 3,
+       "learning_rate": 0.05,
+       "max_depth": 2
+      },
+      {
+       "fold": 4,
+       "learning_rate": 0.05,
+       "max_depth": 3
+      }
+     ],
+     [
+      {
+       "fold": 0,
+       "learning_rate": 0.05,
+       "max_depth": 2
+      },
+      {
+       "fold": 1,
+       "learning_rate": 0.05,
+       "max_depth": 2
+      },
+      {
+       "fold": 2,
+       "learning_rate": 0.05,
+       "max_depth": 2
+      },
+      {
+       "fold": 3,
+       "learning_rate": 0.05,
+       "max_depth": 2
+      },
+      {
+       "fold": 4,
+       "learning_rate": 0.05,
+       "max_depth": 3
+      }
+     ],
+     [
+      {
+       "fold": 0,
+       "learning_rate": 0.05,
+       "max_depth": 2
+      },
+      {
+       "fold": 1,
+       "learning_rate": 0.05,
+       "max_depth": 2
+      },
+      {
+       "fold": 2,
+       "learning_rate": 0.05,
+       "max_depth": 2
+      },
+      {
+       "fold": 3,
+       "learning_rate": 0.05,
+       "max_depth": 2
+      },
+      {
+       "fold": 4,
+       "learning_rate": 0.05,
+       "max_depth": 3
+      }
+     ],
+     [
+      {
+       "fold": 0,
+       "learning_rate": 0.05,
+       "max_depth": 2
+      },
+      {
+       "fold": 1,
+       "learning_rate": 0.05,
+       "max_depth": 2
+      },
+      {
+       "fold": 2,
+       "learning_rate": 0.05,
+       "max_depth": 2
+      },
+      {
+       "fold": 3,
+       "learning_rate": 0.05,
+       "max_depth": 2
+      },
+      {
+       "fold": 4,
+       "learning_rate": 0.05,
+       "max_depth": 3
+      }
+     ],
+     [
+      {
+       "fold": 0,
+       "learning_rate": 0.05,
+       "max_depth": 2
+      },
+      {
+       "fold": 1,
+       "learning_rate": 0.05,
+       "max_depth": 2
+      },
+      {
+       "fold": 2,
+       "learning_rate": 0.05,
+       "max_depth": 2
+      },
+      {
+       "fold": 3,
+       "learning_rate": 0.05,
+       "max_depth": 2
+      },
+      {
+       "fold": 4,
+       "learning_rate": 0.05,
+       "max_depth": 3
+      }
+     ]
+    ]
+   }
+  ],
+  "validation_gap": [
+   {
+    "model": "mean_baseline",
+    "r2_random": -0.002223714876602001,
+    "r2_spatial": -0.030298998057239013,
+    "gap_mean": 0.028075283180637012,
+    "gap_sd": 0.0010740981372125231,
+    "rmse_random": 1.4015055556030904,
+    "rmse_spatial": 1.42100031697369,
+    "spatial_beats_baseline": false,
+    "tuned_params": null
+   },
+   {
+    "model": "ridge",
+    "r2_random": -0.002042056713685536,
+    "r2_spatial": -0.07050524275553083,
+    "gap_mean": 0.06846318604184529,
+    "gap_sd": 0.0040955641423612256,
+    "rmse_random": 1.4013763593678707,
+    "rmse_spatial": 1.4484614305289705,
+    "spatial_beats_baseline": false,
+    "tuned_params": {
+     "alpha": 10.0
+    }
+   },
+   {
+    "model": "pls",
+    "r2_random": -0.002708988202914142,
+    "r2_spatial": -0.07853697752520206,
+    "gap_mean": 0.07582798932228792,
+    "gap_sd": 0.005255535635623066,
+    "rmse_random": 1.4018411259918326,
+    "rmse_spatial": 1.453884999670193,
+    "spatial_beats_baseline": false,
+    "tuned_params": {
+     "n_components": 1
+    }
+   },
+   {
+    "model": "random_forest",
+    "r2_random": 0.1794769019921496,
+    "r2_spatial": -0.08871187055430005,
+    "gap_mean": 0.2681887725464497,
+    "gap_sd": 0.015526206965158483,
+    "rmse_random": 1.2680765483952392,
+    "rmse_spatial": 1.4607221905799546,
+    "spatial_beats_baseline": false,
+    "tuned_params": {
+     "max_features": 0.5,
+     "min_samples_leaf": 3
+    }
+   },
+   {
+    "model": "gradient_boosting",
+    "r2_random": 0.12703591027929864,
+    "r2_spatial": -0.0957707501750356,
+    "gap_mean": 0.22280666045433425,
+    "gap_sd": 0.016616170844973747,
+    "rmse_random": 1.307962475028156,
+    "rmse_spatial": 1.4654546500811718,
+    "spatial_beats_baseline": false,
+    "tuned_params": {
+     "learning_rate": 0.05,
+     "max_depth": 2
+    }
+   }
+  ],
+  "noise_sweep": [
+   {
+    "experiment": "noise",
+    "model": "ridge",
+    "cv": "spatial",
+    "noise": 0.0,
+    "arm": "train_clean",
+    "n_seeds": 2,
+    "r2_mean": -0.07050524275553083,
+    "r2_sd": 0.0,
+    "rmse_mean": 1.4484614305289705,
+    "rmse_sd": 0.0,
+    "mae_mean": 0.9357797600370986,
+    "mae_sd": 0.0,
+    "rpiq_mean": 0.8211700737627685,
+    "rpiq_sd": 0.0,
+    "tuned_params": [
+     [],
+     []
+    ]
+   },
+   {
+    "experiment": "noise",
+    "model": "ridge",
+    "cv": "spatial",
+    "noise": 0.0,
+    "arm": "train_noisy",
+    "n_seeds": 2,
+    "r2_mean": -0.07050524275553083,
+    "r2_sd": 0.0,
+    "rmse_mean": 1.4484614305289705,
+    "rmse_sd": 0.0,
+    "mae_mean": 0.9357797600370986,
+    "mae_sd": 0.0,
+    "rpiq_mean": 0.8211700737627685,
+    "rpiq_sd": 0.0,
+    "tuned_params": [
+     [],
+     []
+    ]
+   },
+   {
+    "experiment": "noise",
+    "model": "ridge",
+    "cv": "spatial",
+    "noise": 0.1,
+    "arm": "train_clean",
+    "n_seeds": 2,
+    "r2_mean": -0.07177581450214288,
+    "r2_sd": 0.0017510326089959778,
+    "rmse_mean": 1.4493205158843563,
+    "rmse_sd": 0.0011839268513996323,
+    "mae_mean": 0.9371647306270505,
+    "mae_sd": 0.00028978889516256026,
+    "rpiq_mean": 0.8206835986714058,
+    "rpiq_sd": 0.0006704033637290642,
+    "tuned_params": [
+     [],
+     []
+    ]
+   },
+   {
+    "experiment": "noise",
+    "model": "ridge",
+    "cv": "spatial",
+    "noise": 0.1,
+    "arm": "train_noisy",
+    "n_seeds": 2,
+    "r2_mean": -0.06989768444083189,
+    "r2_sd": 0.005068831326790804,
+    "rmse_mean": 1.4480483083381928,
+    "rmse_sd": 0.0034302033402164385,
+    "mae_mean": 0.9361506485341483,
+    "mae_sd": 0.0014769351551808965,
+    "rpiq_mean": 0.8214066548204546,
+    "rpiq_sd": 0.0019457858103330298,
+    "tuned_params": [
+     [],
+     []
+    ]
+   },
+   {
+    "experiment": "noise",
+    "model": "ridge",
+    "cv": "spatial",
+    "noise": 0.25,
+    "arm": "train_clean",
+    "n_seeds": 2,
+    "r2_mean": -0.07362096452418032,
+    "r2_sd": 3.5056171104269924e-05,
+    "rmse_mean": 1.4505677833997281,
+    "rmse_sd": 2.3682171874605664e-05,
+    "mae_mean": 0.9351524332411785,
+    "mae_sd": 0.0009584906517278373,
+    "rpiq_mean": 0.8199776622094944,
+    "rpiq_sd": 1.3387069637195659e-05,
+    "tuned_params": [
+     [],
+     []
+    ]
+   },
+   {
+    "experiment": "noise",
+    "model": "ridge",
+    "cv": "spatial",
+    "noise": 0.25,
+    "arm": "train_noisy",
+    "n_seeds": 2,
+    "r2_mean": -0.06673306474986584,
+    "r2_sd": 4.7452975030448225e-05,
+    "rmse_mean": 1.4459071802978096,
+    "rmse_sd": 3.2160153091326824e-05,
+    "mae_mean": 0.9343184908707561,
+    "mae_sd": 0.0041069419122569,
+    "rpiq_mean": 0.8226207022495254,
+    "rpiq_sd": 1.829689213869829e-05,
+    "tuned_params": [
+     [],
+     []
+    ]
+   },
+   {
+    "experiment": "noise",
+    "model": "ridge",
+    "cv": "spatial",
+    "noise": 0.5,
+    "arm": "train_clean",
+    "n_seeds": 2,
+    "r2_mean": -0.08029753305104992,
+    "r2_sd": 0.005357163048034437,
+    "rmse_mean": 1.4550689078434718,
+    "rmse_sd": 0.0036078326148405128,
+    "mae_mean": 0.9472229304482171,
+    "mae_sd": 0.00330424131055962,
+    "rpiq_mean": 0.8174436479248757,
+    "rpiq_sd": 0.0020268454901895385,
+    "tuned_params": [
+     [],
+     []
+    ]
+   },
+   {
+    "experiment": "noise",
+    "model": "ridge",
+    "cv": "spatial",
+    "noise": 0.5,
+    "arm": "train_noisy",
+    "n_seeds": 2,
+    "r2_mean": -0.06387971490773148,
+    "r2_sd": 0.004053036736109405,
+    "rmse_mean": 1.4439707840934084,
+    "rmse_sd": 0.0027505352200043894,
+    "mae_mean": 0.9318099957011068,
+    "mae_sd": 0.0008943601417379536,
+    "rpiq_mean": 0.8237253486970966,
+    "rpiq_sd": 0.0015690660837187707,
+    "tuned_params": [
+     [],
+     []
+    ]
+   },
+   {
+    "experiment": "noise",
+    "model": "ridge",
+    "cv": "spatial",
+    "noise": 1.0,
+    "arm": "train_clean",
+    "n_seeds": 2,
+    "r2_mean": -0.12624733102573005,
+    "r2_sd": 0.002103078163315812,
+    "rmse_mean": 1.4856938609710475,
+    "rmse_sd": 0.00138714276703935,
+    "mae_mean": 0.9751195657217738,
+    "mae_sd": 0.007171705643127386,
+    "rpiq_mean": 0.8005913798466558,
+    "rpiq_sd": 0.0007474854484372588,
+    "tuned_params": [
+     [],
+     []
+    ]
+   },
+   {
+    "experiment": "noise",
+    "model": "ridge",
+    "cv": "spatial",
+    "noise": 1.0,
+    "arm": "train_noisy",
+    "n_seeds": 2,
+    "r2_mean": -0.06189961317075898,
+    "r2_sd": 0.01832153180107518,
+    "rmse_mean": 1.4426008599075446,
+    "rmse_sd": 0.012445451894413602,
+    "mae_mean": 0.9312274160853974,
+    "mae_sd": 0.009387329007979102,
+    "rpiq_mean": 0.82453676361145,
+    "rpiq_sd": 0.007113355406816755,
+    "tuned_params": [
+     [],
+     []
+    ]
+   },
+   {
+    "experiment": "noise",
+    "model": "random_forest",
+    "cv": "spatial",
+    "noise": 0.0,
+    "arm": "train_clean",
+    "n_seeds": 2,
+    "r2_mean": -0.08043618058148094,
+    "r2_sd": 5.188312307033851e-05,
+    "rmse_mean": 1.455164514394796,
+    "rmse_sd": 3.493888901842624e-05,
+    "mae_mean": 0.9579128206590637,
+    "mae_sd": 0.0020883038529572674,
+    "rpiq_mean": 0.817387428243834,
+    "rpiq_sd": 1.9625690674830085e-05,
+    "tuned_params": [
+     [],
+     []
+    ]
+   },
+   {
+    "experiment": "noise",
+    "model": "random_forest",
+    "cv": "spatial",
+    "noise": 0.0,
+    "arm": "train_noisy",
+    "n_seeds": 2,
+    "r2_mean": -0.08043618058148094,
+    "r2_sd": 5.188312307033851e-05,
+    "rmse_mean": 1.455164514394796,
+    "rmse_sd": 3.493888901842624e-05,
+    "mae_mean": 0.9579128206590637,
+    "mae_sd": 0.0020883038529572674,
+    "rpiq_mean": 0.817387428243834,
+    "rpiq_sd": 1.9625690674830085e-05,
+    "tuned_params": [
+     [],
+     []
+    ]
+   },
+   {
+    "experiment": "noise",
+    "model": "random_forest",
+    "cv": "spatial",
+    "noise": 0.1,
+    "arm": "train_clean",
+    "n_seeds": 2,
+    "r2_mean": -0.08111073941677038,
+    "r2_sd": 0.003583780830310831,
+    "rmse_mean": 1.455617702263086,
+    "rmse_sd": 0.0024126214794054682,
+    "mae_mean": 0.9764180293479845,
+    "mae_sd": 0.0018198792123449517,
+    "rpiq_mean": 0.8171340673335834,
+    "rpiq_sd": 0.0013543633052400226,
+    "tuned_params": [
+     [],
+     []
+    ]
+   },
+   {
+    "experiment": "noise",
+    "model": "random_forest",
+    "cv": "spatial",
+    "noise": 0.1,
+    "arm": "train_noisy",
+    "n_seeds": 2,
+    "r2_mean": -0.07830424553707926,
+    "r2_sd": 0.0017832364683836755,
+    "rmse_mean": 1.4537278795122033,
+    "rmse_sd": 0.0012020454648088775,
+    "mae_mean": 0.9631596489359313,
+    "mae_sd": 0.004093542777434422,
+    "rpiq_mean": 0.8181954842651287,
+    "rpiq_sd": 0.0006765421404162841,
+    "tuned_params": [
+     [],
+     []
+    ]
+   },
+   {
+    "experiment": "noise",
+    "model": "random_forest",
+    "cv": "spatial",
+    "noise": 0.25,
+    "arm": "train_clean",
+    "n_seeds": 2,
+    "r2_mean": -0.12802454502026628,
+    "r2_sd": 0.030526917918153262,
+    "rmse_mean": 1.4867978665426924,
+    "rmse_sd": 0.020119913356448665,
+    "mae_mean": 1.0095394819510535,
+    "mae_sd": 0.011809708502153094,
+    "rpiq_mean": 0.8000698172536267,
+    "rpiq_sd": 0.010826848601608824,
+    "tuned_params": [
+     [],
+     []
+    ]
+   },
+   {
+    "experiment": "noise",
+    "model": "random_forest",
+    "cv": "spatial",
+    "noise": 0.25,
+    "arm": "train_noisy",
+    "n_seeds": 2,
+    "r2_mean": -0.10581076392342326,
+    "r2_sd": 0.025238069948763875,
+    "rmse_mean": 1.4721050492612007,
+    "rmse_sd": 0.016800121161049824,
+    "mae_mean": 0.973147172526197,
+    "mae_sd": 0.012557584520567313,
+    "rpiq_mean": 0.8080338028768187,
+    "rpiq_sd": 0.009221533339191531,
+    "tuned_params": [
+     [],
+     []
+    ]
+   },
+   {
+    "experiment": "noise",
+    "model": "random_forest",
+    "cv": "spatial",
+    "noise": 0.5,
+    "arm": "train_clean",
+    "n_seeds": 2,
+    "r2_mean": -0.14131062055156463,
+    "r2_sd": 0.013529188397231568,
+    "rmse_mean": 1.4955834516162376,
+    "rmse_sd": 0.008864539301407676,
+    "mae_mean": 1.027842800905883,
+    "mae_sd": 0.009770167425075667,
+    "rpiq_mean": 0.7953110686303609,
+    "rpiq_sd": 0.00471392366443978,
+    "tuned_params": [
+     [],
+     []
+    ]
+   },
+   {
+    "experiment": "noise",
+    "model": "random_forest",
+    "cv": "spatial",
+    "noise": 0.5,
+    "arm": "train_noisy",
+    "n_seeds": 2,
+    "r2_mean": -0.10796913948899578,
+    "r2_sd": 0.002836703069872588,
+    "rmse_mean": 1.473588386562136,
+    "rmse_sd": 0.0018863955574237622,
+    "mae_mean": 0.968885842023462,
+    "mae_sd": 0.012038385728126582,
+    "rpiq_mean": 0.807168518149457,
+    "rpiq_sd": 0.0010332865816632091,
+    "tuned_params": [
+     [],
+     []
+    ]
+   },
+   {
+    "experiment": "noise",
+    "model": "random_forest",
+    "cv": "spatial",
+    "noise": 1.0,
+    "arm": "train_clean",
+    "n_seeds": 2,
+    "r2_mean": -0.138710255605634,
+    "r2_sd": 1.68431747469962e-05,
+    "rmse_mean": 1.493891829820377,
+    "rmse_sd": 1.1048412455899297e-05,
+    "mae_mean": 1.0260454067903386,
+    "mae_sd": 0.008393261322892602,
+    "rpiq_mean": 0.7961976603925496,
+    "rpiq_sd": 5.888458570336436e-06,
+    "tuned_params": [
+     [],
+     []
+    ]
+   },
+   {
+    "experiment": "noise",
+    "model": "random_forest",
+    "cv": "spatial",
+    "noise": 1.0,
+    "arm": "train_noisy",
+    "n_seeds": 2,
+    "r2_mean": -0.08909593208016386,
+    "r2_sd": 0.030960669248610195,
+    "rmse_mean": 1.4609106830857725,
+    "rmse_sd": 0.020767381995579936,
+    "mae_mean": 0.9559587754417713,
+    "mae_sd": 0.012815260322433538,
+    "rpiq_mean": 0.8142546864865916,
+    "rpiq_sd": 0.011574929468131927,
+    "tuned_params": [
+     [],
+     []
+    ]
+   },
+   {
+    "experiment": "noise",
+    "model": "gradient_boosting",
+    "cv": "spatial",
+    "noise": 0.0,
+    "arm": "train_clean",
+    "n_seeds": 2,
+    "r2_mean": -0.08887256951230371,
+    "r2_sd": 1.5700924586837752e-16,
+    "rmse_mean": 1.460834660954578,
+    "rmse_sd": 2.220446049250313e-16,
+    "mae_mean": 0.9612990336151699,
+    "mae_sd": 0.0,
+    "rpiq_mean": 0.8142147852466537,
+    "rpiq_sd": 1.1102230246251565e-16,
+    "tuned_params": [
+     [],
+     []
+    ]
+   },
+   {
+    "experiment": "noise",
+    "model": "gradient_boosting",
+    "cv": "spatial",
+    "noise": 0.0,
+    "arm": "train_noisy",
+    "n_seeds": 2,
+    "r2_mean": -0.08887256951230371,
+    "r2_sd": 1.5700924586837752e-16,
+    "rmse_mean": 1.460834660954578,
+    "rmse_sd": 2.220446049250313e-16,
+    "mae_mean": 0.9612990336151699,
+    "mae_sd": 0.0,
+    "rpiq_mean": 0.8142147852466537,
+    "rpiq_sd": 1.1102230246251565e-16,
+    "tuned_params": [
+     [],
+     []
+    ]
+   },
+   {
+    "experiment": "noise",
+    "model": "gradient_boosting",
+    "cv": "spatial",
+    "noise": 0.1,
+    "arm": "train_clean",
+    "n_seeds": 2,
+    "r2_mean": -0.10287223605403328,
+    "r2_sd": 0.01400615469883755,
+    "rmse_mean": 1.4701808452185832,
+    "rmse_sd": 0.009335621493512605,
+    "mae_mean": 0.9749965682651514,
+    "mae_sd": 0.004825394279590238,
+    "rpiq_mean": 0.8090549978416223,
+    "rpiq_sd": 0.005137484447473619,
+    "tuned_params": [
+     [],
+     []
+    ]
+   },
+   {
+    "experiment": "noise",
+    "model": "gradient_boosting",
+    "cv": "spatial",
+    "noise": 0.1,
+    "arm": "train_noisy",
+    "n_seeds": 2,
+    "r2_mean": -0.11395965587869428,
+    "r2_sd": 0.00664694174106682,
+    "rmse_mean": 1.4775639985440048,
+    "rmse_sd": 0.004408294984382918,
+    "mae_mean": 0.9681484036908902,
+    "mae_sd": 0.0010187379727033836,
+    "rpiq_mean": 0.8049996309050519,
+    "rpiq_sd": 0.002401707025107371,
+    "tuned_params": [
+     [],
+     []
+    ]
+   },
+   {
+    "experiment": "noise",
+    "model": "gradient_boosting",
+    "cv": "spatial",
+    "noise": 0.25,
+    "arm": "train_clean",
+    "n_seeds": 2,
+    "r2_mean": -0.13853045774709105,
+    "r2_sd": 0.02831352905658739,
+    "rmse_mean": 1.4937161415451048,
+    "rmse_sd": 0.018574665708019703,
+    "mae_mean": 0.9972113953774402,
+    "mae_sd": 0.01832968574764748,
+    "rpiq_mean": 0.7963528794840374,
+    "rpiq_sd": 0.00990281092278621,
+    "tuned_params": [
+     [],
+     []
+    ]
+   },
+   {
+    "experiment": "noise",
+    "model": "gradient_boosting",
+    "cv": "spatial",
+    "noise": 0.25,
+    "arm": "train_noisy",
+    "n_seeds": 2,
+    "r2_mean": -0.14024869013891983,
+    "r2_sd": 0.018663258927963108,
+    "rmse_mean": 1.494875605941714,
+    "rmse_sd": 0.012234254283928906,
+    "mae_mean": 0.9770524787823707,
+    "mae_sd": 0.011370025754532527,
+    "rpiq_mean": 0.7957003314862929,
+    "rpiq_sd": 0.006512113884604641,
+    "tuned_params": [
+     [],
+     []
+    ]
+   },
+   {
+    "experiment": "noise",
+    "model": "gradient_boosting",
+    "cv": "spatial",
+    "noise": 0.5,
+    "arm": "train_clean",
+    "n_seeds": 2,
+    "r2_mean": -0.1666163071158946,
+    "r2_sd": 0.015533245286614632,
+    "rmse_mean": 1.5120694717540146,
+    "rmse_sd": 0.010066663034289986,
+    "mae_mean": 1.0355568425950565,
+    "mae_sd": 0.002536806843764482,
+    "rpiq_mean": 0.7866434460066147,
+    "rpiq_sd": 0.005237110230057884,
+    "tuned_params": [
+     [],
+     []
+    ]
+   },
+   {
+    "experiment": "noise",
+    "model": "gradient_boosting",
+    "cv": "spatial",
+    "noise": 0.5,
+    "arm": "train_noisy",
+    "n_seeds": 2,
+    "r2_mean": -0.10171240281091576,
+    "r2_sd": 0.011483010935922668,
+    "rmse_mean": 1.4694124207618917,
+    "rmse_sd": 0.00765785516780287,
+    "mae_mean": 0.9620064852450676,
+    "mae_sd": 0.017276541392355335,
+    "rpiq_mean": 0.8094727630980618,
+    "rpiq_sd": 0.004218574101117293,
+    "tuned_params": [
+     [],
+     []
+    ]
+   },
+   {
+    "experiment": "noise",
+    "model": "gradient_boosting",
+    "cv": "spatial",
+    "noise": 1.0,
+    "arm": "train_clean",
+    "n_seeds": 2,
+    "r2_mean": -0.29178237926963935,
+    "r2_sd": 0.04015537510199657,
+    "rmse_mean": 1.591039570064347,
+    "rmse_sd": 0.02473191713115821,
+    "mae_mean": 1.096929311185578,
+    "mae_sd": 0.009203107267248791,
+    "rpiq_mean": 0.7476727303173731,
+    "rpiq_sd": 0.011622199947351497,
+    "tuned_params": [
+     [],
+     []
+    ]
+   },
+   {
+    "experiment": "noise",
+    "model": "gradient_boosting",
+    "cv": "spatial",
+    "noise": 1.0,
+    "arm": "train_noisy",
+    "n_seeds": 2,
+    "r2_mean": -0.09558156620374902,
+    "r2_sd": 0.04755877256873257,
+    "rmse_mean": 1.4651555255540485,
+    "rmse_sd": 0.031808411904833106,
+    "mae_mean": 0.9487671166214443,
+    "mae_sd": 0.022067635526717932,
+    "rpiq_mean": 0.8120049560024125,
+    "rpiq_sd": 0.01762856410722921,
+    "tuned_params": [
+     [],
+     []
+    ]
+   }
+  ],
+  "shuffled_control": [
+   {
+    "experiment": "shuffled_control",
+    "model": "mean_baseline",
+    "cv": "spatial",
+    "noise": 0.0,
+    "arm": "train_clean",
+    "n_seeds": 2,
+    "r2_mean": -0.0053297548055131205,
+    "r2_sd": 0.0,
+    "rmse_mean": 1.4036757735242178,
+    "rmse_sd": 0.0,
+    "mae_mean": 0.9912257100806634,
+    "mae_sd": 0.0,
+    "rpiq_mean": 0.8473703131341238,
+    "rpiq_sd": 0.0,
+    "tuned_params": [
+     [],
+     []
+    ],
+    "shuffle_seed": 20261104
+   },
+   {
+    "experiment": "shuffled_control",
+    "model": "ridge",
+    "cv": "spatial",
+    "noise": 0.0,
+    "arm": "train_clean",
+    "n_seeds": 2,
+    "r2_mean": -0.039866735770446304,
+    "r2_sd": 0.0,
+    "rmse_mean": 1.427583037256676,
+    "rmse_sd": 0.0,
+    "mae_mean": 0.9216105482318169,
+    "mae_sd": 0.0,
+    "rpiq_mean": 0.8331796811173112,
+    "rpiq_sd": 0.0,
+    "tuned_params": [
+     [],
+     []
+    ],
+    "shuffle_seed": 20261104
+   },
+   {
+    "experiment": "shuffled_control",
+    "model": "pls",
+    "cv": "spatial",
+    "noise": 0.0,
+    "arm": "train_clean",
+    "n_seeds": 2,
+    "r2_mean": -0.04113232991824978,
+    "r2_sd": 0.0,
+    "rmse_mean": 1.428451509761651,
+    "rmse_sd": 0.0,
+    "mae_mean": 0.9230995723168995,
+    "mae_sd": 0.0,
+    "rpiq_mean": 0.8326731230438944,
+    "rpiq_sd": 0.0,
+    "tuned_params": [
+     [],
+     []
+    ],
+    "shuffle_seed": 20261104
+   },
+   {
+    "experiment": "shuffled_control",
+    "model": "random_forest",
+    "cv": "spatial",
+    "noise": 0.0,
+    "arm": "train_clean",
+    "n_seeds": 2,
+    "r2_mean": -0.07311245727788718,
+    "r2_sd": 0.0030834945002629873,
+    "rmse_mean": 1.450223472734136,
+    "rmse_sd": 0.002083547109690576,
+    "mae_mean": 0.9587366899648389,
+    "mae_sd": 0.0019111244498288761,
+    "rpiq_mean": 0.8201731868816253,
+    "rpiq_sd": 0.0011783490648866503,
+    "tuned_params": [
+     [],
+     []
+    ],
+    "shuffle_seed": 20261104
+   },
+   {
+    "experiment": "shuffled_control",
+    "model": "gradient_boosting",
+    "cv": "spatial",
+    "noise": 0.0,
+    "arm": "train_clean",
+    "n_seeds": 2,
+    "r2_mean": -0.06045490183822633,
+    "r2_sd": 3.330390879336074e-05,
+    "rmse_mean": 1.4416460221859801,
+    "rmse_sd": 2.2637665947813296e-05,
+    "mae_mean": 0.9352961087306277,
+    "mae_sd": 3.36514237998016e-05,
+    "rpiq_mean": 0.8250521706383191,
+    "rpiq_sd": 1.295550720563982e-05,
+    "tuned_params": [
+     [],
+     []
+    ],
+    "shuffle_seed": 20261104
+   }
+  ],
+  "block_sensitivity": [
+   {
+    "experiment": "block_sensitivity",
+    "model": "random_forest",
+    "cv": "spatial",
+    "noise": 0.0,
+    "arm": "train_clean",
+    "n_seeds": 2,
+    "r2_mean": -0.05920402155446369,
+    "r2_sd": 0.0031514078563252197,
+    "rmse_mean": 1.440794713398324,
+    "rmse_sd": 0.002143372150674408,
+    "mae_mean": 0.9344554200759371,
+    "mae_sd": 0.0002059041179629703,
+    "rpiq_mean": 0.8255405748142479,
+    "rpiq_sd": 0.0012281004787525296,
+    "tuned_params": [
+     [],
+     []
+    ],
+    "blocks": 5,
+    "n_clusters": 5
+   },
+   {
+    "experiment": "block_sensitivity",
+    "model": "ridge",
+    "cv": "spatial",
+    "noise": 0.0,
+    "arm": "train_clean",
+    "n_seeds": 2,
+    "r2_mean": -0.11558151959131391,
+    "r2_sd": 0.0,
+    "rmse_mean": 1.4786425235022682,
+    "rmse_sd": 0.0,
+    "mae_mean": 0.9584361252282009,
+    "mae_sd": 0.0,
+    "rpiq_mean": 0.8044088823664723,
+    "rpiq_sd": 0.0,
+    "tuned_params": [
+     [],
+     []
+    ],
+    "blocks": 5,
+    "n_clusters": 5
+   },
+   {
+    "experiment": "block_sensitivity",
+    "model": "random_forest",
+    "cv": "spatial",
+    "noise": 0.0,
+    "arm": "train_clean",
+    "n_seeds": 2,
+    "r2_mean": -0.08043618058148094,
+    "r2_sd": 5.188312307033851e-05,
+    "rmse_mean": 1.455164514394796,
+    "rmse_sd": 3.493888901842624e-05,
+    "mae_mean": 0.9579128206590637,
+    "mae_sd": 0.0020883038529572674,
+    "rpiq_mean": 0.817387428243834,
+    "rpiq_sd": 1.9625690674830085e-05,
+    "tuned_params": [
+     [],
+     []
+    ],
+    "blocks": 10,
+    "n_clusters": 10
+   },
+   {
+    "experiment": "block_sensitivity",
+    "model": "ridge",
+    "cv": "spatial",
+    "noise": 0.0,
+    "arm": "train_clean",
+    "n_seeds": 2,
+    "r2_mean": -0.07050524275553083,
+    "r2_sd": 0.0,
+    "rmse_mean": 1.4484614305289705,
+    "rmse_sd": 0.0,
+    "mae_mean": 0.9357797600370986,
+    "mae_sd": 0.0,
+    "rpiq_mean": 0.8211700737627685,
+    "rpiq_sd": 0.0,
+    "tuned_params": [
+     [],
+     []
+    ],
+    "blocks": 10,
+    "n_clusters": 10
+   },
+   {
+    "experiment": "block_sensitivity",
+    "model": "random_forest",
+    "cv": "spatial",
+    "noise": 0.0,
+    "arm": "train_clean",
+    "n_seeds": 2,
+    "r2_mean": -0.06670783078191278,
+    "r2_sd": 0.00037647015797881287,
+    "rmse_mean": 1.4458900673830222,
+    "rmse_sd": 0.0002551469366095686,
+    "mae_mean": 0.931571849363825,
+    "mae_sd": 0.0021002803613875643,
+    "rpiq_mean": 0.8226304510286322,
+    "rpiq_sd": 0.0001451643138551972,
+    "tuned_params": [
+     [],
+     []
+    ],
+    "blocks": 20,
+    "n_clusters": 20
+   },
+   {
+    "experiment": "block_sensitivity",
+    "model": "ridge",
+    "cv": "spatial",
+    "noise": 0.0,
+    "arm": "train_clean",
+    "n_seeds": 2,
+    "r2_mean": -0.06348744543180485,
+    "r2_sd": 0.0,
+    "rmse_mean": 1.4437058615735032,
+    "rmse_sd": 0.0,
+    "mae_mean": 0.92504077120276,
+    "mae_sd": 0.0,
+    "rpiq_mean": 0.8238750090365567,
+    "rpiq_sd": 0.0,
+    "tuned_params": [
+     [],
+     []
+    ],
+    "blocks": 20,
+    "n_clusters": 20
+   },
+   {
+    "experiment": "block_sensitivity",
+    "model": "random_forest",
+    "cv": "spatial",
+    "noise": 0.0,
+    "arm": "train_clean",
+    "n_seeds": 2,
+    "r2_mean": -0.06648306193203635,
+    "r2_sd": 0.008917557616066456,
+    "rmse_mean": 1.44573141924921,
+    "rmse_sd": 0.00604440256280449,
+    "mae_mean": 0.9667564300597375,
+    "mae_sd": 0.006997652168097739,
+    "rpiq_mean": 0.8227279005027431,
+    "rpiq_sd": 0.00343971125208866,
+    "tuned_params": [
+     [],
+     []
+    ],
+    "blocks": 50,
+    "n_clusters": 50
+   },
+   {
+    "experiment": "block_sensitivity",
+    "model": "ridge",
+    "cv": "spatial",
+    "noise": 0.0,
+    "arm": "train_clean",
+    "n_seeds": 2,
+    "r2_mean": -0.057794365210892984,
+    "r2_sd": 0.0,
+    "rmse_mean": 1.4398364399998402,
+    "rmse_sd": 0.0,
+    "mae_mean": 0.9310116631848951,
+    "mae_sd": 0.0,
+    "rpiq_mean": 0.8260890936682586,
+    "rpiq_sd": 0.0,
+    "tuned_params": [
+     [],
+     []
+    ],
+    "blocks": 50,
+    "n_clusters": 50
+   }
+  ],
+  "partition_sensitivity": [
+   {
+    "model": "random_forest",
+    "method": "kmeans_seed",
+    "n_partitions": 5,
+    "partition_seeds": [
+     20261104,
+     20261105,
+     20261106,
+     20261107,
+     20261108
+    ],
+    "distinct_partitions": 4,
+    "learner_seed": 20261104,
+    "blocks": 10,
+    "r2_mean": -0.0788885807518418,
+    "r2_sd": 0.01367970130383303,
+    "r2_min": -0.09634506632537132,
+    "r2_max": -0.057923609578236945,
+    "note": "only the partition varied here: same learner seed and the fixed parameters chosen in E1, so no model-randomness or tuning variance is mixed in. A 0.000 SD with 4 distinct partition(s) means the spatial R2 did not move when the boundaries moved."
+   },
+   {
+    "model": "ridge",
+    "method": "kmeans_seed",
+    "n_partitions": 5,
+    "partition_seeds": [
+     20261104,
+     20261105,
+     20261106,
+     20261107,
+     20261108
+    ],
+    "distinct_partitions": 4,
+    "learner_seed": 20261104,
+    "blocks": 10,
+    "r2_mean": -0.09725963478167969,
+    "r2_sd": 0.041608078326424686,
+    "r2_min": -0.12905675622401547,
+    "r2_max": -0.03695635904644168,
+    "note": "only the partition varied here: same learner seed and the fixed parameters chosen in E1, so no model-randomness or tuning variance is mixed in. A 0.000 SD with 4 distinct partition(s) means the spatial R2 did not move when the boundaries moved."
+   },
+   {
+    "model": "random_forest",
+    "method": "grid_offset",
+    "n_partitions": 5,
+    "partition_seeds": [
+     20261104,
+     20261105,
+     20261106,
+     20261107,
+     20261108
+    ],
+    "distinct_partitions": 5,
+    "learner_seed": 20261104,
+    "blocks": null,
+    "r2_mean": -0.07557233206360317,
+    "r2_sd": 0.046489930165140296,
+    "r2_min": -0.13480192143109493,
+    "r2_max": -0.030937108594798923,
+    "note": "only the partition varied here: same learner seed and the fixed parameters chosen in E1, so no model-randomness or tuning variance is mixed in. A 0.000 SD with 5 distinct partition(s) means the spatial R2 did not move when the boundaries moved."
+   },
+   {
+    "model": "ridge",
+    "method": "grid_offset",
+    "n_partitions": 5,
+    "partition_seeds": [
+     20261104,
+     20261105,
+     20261106,
+     20261107,
+     20261108
+    ],
+    "distinct_partitions": 5,
+    "learner_seed": 20261104,
+    "blocks": null,
+    "r2_mean": -0.10477748173005272,
+    "r2_sd": 0.012909594110146288,
+    "r2_min": -0.1183305923455984,
+    "r2_max": -0.08545330350942848,
+    "note": "only the partition varied here: same learner seed and the fixed parameters chosen in E1, so no model-randomness or tuning variance is mixed in. A 0.000 SD with 5 distinct partition(s) means the spatial R2 did not move when the boundaries moved."
+   }
+  ],
+  "partition_rows": [
+   {
+    "experiment": "partition_sensitivity",
+    "model": "random_forest",
+    "cv": "spatial",
+    "noise": 0.0,
+    "arm": "train_clean",
+    "n_seeds": 1,
+    "r2_mean": -0.08039949367332877,
+    "r2_sd": 0.0,
+    "rmse_mean": 1.4551398088694438,
+    "rmse_sd": 0.0,
+    "mae_mean": 0.9593894744746678,
+    "mae_sd": 0.0,
+    "rpiq_mean": 0.8174013057027957,
+    "rpiq_sd": 0.0,
+    "tuned_params": [
+     []
+    ],
+    "block_seed": 20261104,
+    "blocks": 10
+   },
+   {
+    "experiment": "partition_sensitivity",
+    "model": "ridge",
+    "cv": "spatial",
+    "noise": 0.0,
+    "arm": "train_clean",
+    "n_seeds": 1,
+    "r2_mean": -0.07050524275553083,
+    "r2_sd": 0.0,
+    "rmse_mean": 1.4484614305289705,
+    "rmse_sd": 0.0,
+    "mae_mean": 0.9357797600370986,
+    "mae_sd": 0.0,
+    "rpiq_mean": 0.8211700737627685,
+    "rpiq_sd": 0.0,
+    "tuned_params": [
+     []
+    ],
+    "block_seed": 20261104,
+    "blocks": 10
+   },
+   {
+    "experiment": "partition_sensitivity",
+    "model": "random_forest",
+    "cv": "spatial",
+    "noise": 0.0,
+    "arm": "train_clean",
+    "n_seeds": 1,
+    "r2_mean": -0.09634506632537132,
+    "r2_sd": 0.0,
+    "rmse_mean": 1.4658386524521732,
+    "rmse_sd": 0.0,
+    "mae_mean": 0.9663814038732738,
+    "mae_sd": 0.0,
+    "rpiq_mean": 0.8114352679677399,
+    "rpiq_sd": 0.0,
+    "tuned_params": [
+     []
+    ],
+    "block_seed": 20261105,
+    "blocks": 10
+   },
+   {
+    "experiment": "partition_sensitivity",
+    "model": "ridge",
+    "cv": "spatial",
+    "noise": 0.0,
+    "arm": "train_clean",
+    "n_seeds": 1,
+    "r2_mean": -0.12072305965839503,
+    "r2_sd": 0.0,
+    "rmse_mean": 1.4820460220777665,
+    "rmse_sd": 0.0,
+    "mae_mean": 0.9722718745773212,
+    "mae_sd": 0.0,
+    "rpiq_mean": 0.8025615682854871,
+    "rpiq_sd": 0.0,
+    "tuned_params": [
+     []
+    ],
+    "block_seed": 20261105,
+    "blocks": 10
+   },
+   {
+    "experiment": "partition_sensitivity",
+    "model": "random_forest",
+    "cv": "spatial",
+    "noise": 0.0,
+    "arm": "train_clean",
+    "n_seeds": 1,
+    "r2_mean": -0.057923609578236945,
+    "r2_sd": 0.0,
+    "rmse_mean": 1.4399243989982797,
+    "rmse_sd": 0.0,
+    "mae_mean": 0.9394877397663033,
+    "mae_sd": 0.0,
+    "rpiq_mean": 0.8260386313180467,
+    "rpiq_sd": 0.0,
+    "tuned_params": [
+     []
+    ],
+    "block_seed": 20261106,
+    "blocks": 10
+   },
+   {
+    "experiment": "partition_sensitivity",
+    "model": "ridge",
+    "cv": "spatial",
+    "noise": 0.0,
+    "arm": "train_clean",
+    "n_seeds": 1,
+    "r2_mean": -0.03695635904644168,
+    "r2_sd": 0.0,
+    "rmse_mean": 1.4255838793406121,
+    "rmse_sd": 0.0,
+    "mae_mean": 0.9191508268882715,
+    "mae_sd": 0.0,
+    "rpiq_mean": 0.8343480850107249,
+    "rpiq_sd": 0.0,
+    "tuned_params": [
+     []
+    ],
+    "block_seed": 20261106,
+    "blocks": 10
+   },
+   {
+    "experiment": "partition_sensitivity",
+    "model": "random_forest",
+    "cv": "spatial",
+    "noise": 0.0,
+    "arm": "train_clean",
+    "n_seeds": 1,
+    "r2_mean": -0.07988736709113597,
+    "r2_sd": 0.0,
+    "rmse_mean": 1.4547948882575454,
+    "rmse_sd": 0.0,
+    "mae_mean": 0.94727617438126,
+    "mae_sd": 0.0,
+    "rpiq_mean": 0.817595105227942,
+    "rpiq_sd": 0.0,
+    "tuned_params": [
+     []
+    ],
+    "block_seed": 20261107,
+    "blocks": 10
+   },
+   {
+    "experiment": "partition_sensitivity",
+    "model": "ridge",
+    "cv": "spatial",
+    "noise": 0.0,
+    "arm": "train_clean",
+    "n_seeds": 1,
+    "r2_mean": -0.12905675622401547,
+    "r2_sd": 0.0,
+    "rmse_mean": 1.4875460634780764,
+    "rmse_sd": 0.0,
+    "mae_mean": 0.9635198666221804,
+    "mae_sd": 0.0,
+    "rpiq_mean": 0.7995941833014235,
+    "rpiq_sd": 0.0,
+    "tuned_params": [
+     []
+    ],
+    "block_seed": 20261107,
+    "blocks": 10
+   },
+   {
+    "experiment": "partition_sensitivity",
+    "model": "random_forest",
+    "cv": "spatial",
+    "noise": 0.0,
+    "arm": "train_clean",
+    "n_seeds": 1,
+    "r2_mean": -0.07988736709113597,
+    "r2_sd": 0.0,
+    "rmse_mean": 1.4547948882575454,
+    "rmse_sd": 0.0,
+    "mae_mean": 0.94727617438126,
+    "mae_sd": 0.0,
+    "rpiq_mean": 0.817595105227942,
+    "rpiq_sd": 0.0,
+    "tuned_params": [
+     []
+    ],
+    "block_seed": 20261108,
+    "blocks": 10
+   },
+   {
+    "experiment": "partition_sensitivity",
+    "model": "ridge",
+    "cv": "spatial",
+    "noise": 0.0,
+    "arm": "train_clean",
+    "n_seeds": 1,
+    "r2_mean": -0.12905675622401547,
+    "r2_sd": 0.0,
+    "rmse_mean": 1.4875460634780764,
+    "rmse_sd": 0.0,
+    "mae_mean": 0.9635198666221804,
+    "mae_sd": 0.0,
+    "rpiq_mean": 0.7995941833014235,
+    "rpiq_sd": 0.0,
+    "tuned_params": [
+     []
+    ],
+    "block_seed": 20261108,
+    "blocks": 10
+   },
+   {
+    "experiment": "boundary_sensitivity",
+    "model": "random_forest",
+    "cv": "spatial",
+    "noise": 0.0,
+    "arm": "train_clean",
+    "n_seeds": 1,
+    "r2_mean": -0.034922193898786924,
+    "r2_sd": 0.0,
+    "rmse_mean": 1.4241849310813766,
+    "rmse_sd": 0.0,
+    "mae_mean": 0.9314106422363803,
+    "mae_sd": 0.0,
+    "rpiq_mean": 0.8351676483803752,
+    "rpiq_sd": 0.0,
+    "tuned_params": [
+     []
+    ],
+    "block_seed": 20261104,
+    "blocks": 11,
+    "cells_per_side": 5
+   },
+   {
+    "experiment": "boundary_sensitivity",
+    "model": "ridge",
+    "cv": "spatial",
+    "noise": 0.0,
+    "arm": "train_clean",
+    "n_seeds": 1,
+    "r2_mean": -0.09891384721996488,
+    "r2_sd": 0.0,
+    "rmse_mean": 1.467554907392711,
+    "rmse_sd": 0.0,
+    "mae_mean": 0.9596354157282185,
+    "mae_sd": 0.0,
+    "rpiq_mean": 0.8104863223572139,
+    "rpiq_sd": 0.0,
+    "tuned_params": [
+     []
+    ],
+    "block_seed": 20261104,
+    "blocks": 11,
+    "cells_per_side": 5
+   },
+   {
+    "experiment": "boundary_sensitivity",
+    "model": "random_forest",
+    "cv": "spatial",
+    "noise": 0.0,
+    "arm": "train_clean",
+    "n_seeds": 1,
+    "r2_mean": -0.1126098165822702,
+    "r2_sd": 0.0,
+    "rmse_mean": 1.4766717949980126,
+    "rmse_sd": 0.0,
+    "mae_mean": 0.9728258729798075,
+    "mae_sd": 0.0,
+    "rpiq_mean": 0.805482425938528,
+    "rpiq_sd": 0.0,
+    "tuned_params": [
+     []
+    ],
+    "block_seed": 20261105,
+    "blocks": 12,
+    "cells_per_side": 5
+   },
+   {
+    "experiment": "boundary_sensitivity",
+    "model": "ridge",
+    "cv": "spatial",
+    "noise": 0.0,
+    "arm": "train_clean",
+    "n_seeds": 1,
+    "r2_mean": -0.1183305923455984,
+    "r2_sd": 0.0,
+    "rmse_mean": 1.4804632755734108,
+    "rmse_sd": 0.0,
+    "mae_mean": 0.9703193818387255,
+    "mae_sd": 0.0,
+    "rpiq_mean": 0.8034195777597458,
+    "rpiq_sd": 0.0,
+    "tuned_params": [
+     []
+    ],
+    "block_seed": 20261105,
+    "blocks": 12,
+    "cells_per_side": 5
+   },
+   {
+    "experiment": "boundary_sensitivity",
+    "model": "random_forest",
+    "cv": "spatial",
+    "noise": 0.0,
+    "arm": "train_clean",
+    "n_seeds": 1,
+    "r2_mean": -0.030937108594798923,
+    "r2_sd": 0.0,
+    "rmse_mean": 1.4214402935837418,
+    "rmse_sd": 0.0,
+    "mae_mean": 0.9345903993058178,
+    "mae_sd": 0.0,
+    "rpiq_mean": 0.8367802609219663,
+    "rpiq_sd": 0.0,
+    "tuned_params": [
+     []
+    ],
+    "block_seed": 20261106,
+    "blocks": 14,
+    "cells_per_side": 5
+   },
+   {
+    "experiment": "boundary_sensitivity",
+    "model": "ridge",
+    "cv": "spatial",
+    "noise": 0.0,
+    "arm": "train_clean",
+    "n_seeds": 1,
+    "r2_mean": -0.08545330350942848,
+    "r2_sd": 0.0,
+    "rmse_mean": 1.4585392088059945,
+    "rmse_sd": 0.0,
+    "mae_mean": 0.9316499446639961,
+    "mae_sd": 0.0,
+    "rpiq_mean": 0.8154961982295333,
+    "rpiq_sd": 0.0,
+    "tuned_params": [
+     []
+    ],
+    "block_seed": 20261106,
+    "blocks": 14,
+    "cells_per_side": 5
+   },
+   {
+    "experiment": "boundary_sensitivity",
+    "model": "random_forest",
+    "cv": "spatial",
+    "noise": 0.0,
+    "arm": "train_clean",
+    "n_seeds": 1,
+    "r2_mean": -0.06459061981106484,
+    "r2_sd": 0.0,
+    "rmse_mean": 1.4444544583318186,
+    "rmse_sd": 0.0,
+    "mae_mean": 0.9573207956164593,
+    "mae_sd": 0.0,
+    "rpiq_mean": 0.8234480311159554,
+    "rpiq_sd": 0.0,
+    "tuned_params": [
+     []
+    ],
+    "block_seed": 20261107,
+    "blocks": 13,
+    "cells_per_side": 5
+   },
+   {
+    "experiment": "boundary_sensitivity",
+    "model": "ridge",
+    "cv": "spatial",
+    "noise": 0.0,
+    "arm": "train_clean",
+    "n_seeds": 1,
+    "r2_mean": -0.11252543538436677,
+    "r2_sd": 0.0,
+    "rmse_mean": 1.4766157979648622,
+    "rmse_sd": 0.0,
+    "mae_mean": 0.9616746323295827,
+    "mae_sd": 0.0,
+    "rpiq_mean": 0.8055129718843114,
+    "rpiq_sd": 0.0,
+    "tuned_params": [
+     []
+    ],
+    "block_seed": 20261107,
+    "blocks": 13,
+    "cells_per_side": 5
+   },
+   {
+    "experiment": "boundary_sensitivity",
+    "model": "random_forest",
+    "cv": "spatial",
+    "noise": 0.0,
+    "arm": "train_clean",
+    "n_seeds": 1,
+    "r2_mean": -0.13480192143109493,
+    "r2_sd": 0.0,
+    "rmse_mean": 1.4913259238160426,
+    "rmse_sd": 0.0,
+    "mae_mean": 0.9908749832001353,
+    "mae_sd": 0.0,
+    "rpiq_mean": 0.7975675610241175,
+    "rpiq_sd": 0.0,
+    "tuned_params": [
+     []
+    ],
+    "block_seed": 20261108,
+    "blocks": 13,
+    "cells_per_side": 5
+   },
+   {
+    "experiment": "boundary_sensitivity",
+    "model": "ridge",
+    "cv": "spatial",
+    "noise": 0.0,
+    "arm": "train_clean",
+    "n_seeds": 1,
+    "r2_mean": -0.1086642301909051,
+    "r2_sd": 0.0,
+    "rmse_mean": 1.474051149991003,
+    "rmse_sd": 0.0,
+    "mae_mean": 0.9686560091151513,
+    "mae_sd": 0.0,
+    "rpiq_mean": 0.8069144546017007,
+    "rpiq_sd": 0.0,
+    "tuned_params": [
+     []
+    ],
+    "block_seed": 20261108,
+    "blocks": 13,
+    "cells_per_side": 5
+   }
+  ],
+  "baseline_rmse": {
+   "random": 1.4015055556030904,
+   "spatial": 1.42100031697369
+  },
+  "interval": {
+   "model": "ridge",
+   "nominal": 0.9,
+   "empirical_coverage": 0.8830456349206349,
+   "coverage_sd": 0.013166952352737479,
+   "mean_width": 4.273924835973669,
+   "half_width": 2.1369624179868345,
+   "median_target": 0.93105192,
+   "n_calibration_folds": 15,
+   "method": "split-conformal, blocks held out for calibration, scored on unseen spatial test blocks",
+   "honest_note": "The nominal 90% interval is calibrated on held-out spatial blocks and scored on test blocks never seen; coverage below 0.90 means the interval is too narrow for new areas."
+  }
+ },
+ "headline": {
+  "model": "ridge",
+  "r2_spatial": -0.07050524275553083,
+  "rmse_spatial": 1.4484614305289705,
+  "r2_random": -0.002042056713685536,
+  "validation_gap": 0.06846318604184529,
+  "beats_field_mean_spatially": false,
+  "break_even_noise": {
+   "train_clean|spatial": 0.0,
+   "train_noisy|spatial": 0.0,
+   "model": "ridge"
+  }
+ },
+ "limitations": [
+  "No low-cost sensor data: features are laboratory wet-chemistry values that a sensor could in principle proxy. Nothing here has been measured with the planned hardware.",
+  "No Ugandan field validation: predictions have not been checked against any soil sampled for this project.",
+  "Not validated for agronomic decisions: rates, timing, or certification claims must not be made from this prototype.",
+  "Laboratory values carry lab-to-lab bias; replicate records are collapsed, so measurement error is under-represented relative to a real sensor.",
+  "Prediction intervals are marginal (one width for all inputs), not conditional on the feature values."
+ ],
+ "model_version": "sha256:9f315cab6fa6d6dc",
+ "model_file": "model.joblib",
+ "training_data_version": "afsis-2f-8f91568c0168"
+}

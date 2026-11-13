@@ -1,0 +1,1417 @@
+{
+ "schema_version": 2,
+ "generated_at_utc": "2026-11-13T13:55:58+00:00",
+ "runtime_seconds": 31.2,
+ "command": "python afsis_experiment.py --root data/uganda_2025 --export _smoke/uganda_om --target OM percent --drop-features EC --site-col record_pattern --lab-dupes keep --blocks 10 --quick",
+ "git_commit": "8a3de89-dirty",
+ "package_versions": {
+  "scikit-learn": "1.8.0",
+  "numpy": "2.3.3",
+  "pandas": "3.0.0"
+ },
+ "data": {
+  "kind": "afsis_real",
+  "is_real_data": true,
+  "root": "data\\uganda_2025",
+  "stand_in_marker": false,
+  "dataset_version": "afsis-2f-e056eee59f65",
+  "files": [
+   {
+    "file": "Georeferences/georeferences.csv",
+    "bytes": 18388,
+    "sha256": "9d23b1c43462bb77386d9d6ec69d165987779ac79d167edf7fcb493609ff7b80"
+   },
+   {
+    "file": "Wet_Chemistry/FARMERS2025/Wet_Chemistry_FARMERS2025.csv",
+    "bytes": 17058,
+    "sha256": "cbbb96ddcc2eb37f30a206037caf0905e351a378aa71ccca67c14f38b50f1c72"
+   }
+  ],
+  "licence": "AfSIS Phase I - ODbL / ODC-By per the AWS Open Data registry; credit: Africa Soil Information Service (AfSIS) and partners.",
+  "synthetic_specification": null,
+  "cleaning_log": [
+   {
+    "step": "loaded",
+    "n_before": 258,
+    "n_removed": 0,
+    "n_after": 258,
+    "reason": "rows after Georeferences x Wet_Chemistry merge"
+   },
+   {
+    "step": "exact_duplicate_rows",
+    "n_before": 258,
+    "n_removed": 0,
+    "n_after": 258,
+    "reason": "rows identical in every column"
+   },
+   {
+    "step": "missing_identifier",
+    "n_before": 258,
+    "n_removed": 0,
+    "n_after": 258,
+    "reason": "no profile/site/SSN id -> cannot group folds",
+    "key_column": "record_pattern"
+   },
+   {
+    "step": "missing_coordinates",
+    "n_before": 258,
+    "n_removed": 3,
+    "n_after": 255,
+    "reason": "latitude or longitude absent"
+   },
+   {
+    "step": "impossible_coordinates",
+    "n_before": 255,
+    "n_removed": 1,
+    "n_after": 254,
+    "reason": "lat/lon out of range, non-numeric, or a 0/0 placeholder"
+   },
+   {
+    "step": "same_record_same_lab",
+    "n_before": 254,
+    "n_removed": 175,
+    "n_after": 79,
+    "reason": "repeated rows for one site/depth within one lab (post-cleaning repeats)",
+    "key": [
+     "record_pattern",
+     "lab"
+    ]
+   },
+   {
+    "step": "depth_selection",
+    "n_before": 79,
+    "n_removed": 0,
+    "n_after": 79,
+    "reason": "no depth column detected - the 0-5 cm rule could NOT be applied; rows are whatever the source table provides",
+    "applied": false,
+    "target_cm": 5.0
+   },
+   {
+    "step": "multi_lab_replicates",
+    "n_before": 79,
+    "n_removed": 0,
+    "n_after": 79,
+    "reason": "kept all 0 multi-lab replicate rows (mode=keep); they share a site id, so they cannot leak across folds",
+    "key": [
+     "record_pattern"
+    ]
+   },
+   {
+    "step": "missing_target",
+    "n_before": 79,
+    "n_removed": 0,
+    "n_after": 79,
+    "reason": "target absent; a row with no label cannot be trained on"
+   },
+   {
+    "step": "impossible_target",
+    "n_before": 79,
+    "n_removed": 0,
+    "n_after": 79,
+    "reason": "target outside (0.0, 100.0] for units=percent (g/100 g)"
+   },
+   {
+    "step": "impossible_value:pH_H2O",
+    "n_before": 79,
+    "n_removed": 0,
+    "n_after": 79,
+    "reason": "0 values outside [0.0, 14.0] set to NaN (imputed inside training folds, not deleted)",
+    "bounds": [
+     0.0,
+     14.0
+    ]
+   },
+   {
+    "step": "impossible_value:Clay percent",
+    "n_before": 79,
+    "n_removed": 0,
+    "n_after": 79,
+    "reason": "0 values outside [0.0, 100.0] set to NaN (imputed inside training folds, not deleted)",
+    "bounds": [
+     0.0,
+     100.0
+    ]
+   },
+   {
+    "step": "impossible_value:Sand percent",
+    "n_before": 79,
+    "n_removed": 0,
+    "n_after": 79,
+    "reason": "0 values outside [0.0, 100.0] set to NaN (imputed inside training folds, not deleted)",
+    "bounds": [
+     0.0,
+     100.0
+    ]
+   },
+   {
+    "step": "impossible_value:Silt percent",
+    "n_before": 79,
+    "n_removed": 0,
+    "n_after": 79,
+    "reason": "0 values outside [0.0, 100.0] set to NaN (imputed inside training folds, not deleted)",
+    "bounds": [
+     0.0,
+     100.0
+    ]
+   },
+   {
+    "step": "impossible_texture_sum",
+    "n_before": 79,
+    "n_removed": 0,
+    "n_after": 79,
+    "reason": "0 rows with clay+sand > 100.5 -> both set to NaN"
+   },
+   {
+    "step": "final",
+    "n_before": 79,
+    "n_removed": 0,
+    "n_after": 79,
+    "reason": "usable rows (features may still contain NaN; imputation happens inside each training fold)",
+    "n_sites": 79,
+    "target_units": "percent (g/100 g)",
+    "units_basis": "median 1.80 < 15, read as a percentage"
+   }
+  ],
+  "data_card": {
+   "n_rows": 79,
+   "n_sites": 79,
+   "group_column": "record_pattern",
+   "countries": {
+    "Uganda": 79
+   },
+   "target": "OM percent",
+   "target_units": "percent (g/100 g)",
+   "features": [
+    "pH_H2O",
+    "Clay percent",
+    "Sand percent",
+    "Silt percent"
+   ],
+   "n_feature_nan": {
+    "pH_H2O": 0,
+    "Clay percent": 0,
+    "Sand percent": 0,
+    "Silt percent": 0
+   },
+   "focus_subset": {
+    "country": "Uganda",
+    "n_rows": 79,
+    "n_sites": 79,
+    "share_of_rows": 1.0,
+    "target_mean": 1.9407594936708863,
+    "target_sd": 0.708937037730719
+   }
+  },
+  "depth_rule": {
+   "target_cm": 5.0,
+   "applied": false
+  },
+  "units": "percent (g/100 g)",
+  "units_basis": "median 1.80 < 15, read as a percentage"
+ },
+ "target": {
+  "name": "OM percent",
+  "kind": "soc",
+  "units": "percent (g/100 g)",
+  "log_transform": true,
+  "column_detection": "override"
+ },
+ "features": [
+  "pH_H2O",
+  "Clay percent",
+  "Sand percent",
+  "Silt percent"
+ ],
+ "feature_ranges": {
+  "pH_H2O": {
+   "p5": 4.459,
+   "p95": 6.419999999999999,
+   "min": 4.11,
+   "max": 6.9,
+   "median": 5.7,
+   "sd": 0.6050522217090296
+  },
+  "Clay percent": {
+   "p5": 6.0,
+   "p95": 44.0,
+   "min": 4.0,
+   "max": 45.0,
+   "median": 16.0,
+   "sd": 11.321084772362104
+  },
+  "Sand percent": {
+   "p5": 48.9,
+   "p95": 86.0,
+   "min": 46.0,
+   "max": 94.0,
+   "median": 70.0,
+   "sd": 11.90308296505847
+  },
+  "Silt percent": {
+   "p5": 4.0,
+   "p95": 20.099999999999994,
+   "min": 2.0,
+   "max": 23.0,
+   "median": 10.0,
+   "sd": 4.955465827129872
+  }
+ },
+ "feature_bounds": {
+  "pH_H2O": [
+   0.0,
+   14.0
+  ],
+  "Clay percent": [
+   0.0,
+   100.0
+  ],
+  "Sand percent": [
+   0.0,
+   100.0
+  ],
+  "Silt percent": [
+   0.0,
+   100.0
+  ]
+ },
+ "feature_units": {
+  "pH_H2O": "dimensionless",
+  "Clay percent": "percent (g/100 g)",
+  "Sand percent": "percent (g/100 g)",
+  "Silt percent": "percent (g/100 g)"
+ },
+ "blocked_as_features": [],
+ "validation": {
+  "folds": 5,
+  "inner_folds": 3,
+  "seeds": [
+   20261104,
+   20261105
+  ],
+  "n_seeds": 2,
+  "blocks": 10,
+  "spatial_grouping": "KMeans on per-site coordinate centroids -> GroupKFold; records of one site/profile always share a fold",
+  "group_column": "record_pattern",
+  "blocking_diagnostics": {
+   "blocks": 10,
+   "n_sites": 79,
+   "cluster_sizes": {
+    "0": 9,
+    "1": 12,
+    "2": 9,
+    "3": 3,
+    "4": 6,
+    "5": 6,
+    "6": 8,
+    "7": 10,
+    "8": 10,
+    "9": 6
+   },
+   "cluster_label": [
+    9,
+    1,
+    6,
+    7,
+    6,
+    1,
+    0,
+    8,
+    1,
+    9,
+    3,
+    7,
+    2,
+    1,
+    5,
+    7,
+    7,
+    7,
+    4,
+    7,
+    1,
+    7,
+    7,
+    1,
+    0,
+    8,
+    5,
+    8,
+    5,
+    1,
+    1,
+    4,
+    9,
+    3,
+    2,
+    9,
+    1,
+    6,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    4,
+    8,
+    0,
+    4,
+    8,
+    4,
+    2,
+    7,
+    6,
+    2,
+    3,
+    5,
+    6,
+    8,
+    8,
+    2,
+    8,
+    7,
+    2,
+    2,
+    5,
+    2,
+    4,
+    8,
+    2,
+    9,
+    6,
+    8,
+    1,
+    6,
+    1,
+    6,
+    9,
+    5,
+    0
+   ]
+  },
+  "tuning": "GridSearchCV inside every training fold (nested CV); imputation and scaling fitted on training folds only",
+  "metrics": {
+   "r2": "pooled out-of-fold, original target scale",
+   "rmse": "pooled out-of-fold",
+   "mae": "pooled out-of-fold",
+   "rpiq": "IQR(y)/RMSE, Bellon-Maurel et al. 2010"
+  },
+  "noise_levels": [
+   0.0,
+   0.5,
+   1.0
+  ],
+  "noise_arms": [
+   "train_clean",
+   "train_noisy"
+  ],
+  "block_sizes": [
+   5,
+   10
+  ],
+  "spatial_partition_note": "The main comparison builds the spatial partition ONCE (KMeans seeded with --seed0) and reuses it for every model, seed and scheme, so random-vs-spatial is a paired comparison. The SD across seeds of a spatial-CV cell therefore measures learner randomness only and is exactly 0.000 for deterministic models (ridge, PLS). The two uncertainties the fixed partition hides are reported separately: where the block boundaries fall (results.partition_sensitivity, methods kmeans_seed and grid_offset) and how many blocks are used (results.block_sensitivity). Family kmeans_seed: 2 KMeans seeds at 10 blocks (partitions compared up to cluster renumbering, which is arbitrary) gave 1 distinct partition, so the reported k-means blocking is insensitive to its own seed and the 0.000 SD of the main table is a MEASURED NULL (the estimate did not move), not evidence that fold placement cannot matter. Family grid_offset: boundaries redrawn with a random rotation and grid origin at a 8x8 grain, 2 seed run(s) -> 2 distinct partition(s); spread: random forest R2 -0.421 +/- 0.018; ridge R2 -0.058 +/- 0.027. Both families are in results.partition_sensitivity (per-partition rows in results.partition_rows, learner seed held constant), and the effect of the block COUNT is in results.block_sensitivity. Only the SPATIAL arm is run here, so none of these numbers is a validation gap: do not difference them against the random-CV column of the main table.",
+  "experiment_scope": {
+   "quick": true,
+   "main_tune": false,
+   "main_seeds": 2,
+   "noise_seeds": 1,
+   "noise_models": [
+    "ridge",
+    "gradient_boosting"
+   ],
+   "noise_scheme": "spatial",
+   "control_seeds": 1,
+   "block_seeds": 1,
+   "partition_seeds": 2,
+   "partition_models": [
+    "random_forest",
+    "ridge"
+   ],
+   "partition_methods": [
+    "kmeans_seed",
+    "grid_offset"
+   ],
+   "grid_target_groups": 10,
+   "grid_cells_side": 8,
+   "grid_jobs": {
+    "random_forest": 4,
+    "gradient_boosting": 4
+   },
+   "note": "Parallelism affects wall-clock only: every grid candidate is a separate seeded fit, so R2 is identical at n_jobs=1 and n_jobs=4 (checked). --quick additionally skips nested tuning; it is for tests, never for reported numbers."
+  }
+ },
+ "results": {
+  "main": [
+   {
+    "experiment": "main",
+    "model": "mean_baseline",
+    "cv": "random",
+    "noise": 0.0,
+    "arm": "train_clean",
+    "n_seeds": 2,
+    "r2_mean": -0.024645840843497746,
+    "r2_sd": 0.007689982716468502,
+    "rmse_mean": 0.7130611640977744,
+    "rmse_sd": 0.0026757863139626674,
+    "mae_mean": 0.5624877875728351,
+    "mae_sd": 0.0011537813895605138,
+    "rpiq_mean": 1.1499795736289973,
+    "rpiq_sd": 0.0043153375325754645,
+    "tuned_params": [
+     [],
+     []
+    ]
+   },
+   {
+    "experiment": "main",
+    "model": "mean_baseline",
+    "cv": "spatial",
+    "noise": 0.0,
+    "arm": "train_clean",
+    "n_seeds": 2,
+    "r2_mean": -0.057390201254673645,
+    "r2_sd": 0.0,
+    "rmse_mean": 0.7243676767872287,
+    "rmse_sd": 0.0,
+    "mae_mean": 0.5744859792545709,
+    "mae_sd": 0.0,
+    "rpiq_mean": 1.1320217981521863,
+    "rpiq_sd": 0.0,
+    "tuned_params": [
+     [],
+     []
+    ]
+   },
+   {
+    "experiment": "main",
+    "model": "ridge",
+    "cv": "random",
+    "noise": 0.0,
+    "arm": "train_clean",
+    "n_seeds": 2,
+    "r2_mean": -0.10264988685865728,
+    "r2_sd": 0.018761113525063097,
+    "rmse_mean": 0.7396944876056845,
+    "rmse_sd": 0.006293019498607752,
+    "mae_mean": 0.571259337459668,
+    "mae_sd": 0.007047471855383957,
+    "rpiq_mean": 1.1086059045455392,
+    "rpiq_sd": 0.009431567614028009,
+    "tuned_params": [
+     [],
+     []
+    ]
+   },
+   {
+    "experiment": "main",
+    "model": "ridge",
+    "cv": "spatial",
+    "noise": 0.0,
+    "arm": "train_clean",
+    "n_seeds": 2,
+    "r2_mean": -0.16204644986620154,
+    "r2_sd": 0.0,
+    "rmse_mean": 0.7593695284883206,
+    "rmse_sd": 0.0,
+    "mae_mean": 0.5954933336305217,
+    "mae_sd": 0.0,
+    "rpiq_mean": 1.0798431715220085,
+    "rpiq_sd": 0.0,
+    "tuned_params": [
+     [],
+     []
+    ]
+   },
+   {
+    "experiment": "main",
+    "model": "pls",
+    "cv": "random",
+    "noise": 0.0,
+    "arm": "train_clean",
+    "n_seeds": 2,
+    "r2_mean": -0.10745222923823528,
+    "r2_sd": 0.0191626453756172,
+    "rmse_mean": 0.741303064416481,
+    "rmse_sd": 0.006413757203054738,
+    "mae_mean": 0.5726159968565179,
+    "mae_sd": 0.007347090823389947,
+    "rpiq_mean": 1.1062016764175668,
+    "rpiq_sd": 0.009570861514971848,
+    "tuned_params": [
+     [],
+     []
+    ]
+   },
+   {
+    "experiment": "main",
+    "model": "pls",
+    "cv": "spatial",
+    "noise": 0.0,
+    "arm": "train_clean",
+    "n_seeds": 2,
+    "r2_mean": -0.1629754839009494,
+    "r2_sd": 0.0,
+    "rmse_mean": 0.7596730185892742,
+    "rmse_sd": 0.0,
+    "mae_mean": 0.5973111267845849,
+    "mae_sd": 0.0,
+    "rpiq_mean": 1.0794117731372825,
+    "rpiq_sd": 0.0,
+    "tuned_params": [
+     [],
+     []
+    ]
+   },
+   {
+    "experiment": "main",
+    "model": "random_forest",
+    "cv": "random",
+    "noise": 0.0,
+    "arm": "train_clean",
+    "n_seeds": 2,
+    "r2_mean": -0.3020327679086895,
+    "r2_sd": 0.0466654804633985,
+    "rmse_mean": 0.8037435556699402,
+    "rmse_sd": 0.014405591192603756,
+    "mae_mean": 0.6260723149221854,
+    "mae_sd": 0.002134162181078536,
+    "rpiq_mean": 1.020389803474949,
+    "rpiq_sd": 0.018288567618696714,
+    "tuned_params": [
+     [],
+     []
+    ]
+   },
+   {
+    "experiment": "main",
+    "model": "random_forest",
+    "cv": "spatial",
+    "noise": 0.0,
+    "arm": "train_clean",
+    "n_seeds": 2,
+    "r2_mean": -0.5198988905891306,
+    "r2_sd": 0.0274847601008063,
+    "rmse_mean": 0.8684401513536653,
+    "rmse_sd": 0.007852445022701316,
+    "mae_mean": 0.7044055615179259,
+    "mae_sd": 0.01258402011802161,
+    "rpiq_mean": 0.9442602588718454,
+    "rpiq_sd": 0.00853801123584085,
+    "tuned_params": [
+     [],
+     []
+    ]
+   },
+   {
+    "experiment": "main",
+    "model": "gradient_boosting",
+    "cv": "random",
+    "noise": 0.0,
+    "arm": "train_clean",
+    "n_seeds": 2,
+    "r2_mean": -0.3438691436222032,
+    "r2_sd": 0.08838093848329007,
+    "rmse_mean": 0.8163989131851346,
+    "rmse_sd": 0.026860187450522956,
+    "mae_mean": 0.6328939087144054,
+    "mae_sd": 0.02367263678832147,
+    "rpiq_mean": 1.0049548536869533,
+    "rpiq_sd": 0.03306383106762318,
+    "tuned_params": [
+     [],
+     []
+    ]
+   },
+   {
+    "experiment": "main",
+    "model": "gradient_boosting",
+    "cv": "spatial",
+    "noise": 0.0,
+    "arm": "train_clean",
+    "n_seeds": 2,
+    "r2_mean": -0.6876358539338929,
+    "r2_sd": 0.004167218429385509,
+    "rmse_mean": 0.9151254388979638,
+    "rmse_sd": 0.0011298440039066713,
+    "mae_mean": 0.7593714981695316,
+    "mae_sd": 0.0006801642567654911,
+    "rpiq_mean": 0.8960527050352078,
+    "rpiq_sd": 0.0011062961785736694,
+    "tuned_params": [
+     [],
+     []
+    ]
+   }
+  ],
+  "validation_gap": [
+   {
+    "model": "mean_baseline",
+    "r2_random": -0.024645840843497746,
+    "r2_spatial": -0.057390201254673645,
+    "gap_mean": 0.0327443604111759,
+    "gap_sd": 0.007689982716468502,
+    "rmse_random": 0.7130611640977744,
+    "rmse_spatial": 0.7243676767872287,
+    "spatial_beats_baseline": false,
+    "tuned_params": null
+   },
+   {
+    "model": "ridge",
+    "r2_random": -0.10264988685865728,
+    "r2_spatial": -0.16204644986620154,
+    "gap_mean": 0.059396563007544256,
+    "gap_sd": 0.018761113525063097,
+    "rmse_random": 0.7396944876056845,
+    "rmse_spatial": 0.7593695284883206,
+    "spatial_beats_baseline": false,
+    "tuned_params": null
+   },
+   {
+    "model": "pls",
+    "r2_random": -0.10745222923823528,
+    "r2_spatial": -0.1629754839009494,
+    "gap_mean": 0.05552325466271413,
+    "gap_sd": 0.0191626453756172,
+    "rmse_random": 0.741303064416481,
+    "rmse_spatial": 0.7596730185892742,
+    "spatial_beats_baseline": false,
+    "tuned_params": null
+   },
+   {
+    "model": "random_forest",
+    "r2_random": -0.3020327679086895,
+    "r2_spatial": -0.5198988905891306,
+    "gap_mean": 0.21786612268044114,
+    "gap_sd": 0.0741502405642048,
+    "rmse_random": 0.8037435556699402,
+    "rmse_spatial": 0.8684401513536653,
+    "spatial_beats_baseline": false,
+    "tuned_params": null
+   },
+   {
+    "model": "gradient_boosting",
+    "r2_random": -0.3438691436222032,
+    "r2_spatial": -0.6876358539338929,
+    "gap_mean": 0.3437667103116897,
+    "gap_sd": 0.09254815691267557,
+    "rmse_random": 0.8163989131851346,
+    "rmse_spatial": 0.9151254388979638,
+    "spatial_beats_baseline": false,
+    "tuned_params": null
+   }
+  ],
+  "noise_sweep": [
+   {
+    "experiment": "noise",
+    "model": "ridge",
+    "cv": "spatial",
+    "noise": 0.0,
+    "arm": "train_clean",
+    "n_seeds": 1,
+    "r2_mean": -0.16204644986620154,
+    "r2_sd": 0.0,
+    "rmse_mean": 0.7593695284883206,
+    "rmse_sd": 0.0,
+    "mae_mean": 0.5954933336305217,
+    "mae_sd": 0.0,
+    "rpiq_mean": 1.0798431715220085,
+    "rpiq_sd": 0.0,
+    "tuned_params": [
+     []
+    ]
+   },
+   {
+    "experiment": "noise",
+    "model": "ridge",
+    "cv": "spatial",
+    "noise": 0.0,
+    "arm": "train_noisy",
+    "n_seeds": 1,
+    "r2_mean": -0.16204644986620154,
+    "r2_sd": 0.0,
+    "rmse_mean": 0.7593695284883206,
+    "rmse_sd": 0.0,
+    "mae_mean": 0.5954933336305217,
+    "mae_sd": 0.0,
+    "rpiq_mean": 1.0798431715220085,
+    "rpiq_sd": 0.0,
+    "tuned_params": [
+     []
+    ]
+   },
+   {
+    "experiment": "noise",
+    "model": "ridge",
+    "cv": "spatial",
+    "noise": 0.5,
+    "arm": "train_clean",
+    "n_seeds": 1,
+    "r2_mean": -0.1510375849178769,
+    "r2_sd": 0.0,
+    "rmse_mean": 0.7557639538327666,
+    "rmse_sd": 0.0,
+    "mae_mean": 0.5920571890764195,
+    "mae_sd": 0.0,
+    "rpiq_mean": 1.0849948530112719,
+    "rpiq_sd": 0.0,
+    "tuned_params": [
+     []
+    ]
+   },
+   {
+    "experiment": "noise",
+    "model": "ridge",
+    "cv": "spatial",
+    "noise": 0.5,
+    "arm": "train_noisy",
+    "n_seeds": 1,
+    "r2_mean": -0.1745367017169781,
+    "r2_sd": 0.0,
+    "rmse_mean": 0.7634396610151053,
+    "rmse_sd": 0.0,
+    "mae_mean": 0.5988787038176477,
+    "mae_sd": 0.0,
+    "rpiq_mean": 1.0740861941986217,
+    "rpiq_sd": 0.0,
+    "tuned_params": [
+     []
+    ]
+   },
+   {
+    "experiment": "noise",
+    "model": "ridge",
+    "cv": "spatial",
+    "noise": 1.0,
+    "arm": "train_clean",
+    "n_seeds": 1,
+    "r2_mean": -0.20629584383560462,
+    "r2_sd": 0.0,
+    "rmse_mean": 0.7736924122964968,
+    "rmse_sd": 0.0,
+    "mae_mean": 0.5952967426630968,
+    "mae_sd": 0.0,
+    "rpiq_mean": 1.0598527101565491,
+    "rpiq_sd": 0.0,
+    "tuned_params": [
+     []
+    ]
+   },
+   {
+    "experiment": "noise",
+    "model": "ridge",
+    "cv": "spatial",
+    "noise": 1.0,
+    "arm": "train_noisy",
+    "n_seeds": 1,
+    "r2_mean": -0.18849215223587823,
+    "r2_sd": 0.0,
+    "rmse_mean": 0.7679617350307627,
+    "rmse_sd": 0.0,
+    "mae_mean": 0.5927552565059084,
+    "mae_sd": 0.0,
+    "rpiq_mean": 1.0677615336747905,
+    "rpiq_sd": 0.0,
+    "tuned_params": [
+     []
+    ]
+   },
+   {
+    "experiment": "noise",
+    "model": "gradient_boosting",
+    "cv": "spatial",
+    "noise": 0.0,
+    "arm": "train_clean",
+    "n_seeds": 1,
+    "r2_mean": -0.690582522343997,
+    "r2_sd": 0.0,
+    "rmse_mean": 0.9159243592548092,
+    "rmse_sd": 0.0,
+    "mae_mean": 0.7598524469278113,
+    "mae_sd": 0.0,
+    "rpiq_mean": 0.8952704355053376,
+    "rpiq_sd": 0.0,
+    "tuned_params": [
+     []
+    ]
+   },
+   {
+    "experiment": "noise",
+    "model": "gradient_boosting",
+    "cv": "spatial",
+    "noise": 0.0,
+    "arm": "train_noisy",
+    "n_seeds": 1,
+    "r2_mean": -0.690582522343997,
+    "r2_sd": 0.0,
+    "rmse_mean": 0.9159243592548092,
+    "rmse_sd": 0.0,
+    "mae_mean": 0.7598524469278113,
+    "mae_sd": 0.0,
+    "rpiq_mean": 0.8952704355053376,
+    "rpiq_sd": 0.0,
+    "tuned_params": [
+     []
+    ]
+   },
+   {
+    "experiment": "noise",
+    "model": "gradient_boosting",
+    "cv": "spatial",
+    "noise": 0.5,
+    "arm": "train_clean",
+    "n_seeds": 1,
+    "r2_mean": -0.6259369137104038,
+    "r2_sd": 0.0,
+    "rmse_mean": 0.8982418127902347,
+    "rmse_sd": 0.0,
+    "mae_mean": 0.7381951893256459,
+    "mae_sd": 0.0,
+    "rpiq_mean": 0.9128944882367593,
+    "rpiq_sd": 0.0,
+    "tuned_params": [
+     []
+    ]
+   },
+   {
+    "experiment": "noise",
+    "model": "gradient_boosting",
+    "cv": "spatial",
+    "noise": 0.5,
+    "arm": "train_noisy",
+    "n_seeds": 1,
+    "r2_mean": -0.2914029346710967,
+    "r2_sd": 0.0,
+    "rmse_mean": 0.8005202207047863,
+    "rmse_sd": 0.0,
+    "mae_mean": 0.6445142676177985,
+    "mae_sd": 0.0,
+    "rpiq_mean": 1.0243339003705163,
+    "rpiq_sd": 0.0,
+    "tuned_params": [
+     []
+    ]
+   },
+   {
+    "experiment": "noise",
+    "model": "gradient_boosting",
+    "cv": "spatial",
+    "noise": 1.0,
+    "arm": "train_clean",
+    "n_seeds": 1,
+    "r2_mean": -0.4998078202388794,
+    "r2_sd": 0.0,
+    "rmse_mean": 0.8626988692755507,
+    "rmse_sd": 0.0,
+    "mae_mean": 0.7176280710926886,
+    "mae_sd": 0.0,
+    "rpiq_mean": 0.9505054767123936,
+    "rpiq_sd": 0.0,
+    "tuned_params": [
+     []
+    ]
+   },
+   {
+    "experiment": "noise",
+    "model": "gradient_boosting",
+    "cv": "spatial",
+    "noise": 1.0,
+    "arm": "train_noisy",
+    "n_seeds": 1,
+    "r2_mean": -0.29835867129148896,
+    "r2_sd": 0.0,
+    "rmse_mean": 0.8026732009787756,
+    "rmse_sd": 0.0,
+    "mae_mean": 0.6141318975687303,
+    "mae_sd": 0.0,
+    "rpiq_mean": 1.021586367901777,
+    "rpiq_sd": 0.0,
+    "tuned_params": [
+     []
+    ]
+   }
+  ],
+  "shuffled_control": [
+   {
+    "experiment": "shuffled_control",
+    "model": "mean_baseline",
+    "cv": "spatial",
+    "noise": 0.0,
+    "arm": "train_clean",
+    "n_seeds": 1,
+    "r2_mean": -0.03532349491808762,
+    "r2_sd": 0.0,
+    "rmse_mean": 0.716769400740373,
+    "rmse_sd": 0.0,
+    "mae_mean": 0.5662176678041573,
+    "mae_sd": 0.0,
+    "rpiq_mean": 1.1440220510989967,
+    "rpiq_sd": 0.0,
+    "tuned_params": [
+     []
+    ],
+    "shuffle_seed": 20261104
+   },
+   {
+    "experiment": "shuffled_control",
+    "model": "ridge",
+    "cv": "spatial",
+    "noise": 0.0,
+    "arm": "train_clean",
+    "n_seeds": 1,
+    "r2_mean": -0.1581808748118536,
+    "r2_sd": 0.0,
+    "rmse_mean": 0.7581054459962662,
+    "rmse_sd": 0.0,
+    "mae_mean": 0.5866056797118762,
+    "mae_sd": 0.0,
+    "rpiq_mean": 1.0816437269124155,
+    "rpiq_sd": 0.0,
+    "tuned_params": [
+     []
+    ],
+    "shuffle_seed": 20261104
+   },
+   {
+    "experiment": "shuffled_control",
+    "model": "pls",
+    "cv": "spatial",
+    "noise": 0.0,
+    "arm": "train_clean",
+    "n_seeds": 1,
+    "r2_mean": -0.16063231534939915,
+    "r2_sd": 0.0,
+    "rmse_mean": 0.7589073363092523,
+    "rmse_sd": 0.0,
+    "mae_mean": 0.5867037960669019,
+    "mae_sd": 0.0,
+    "rpiq_mean": 1.0805008210723803,
+    "rpiq_sd": 0.0,
+    "tuned_params": [
+     []
+    ],
+    "shuffle_seed": 20261104
+   },
+   {
+    "experiment": "shuffled_control",
+    "model": "random_forest",
+    "cv": "spatial",
+    "noise": 0.0,
+    "arm": "train_clean",
+    "n_seeds": 1,
+    "r2_mean": -0.25957545156861217,
+    "r2_sd": 0.0,
+    "rmse_mean": 0.7905940033228025,
+    "rmse_sd": 0.0,
+    "mae_mean": 0.6426836976844913,
+    "mae_sd": 0.0,
+    "rpiq_mean": 1.0371948137142537,
+    "rpiq_sd": 0.0,
+    "tuned_params": [
+     []
+    ],
+    "shuffle_seed": 20261104
+   },
+   {
+    "experiment": "shuffled_control",
+    "model": "gradient_boosting",
+    "cv": "spatial",
+    "noise": 0.0,
+    "arm": "train_clean",
+    "n_seeds": 1,
+    "r2_mean": -0.24796190153952158,
+    "r2_sd": 0.0,
+    "rmse_mean": 0.7869408417714017,
+    "rmse_sd": 0.0,
+    "mae_mean": 0.6411138382279076,
+    "mae_sd": 0.0,
+    "rpiq_mean": 1.0420097121331033,
+    "rpiq_sd": 0.0,
+    "tuned_params": [
+     []
+    ],
+    "shuffle_seed": 20261104
+   }
+  ],
+  "block_sensitivity": [
+   {
+    "experiment": "block_sensitivity",
+    "model": "random_forest",
+    "cv": "spatial",
+    "noise": 0.0,
+    "arm": "train_clean",
+    "n_seeds": 1,
+    "r2_mean": -0.5347846716405431,
+    "r2_sd": 0.0,
+    "rmse_mean": 0.8727003466981037,
+    "rmse_sd": 0.0,
+    "mae_mean": 0.7076033201250399,
+    "mae_sd": 0.0,
+    "rpiq_mean": 0.9396123229496846,
+    "rpiq_sd": 0.0,
+    "tuned_params": [
+     []
+    ],
+    "blocks": 5,
+    "n_clusters": 5
+   },
+   {
+    "experiment": "block_sensitivity",
+    "model": "ridge",
+    "cv": "spatial",
+    "noise": 0.0,
+    "arm": "train_clean",
+    "n_seeds": 1,
+    "r2_mean": -0.12569927613125098,
+    "r2_sd": 0.0,
+    "rmse_mean": 0.7473991771051925,
+    "rmse_sd": 0.0,
+    "mae_mean": 0.5790595782477257,
+    "mae_sd": 0.0,
+    "rpiq_mean": 1.0971379486608528,
+    "rpiq_sd": 0.0,
+    "tuned_params": [
+     []
+    ],
+    "blocks": 5,
+    "n_clusters": 5
+   },
+   {
+    "experiment": "block_sensitivity",
+    "model": "random_forest",
+    "cv": "spatial",
+    "noise": 0.0,
+    "arm": "train_clean",
+    "n_seeds": 1,
+    "r2_mean": -0.5393335508356962,
+    "r2_sd": 0.0,
+    "rmse_mean": 0.873992668478112,
+    "rmse_sd": 0.0,
+    "mae_mean": 0.713303807477967,
+    "mae_sd": 0.0,
+    "rpiq_mean": 0.9382229732291354,
+    "rpiq_sd": 0.0,
+    "tuned_params": [
+     []
+    ],
+    "blocks": 10,
+    "n_clusters": 10
+   },
+   {
+    "experiment": "block_sensitivity",
+    "model": "ridge",
+    "cv": "spatial",
+    "noise": 0.0,
+    "arm": "train_clean",
+    "n_seeds": 1,
+    "r2_mean": -0.16204644986620154,
+    "r2_sd": 0.0,
+    "rmse_mean": 0.7593695284883206,
+    "rmse_sd": 0.0,
+    "mae_mean": 0.5954933336305217,
+    "mae_sd": 0.0,
+    "rpiq_mean": 1.0798431715220085,
+    "rpiq_sd": 0.0,
+    "tuned_params": [
+     []
+    ],
+    "blocks": 10,
+    "n_clusters": 10
+   }
+  ],
+  "partition_sensitivity": [
+   {
+    "model": "random_forest",
+    "method": "kmeans_seed",
+    "n_partitions": 2,
+    "partition_seeds": [
+     20261104,
+     20261105
+    ],
+    "distinct_partitions": 1,
+    "learner_seed": 20261104,
+    "blocks": 10,
+    "r2_mean": -0.506781956834963,
+    "r2_sd": 0.04603490571269966,
+    "r2_min": -0.5393335508356962,
+    "r2_max": -0.4742303628342297,
+    "note": "only the partition varied here: same learner seed and the fixed parameters chosen in E1, so no model-randomness or tuning variance is mixed in. A 0.000 SD with 1 distinct partition(s) means the spatial R2 did not move when the boundaries moved."
+   },
+   {
+    "model": "ridge",
+    "method": "kmeans_seed",
+    "n_partitions": 2,
+    "partition_seeds": [
+     20261104,
+     20261105
+    ],
+    "distinct_partitions": 1,
+    "learner_seed": 20261104,
+    "blocks": 10,
+    "r2_mean": -0.12673509305142627,
+    "r2_sd": 0.04993779971325079,
+    "r2_min": -0.16204644986620154,
+    "r2_max": -0.09142373623665101,
+    "note": "only the partition varied here: same learner seed and the fixed parameters chosen in E1, so no model-randomness or tuning variance is mixed in. A 0.000 SD with 1 distinct partition(s) means the spatial R2 did not move when the boundaries moved."
+   },
+   {
+    "model": "random_forest",
+    "method": "grid_offset",
+    "n_partitions": 2,
+    "partition_seeds": [
+     20261104,
+     20261105
+    ],
+    "distinct_partitions": 2,
+    "learner_seed": 20261104,
+    "blocks": null,
+    "r2_mean": -0.42054217232768576,
+    "r2_sd": 0.017617965380628483,
+    "r2_min": -0.432999955119038,
+    "r2_max": -0.4080843895363335,
+    "note": "only the partition varied here: same learner seed and the fixed parameters chosen in E1, so no model-randomness or tuning variance is mixed in. A 0.000 SD with 2 distinct partition(s) means the spatial R2 did not move when the boundaries moved."
+   },
+   {
+    "model": "ridge",
+    "method": "grid_offset",
+    "n_partitions": 2,
+    "partition_seeds": [
+     20261104,
+     20261105
+    ],
+    "distinct_partitions": 2,
+    "learner_seed": 20261104,
+    "blocks": null,
+    "r2_mean": -0.058119552916849004,
+    "r2_sd": 0.0267495642563733,
+    "r2_min": -0.07703435119631585,
+    "r2_max": -0.039204754637382155,
+    "note": "only the partition varied here: same learner seed and the fixed parameters chosen in E1, so no model-randomness or tuning variance is mixed in. A 0.000 SD with 2 distinct partition(s) means the spatial R2 did not move when the boundaries moved."
+   }
+  ],
+  "partition_rows": [
+   {
+    "experiment": "partition_sensitivity",
+    "model": "random_forest",
+    "cv": "spatial",
+    "noise": 0.0,
+    "arm": "train_clean",
+    "n_seeds": 1,
+    "r2_mean": -0.5393335508356962,
+    "r2_sd": 0.0,
+    "rmse_mean": 0.873992668478112,
+    "rmse_sd": 0.0,
+    "mae_mean": 0.713303807477967,
+    "mae_sd": 0.0,
+    "rpiq_mean": 0.9382229732291354,
+    "rpiq_sd": 0.0,
+    "tuned_params": [
+     []
+    ],
+    "block_seed": 20261104,
+    "blocks": 10
+   },
+   {
+    "experiment": "partition_sensitivity",
+    "model": "ridge",
+    "cv": "spatial",
+    "noise": 0.0,
+    "arm": "train_clean",
+    "n_seeds": 1,
+    "r2_mean": -0.16204644986620154,
+    "r2_sd": 0.0,
+    "rmse_mean": 0.7593695284883206,
+    "rmse_sd": 0.0,
+    "mae_mean": 0.5954933336305217,
+    "mae_sd": 0.0,
+    "rpiq_mean": 1.0798431715220085,
+    "rpiq_sd": 0.0,
+    "tuned_params": [
+     []
+    ],
+    "block_seed": 20261104,
+    "blocks": 10
+   },
+   {
+    "experiment": "partition_sensitivity",
+    "model": "random_forest",
+    "cv": "spatial",
+    "noise": 0.0,
+    "arm": "train_clean",
+    "n_seeds": 1,
+    "r2_mean": -0.4742303628342297,
+    "r2_sd": 0.0,
+    "rmse_mean": 0.8553110793169388,
+    "rmse_sd": 0.0,
+    "mae_mean": 0.6857075094006675,
+    "mae_sd": 0.0,
+    "rpiq_mean": 0.9587155127873026,
+    "rpiq_sd": 0.0,
+    "tuned_params": [
+     []
+    ],
+    "block_seed": 20261105,
+    "blocks": 10
+   },
+   {
+    "experiment": "partition_sensitivity",
+    "model": "ridge",
+    "cv": "spatial",
+    "noise": 0.0,
+    "arm": "train_clean",
+    "n_seeds": 1,
+    "r2_mean": -0.09142373623665101,
+    "r2_sd": 0.0,
+    "rmse_mean": 0.7359327316615122,
+    "rmse_sd": 0.0,
+    "mae_mean": 0.5749062599270229,
+    "mae_sd": 0.0,
+    "rpiq_mean": 1.1142322724913862,
+    "rpiq_sd": 0.0,
+    "tuned_params": [
+     []
+    ],
+    "block_seed": 20261105,
+    "blocks": 10
+   },
+   {
+    "experiment": "boundary_sensitivity",
+    "model": "random_forest",
+    "cv": "spatial",
+    "noise": 0.0,
+    "arm": "train_clean",
+    "n_seeds": 1,
+    "r2_mean": -0.4080843895363335,
+    "r2_sd": 0.0,
+    "rmse_mean": 0.8359027689324827,
+    "rmse_sd": 0.0,
+    "mae_mean": 0.6712520364296303,
+    "mae_sd": 0.0,
+    "rpiq_mean": 0.98097533645834,
+    "rpiq_sd": 0.0,
+    "tuned_params": [
+     []
+    ],
+    "block_seed": 20261104,
+    "blocks": 12,
+    "cells_per_side": 8
+   },
+   {
+    "experiment": "boundary_sensitivity",
+    "model": "ridge",
+    "cv": "spatial",
+    "noise": 0.0,
+    "arm": "train_clean",
+    "n_seeds": 1,
+    "r2_mean": -0.039204754637382155,
+    "r2_sd": 0.0,
+    "rmse_mean": 0.7181116699951933,
+    "rmse_sd": 0.0,
+    "mae_mean": 0.5562059714508429,
+    "mae_sd": 0.0,
+    "rpiq_mean": 1.141883685033957,
+    "rpiq_sd": 0.0,
+    "tuned_params": [
+     []
+    ],
+    "block_seed": 20261104,
+    "blocks": 12,
+    "cells_per_side": 8
+   },
+   {
+    "experiment": "boundary_sensitivity",
+    "model": "random_forest",
+    "cv": "spatial",
+    "noise": 0.0,
+    "arm": "train_clean",
+    "n_seeds": 1,
+    "r2_mean": -0.432999955119038,
+    "r2_sd": 0.0,
+    "rmse_mean": 0.843265844978701,
+    "rmse_sd": 0.0,
+    "mae_mean": 0.680492301418294,
+    "mae_sd": 0.0,
+    "rpiq_mean": 0.9724098336043856,
+    "rpiq_sd": 0.0,
+    "tuned_params": [
+     []
+    ],
+    "block_seed": 20261105,
+    "blocks": 10,
+    "cells_per_side": 8
+   },
+   {
+    "experiment": "boundary_sensitivity",
+    "model": "ridge",
+    "cv": "spatial",
+    "noise": 0.0,
+    "arm": "train_clean",
+    "n_seeds": 1,
+    "r2_mean": -0.07703435119631585,
+    "r2_sd": 0.0,
+    "rmse_mean": 0.7310653485346741,
+    "rmse_sd": 0.0,
+    "mae_mean": 0.5613507111313139,
+    "mae_sd": 0.0,
+    "rpiq_mean": 1.1216507548108856,
+    "rpiq_sd": 0.0,
+    "tuned_params": [
+     []
+    ],
+    "block_seed": 20261105,
+    "blocks": 10,
+    "cells_per_side": 8
+   }
+  ],
+  "baseline_rmse": {
+   "random": 0.7130611640977744,
+   "spatial": 0.7243676767872287
+  },
+  "interval": {
+   "model": "ridge",
+   "nominal": 0.9,
+   "empirical_coverage": 0.8973039215686274,
+   "coverage_sd": 0.0,
+   "mean_width": 2.8191907285237474,
+   "half_width": 1.4095953642618737,
+   "median_target": 1.8,
+   "n_calibration_folds": 5,
+   "method": "split-conformal, blocks held out for calibration, scored on unseen spatial test blocks",
+   "honest_note": "The nominal 90% interval is calibrated on held-out spatial blocks and scored on test blocks never seen; coverage below 0.90 means the interval is too narrow for new areas."
+  }
+ },
+ "headline": {
+  "model": "ridge",
+  "r2_spatial": -0.16204644986620154,
+  "rmse_spatial": 0.7593695284883206,
+  "r2_random": -0.10264988685865728,
+  "validation_gap": 0.059396563007544256,
+  "beats_field_mean_spatially": false,
+  "break_even_noise": {
+   "train_clean|spatial": 0.0,
+   "train_noisy|spatial": 0.0,
+   "model": "ridge"
+  }
+ },
+ "limitations": [
+  "No low-cost sensor data: features are laboratory wet-chemistry values that a sensor could in principle proxy. Nothing here has been measured with the planned hardware.",
+  "No Ugandan field validation: predictions have not been checked against any soil sampled for this project.",
+  "Not validated for agronomic decisions: rates, timing, or certification claims must not be made from this prototype.",
+  "Laboratory values carry lab-to-lab bias; replicate records are collapsed, so measurement error is under-represented relative to a real sensor.",
+  "Prediction intervals are marginal (one width for all inputs), not conditional on the feature values."
+ ],
+ "model_version": "sha256:a34fb681c0eac0bf",
+ "feature_ablation": {
+  "dropped": [
+   "EC"
+  ],
+  "remaining": [
+   "pH_H2O",
+   "Clay percent",
+   "Sand percent",
+   "Silt percent"
+  ],
+  "note": "These features were removed on purpose: the numbers below describe a reduced model, not the headline run."
+ },
+ "model_file": "model.joblib",
+ "training_data_version": "afsis-2f-e056eee59f65"
+}

@@ -1,0 +1,928 @@
+SSN,Latitude,Longitude,Country,ClusterCode,SiteName,DepthLabel
+icr068579,11.28065833,8.166768333,Nigeria,9,Pampaida,top
+icr034190,8.15869333,9.93064,Nigeria,15,Ibi,top
+icr014943,-15.92507167,35.34257333,Malawi,11,Thuchila,top
+icr037689,11.32902667,-5.466885,Mali,15,Finnkolo,top
+icr009958,-11.07450008,35.12540054,Tanzania,3,Mbinga,top
+icr007730,-5.38104677,37.44506836,Tanzania,1,Kiberashi,top
+icr010078,-11.11730003,35.17409897,Tanzania,9,Mbinga,top
+icr014688,-11.61,34.270140000000005,Malawi,15,Nkhata Bay,top
+icr068459,11.33028667,8.124355,Nigeria,3,Pampaida,top
+icr055683,-9.1579,29.6499,Zambia,7,Chilende,top
+icr014408,-11.65983,34.21137167,Malawi,1,Nkhata Bay,top
+icr034010,8.12667833,9.880528333,Nigeria,6,Ibi,top
+icr073799,-19.42756167,28.76724667,Zimbabwe,9,Kenilworth,top
+icr054641,1.456968333,31.53370833,Uganda,13,Hoima,top
+icr011144,10.92799833,-3.564085,Burkina Faso,7,Bondigui,top
+icr073008,-11.70413667,15.88675,Angola,4,Bimbe,top
+icr043363,11.92822333,-13.107235,Guinea,14,Boumeoul,top
+icr043198,11.96982,-13.17629333,Guinea,4,Boumeoul,top
+icr023453,-14.726465,39.84090667,Mozambique,2,Chica_b,top
+icr023175,-13.37361833,35.45979833,Mozambique,4,Macassangila,top
+icr075976,-15.819795,26.16895,Zambia,16,Musungwa,top
+icr062395,-18.3094,48.7565,Madagascar,14,Didy,top
+icr007850,-5.33592987,37.46857452,Tanzania,7,Kiberashi,top
+icr056141,-13.10194667,28.50299833,Zambia,14,Fisenge,top
+icr010058,-11.05710316,35.15173721,Tanzania,8,Mbinga,top
+icr023116,-13.44472167,35.46230333,Mozambique,1,Macassangila,top
+icr050154,-16.16296,38.94107833,Mozambique,2,Martinho,top
+icr015732,6.75628667,-1.243568333,Ghana,16,Kubeasi,top
+icr068221,13.41339833,1.7547116669999998,Niger,7,Nyalagari,top
+icr054387,0.51074201,32.33942032,Uganda,14,Namasuba,top
+icr070276,9.192781667,5.719468332999999,Nigeria,10,Kutigi,top
+icr023652,-14.68108833,39.88605833,Mozambique,12,Chica_b,top
+icr049477,-22.80021333,35.33732,Mozambique,16,Chiculecule,top
+icr041915,-2.62039208,39.57739258,Kenya,15,Marafa,top
+icr072425,-7.361311667000001,15.73790167,Angola,10,Sanza Pompo,top
+icr023513,-14.75414,39.85758167,Mozambique,5,Chica_b,top
+icr048931,-29.8198,23.9758,South Africa,14,Hopetown,top
+icr049297,-22.81783333,35.28526167,Mozambique,7,Chiculecule,top
+icr034362,7.00404333,9.332265,Nigeria,6,Katsina ala,top
+icr049457,-22.82643,35.336955,Mozambique,15,Chiculecule,top
+icr048520,-27.6131,30.045,South Africa,5,Madadeni,top
+icr073598,-12.29723833,15.22342333,Angola,16,Luimbale,top
+icr030316,8.64607239,35.05302811,Ethiopia,16,Dambidolo,top
+icr073419,-12.31856,15.17408167,Angola,7,Luimbale,top
+icr043011,10.54048833,-13.38327833,Guinea,12,Fria,top
+icr054165,0.49136299,32.27067566,Uganda,1,Namasuba,top
+icr055981,-13.10106667,28.458735,Zambia,6,Fisenge,top
+icr014743,-15.975425,35.28968167,Malawi,1,Thuchila,top
+icr043401,11.96395833,-13.10541333,Guinea,16,Boumeoul,top
+icr055703,-9.13688,29.6462,Zambia,8,Chilende,top
+icr075716,-15.85138333,26.095875,Zambia,3,Musungwa,top
+icr048899,-29.7687,23.9539,South Africa,12,Hopetown,top
+icr011222,10.924675,-3.533448333,Burkina Faso,11,Bondigui,top
+icr049098,-29.934,22.7603,South Africa,11,Prieska,top
+icr043090,10.54417,-13.35787667,Guinea,16,Fria,top
+icr011111,10.87761667,-3.5586833330000003,Burkina Faso,5,Bondigui,top
+icr072836,-16.268775,14.958435,Angola,13,Mucope,top
+icr043347,11.89474,-13.107555,Guinea,13,Boumeoul,top
+icr074791,-19.4123,22.06,Botswana,9,Gumare,top
+icr043332,11.96782167,-13.12979333,Guinea,12,Boumeoul,top
+icr049156,-29.9279,22.7819,South Africa,15,Prieska,top
+icr050334,-16.13721833,38.9843,Mozambique,11,Martinho,top
+icr048528,-27.5868,30.0455,South Africa,6,Madadeni,top
+icr075469,-17.7908,31.8557,Zimbabwe,8,Chiqumbakwe,top
+icr041641,-2.66469789,39.514431,Kenya,1,Marafa,top
+icr015552,6.728055,-1.284068333,Ghana,7,Kubeasi,top
+icr069789,14.809575,-7.843511667,Mali,1,Tambabougou,top
+icr054656,1.4735333330000002,31.52892,Uganda,14,Hoima,top
+icr049115,-29.91,22.7619,South Africa,12,Prieska,top
+icr033696,4.17650223,38.28850937,Ethiopia,6,Mega,top
+icr068339,13.37199833,1.804516667,Niger,13,Nyalagari,top
+icr049074,-29.9813,22.7623,South Africa,9,Prieska,top
+icr075896,-15.83095833,26.13990833,Zambia,12,Musungwa,top
+icr073068,-11.72861167,15.90537,Angola,7,Bimbe,top
+icr007949,-5.31183291,37.49250793,Tanzania,12,Kiberashi,top
+icr037675,11.294715,-5.470244999999999,Mali,14,Finnkolo,top
+icr042024,-1.70595801,35.78072357,Kenya,3,Morijo,top
+icr015772,5.39579,-0.780361667,Ghana,2,Ajumako,top
+icr033791,4.1927681,38.30604172,Ethiopia,11,Mega,top
+icr021004,-8.06768513,37.31658554,Tanzania,9,Kidatu,top
+icr038234,11.33642006,39.59075165,Ethiopia,8,Kutaber,top
+icr042247,-1.70844495,35.84159088,Kenya,15,Morijo,top
+icr074891,-19.3945,22.0855,Botswana,14,Gumare,top
+icr006121,-6.86209822,36.14105606,Tanzania,12,Chinyanghuku,top
+icr010218,-11.0614996,35.19319916,Tanzania,16,Mbinga,top
+icr015712,6.73047667,-1.24715,Ghana,15,Kubeasi,top
+icr056340,-16.04143333,28.28783833,Zambia,8,Monga,top
+icr075508,-17.8301,31.8726,Zimbabwe,10,Chiqumbakwe,top
+icr072776,-16.24473333,14.92850333,Angola,10,Mucope,top
+icr030183,8.57880211,35.02257156,Ethiopia,9,Dambidolo,top
+icr070193,9.166866667,5.6921300000000015,Nigeria,5,Kutigi,top
+icr037453,11.32941667,-5.534058333,Mali,3,Finnkolo,top
+icr025074,-6.91894484,34.23665237,Tanzania,13,Itende,top
+icr072616,-16.24470833,14.88468667,Angola,2,Mucope,top
+icr075410,-17.852,31.8612,Zimbabwe,5,Chiqumbakwe,top
+icr011067,10.90327833,-3.576025,Burkina Faso,2,Bondigui,top
+icr068301,13.41907833,1.7866083330000002,Niger,11,Nyalagari,top
+icr055802,-9.20711,29.6942,Zambia,13,Chilende,top
+icr050374,-16.17446833,39.00523333,Mozambique,13,Martinho,top
+icr007790,-5.31900215,37.45064163,Tanzania,4,Kiberashi,top
+icr068161,13.43555333,1.738738333,Niger,4,Nyalagari,top
+icr014588,-11.64765,34.24794167,Malawi,10,Nkhata Bay,top
+icr049152,-29.9329,22.7803,South Africa,15,Prieska,top
+icr072525,-7.333075,15.76078667,Angola,15,Sanza Pompo,top
+icr010118,-11.07940006,35.16930008,Tanzania,11,Mbinga,top
+icr054564,1.462205,31.507475,Uganda,9,Hoima,top
+icr062353,-18.2763,48.7363,Madagascar,12,Didy,top
+icr037807,5.30309333,10.22817,Cameroon,4,Bana,top
+icr030258,8.57747841,35.04580688,Ethiopia,13,Dambidolo,top
+icr033466,-0.14825299,39.0405426,Kenya,9,Mbalambala,top
+icr073649,-19.425122,28.724613,Zimbabwe,1,Kenilworth,top
+icr072816,-16.203565,14.92257333,Angola,12,Mucope,top
+icr007770,-5.33404493,37.45391846,Tanzania,3,Kiberashi,top
+icr054437,1.45866,31.46679667,Uganda,1,Hoima,top
+icr056200,-16.113185,28.26820667,Zambia,1,Monga,top
+icr010808,12.49110333,-6.314946667,Mali,7,Koloko,top
+icr073088,-11.70184,15.905035,Angola,8,Bimbe,top
+icr068265,13.371465,1.779663333,Niger,9,Nyalagari,top
+icr042790,10.47201667,-13.424075,Guinea,1,Fria,top
+icr072326,-7.373935,15.719655,Angola,5,Sanza Pompo,top
+icr054360,0.55428702,32.31141281,Uganda,12,Namasuba,top
+icr015157,10.87777,-2.6616883330000003,Ghana,6,Lambussie,top
+icr048943,-29.7993,23.9782,South Africa,15,Hopetown,top
+icr006055,-6.86175203,36.11831284,Tanzania,8,Chinyanghuku,top
+icr075956,-15.845438,26.164093,Zambia,15,Musungwa,top
+icr056260,-16.04487667,28.25742667,Zambia,4,Monga,top
+icr048549,-27.5634,30.0408,South Africa,7,Madadeni,top
+icr038189,11.2826004,39.59399414,Ethiopia,6,Kutaber,top
+icr074711,-19.4158,22.0395,Botswana,5,Gumare,top
+icr056021,-13.065403,28.473107,Zambia,8,Fisenge,top
+icr049875,-24.16954833,34.328109999999995,Mozambique,4,Massuque,top
+icr068399,13.43122,1.799123333,Niger,16,Nyalagari,top
+icr014568,-11.65377833,34.24810833,Malawi,9,Nkhata Bay,top
+icr043230,11.92195167,-13.15272167,Guinea,6,Boumeoul,top
+icr034653,6.768445,4.625046667,Nigeria,3,Imorun,top
+icr072246,-7.37775,15.68749167,Angola,1,Sanza Pompo,top
+icr056061,-13.11281167,28.485475,Zambia,10,Fisenge,top
+icr011843,-3.0296979,33.01520157,Tanzania,2,Bukwaya,top
+icr054238,0.49764001,32.28783798,Uganda,5,Namasuba,top
+icr014983,-15.98191167,35.36489667,Malawi,13,Thuchila,top
+icr020908,-8.00080681,37.27236938,Tanzania,4,Kidatu,top
+icr049695,-18.00459167,36.84410833,Mozambique,11,Ihassunge,top
+icr042062,-1.74951005,35.79748917,Kenya,5,Morijo,top
+icr011281,10.89882833,-3.513665,Burkina Faso,14,Bondigui,top
+icr070308,9.237658333,5.717488333,Nigeria,12,Kutigi,top
+icr075626,-17.7865,31.9016,Zimbabwe,16,Chiqumbakwe,top
+icr014448,-11.61566833,34.20503833,Malawi,3,Nkhata Bay,top
+icr034461,7.03131,9.35504,Nigeria,11,Katsina ala,top
+icr049217,-22.83018333,35.27128833,Mozambique,3,Chiculecule,top
+icr048503,-27.5477,30.0232,South Africa,4,Madadeni,top
+icr010038,-11.07940006,35.15179825,Tanzania,7,Mbinga,top
+icr037646,11.27255333,-5.464043332999999,Mali,13,Finnkolo,top
+icr023333,-13.37075167,35.50440167,Mozambique,12,Macassangila,top
+icr037417,11.27548333,-5.5312,Mali,1,Finnkolo,top
+icr007910,-5.36247683,37.49689102,Tanzania,10,Kiberashi,top
+icr015572,6.75536333,-1.295706667,Ghana,8,Kubeasi,top
+icr015872,5.420059999999999,-0.75521,Ghana,7,Ajumako,top
+icr020848,-8.07403278,37.26938248,Tanzania,1,Kidatu,top
+icr075450,-17.8176,31.8616,Zimbabwe,7,Chiqumbakwe,top
+icr014903,-15.97414833,35.34251833,Malawi,9,Thuchila,top
+icr074544,-21.7707,26.526,Botswana,14,Paje,top
+icr042078,-1.73061001,35.80042267,Kenya,6,Morijo,top
+icr073208,-11.75424667,15.95240333,Angola,14,Bimbe,top
+icr075696,-15.867407,26.098539,Zambia,2,Musungwa,top
+icr033732,4.2169199,38.28134918,Ethiopia,8,Mega,top
+icr074470,-21.7756,26.5008,Botswana,10,Paje,top
+icr014628,-11.58774167,34.25251,Malawi,12,Nkhata Bay,top
+icr042990,10.52136833,-13.38026167,Guinea,11,Fria,top
+icr041759,-2.622082,39.53253555,Kenya,7,Marafa,top
+icr005965,-6.88353014,36.0907402,Tanzania,3,Chinyanghuku,top
+icr009938,-11.09962845,35.13019943,Tanzania,2,Mbinga,top
+icr075916,-15.89698167,26.166365,Zambia,13,Musungwa,top
+icr048854,-29.8424,23.9545,South Africa,9,Hopetown,top
+icr074140,-18.1141,29.4552,Zimbabwe,10,Gambisa,top
+icr062294,-18.349,48.7392,Madagascar,9,Didy,top
+icr048824,-29.7962,23.9288,South Africa,7,Hopetown,top
+icr069969,14.83648167,-7.809873333,Mali,10,Tambabougou,top
+icr034342,6.97599333,9.33337,Nigeria,5,Katsina ala,top
+icr033890,4.20751286,38.32760239,Ethiopia,16,Mega,top
+icr015652,6.75881833,-1.269926667,Ghana,12,Kubeasi,top
+icr048868,-29.815,23.9544,South Africa,10,Hopetown,top
+icr020927,-8.07408333,37.29367447,Tanzania,5,Kidatu,top
+icr023493,-14.68884167,39.84353333,Mozambique,4,Chica_b,top
+icr074211,-18.111,29.485,Zimbabwe,14,Gambisa,top
+icr006626,-6.09622,36.4863,Tanzania,10,Pandambili,top
+icr038154,11.32647038,39.57241058,Ethiopia,4,Kutaber,top
+icr062255,-18.2919,48.7134,Madagascar,7,Didy,top
+icr054504,1.4592933330000002,31.48978667,Uganda,5,Hoima,top
+icr038106,11.26593208,39.57683945,Ethiopia,1,Kutaber,top
+icr015612,6.71195333,-1.260205,Ghana,10,Kubeasi,top
+icr037620,11.31536667,-5.496258332999999,Mali,11,Finnkolo,top
+icr023313,-13.399045,35.50034833,Mozambique,11,Macassangila,top
+icr015592,6.68232667,-1.25978,Ghana,9,Kubeasi,top
+icr072465,-7.315528333,15.74003333,Angola,12,Sanza Pompo,top
+icr034633,6.74027833,4.629376667,Nigeria,2,Imorun,top
+icr072716,-16.225095,14.89889,Angola,7,Mucope,top
+icr034050,8.173905,9.888138333,Nigeria,8,Ibi,top
+icr015472,6.73277333,-1.305245,Ghana,3,Kubeasi,top
+icr074691,-19.3495,22.0128,Botswana,4,Gumare,top
+icr072948,-11.772835,15.87541167,Angola,1,Bimbe,top
+icr007830,-5.35331202,37.46604919,Tanzania,6,Kiberashi,top
+icr020970,-8.02381229,37.29229736,Tanzania,7,Kidatu,top
+icr043132,11.90132833,-13.17387667,Guinea,1,Boumeoul,top
+icr030438,9.56470776,42.71464157,Ethiopia,9,Merar,top
+icr008007,-5.33370018,37.51532745,Tanzania,15,Kiberashi,top
+icr073248,-11.70006667,15.9523,Angola,16,Bimbe,top
+icr075836,-15.896332,26.142028,Zambia,9,Musungwa,top
+icr056161,-13.08635167,28.509135,Zambia,15,Fisenge,top
+icr068131,13.393575,1.735128333,Niger,2,Nyalagari,top
+icr033580,-0.104208,39.05907822,Kenya,15,Mbalambala,top
+icr015003,-15.947415,35.36159833,Malawi,14,Thuchila,top
+icr010925,12.44838333,-6.263188333,Mali,13,Koloko,top
+icr015692,6.71126667,-1.249091667,Ghana,14,Kubeasi,top
+icr010355,14.80026667,-11.03579167,Mali,2,Kontela,top
+icr030376,9.63304997,42.66046143,Ethiopia,4,Merar,top
+icr050234,-16.15708333,38.95627333,Mozambique,6,Martinho,top
+icr075350,-17.8307,31.8367,Zimbabwe,2,Chiqumbakwe,top
+icr020947,-8.04761505,37.295681,Tanzania,6,Kidatu,top
+icr050394,-16.14783,39.003835,Mozambique,14,Martinho,top
+icr015023,-15.92851667,35.36705333,Malawi,15,Thuchila,top
+icr041679,-2.62334704,39.51435852,Kenya,3,Marafa,top
+icr056280,-16.11281,28.27992667,Zambia,5,Monga,top
+icr010475,14.838770000000002,-11.01125167,Mali,8,Kontela,top
+icr042966,10.491285,-13.380635,Guinea,10,Fria,top
+icr023413,-13.37711,35.52999333,Mozambique,16,Macassangila,top
+icr042853,10.53704833,-13.42797333,Guinea,4,Fria,top
+icr030218,8.61843967,35.02986145,Ethiopia,11,Dambidolo,top
+icr037907,5.23253833,10.27185333,Cameroon,9,Bana,top
+icr016032,5.42318167,-0.7090833329999999,Ghana,15,Ajumako,top
+icr038056,5.30045833,10.293825,Cameroon,16,Bana,top
+icr010395,14.83678,-11.03356833,Mali,4,Kontela,top
+icr014648,-11.66673333,34.27007167,Malawi,13,Nkhata Bay,top
+icr015432,6.69583167,-1.306978333,Ghana,1,Kubeasi,top
+icr023136,-13.42477667,35.46136,Mozambique,2,Macassangila,top
+icr034693,6.715560000000001,4.650443333,Nigeria,5,Imorun,top
+icr075607,-17.8097,31.9012,Zimbabwe,15,Chiqumbakwe,top
+icr010415,14.76583,-11.011,Mali,5,Kontela,top
+icr072345,-7.356638332999999,15.71737333,Angola,6,Sanza Pompo,top
+icr049954,-24.17373167,34.35931333,Mozambique,8,Massuque,top
+icr043152,11.91600667,-13.17532833,Guinea,2,Boumeoul,top
+icr010198,-11.08710003,35.19179916,Tanzania,15,Mbinga,top
+icr054418,0.56465697,32.33332062,Uganda,16,Namasuba,top
+icr072968,-11.75044833,15.87774167,Angola,2,Bimbe,top
+icr073877,-19.437477,28.792972,Zimbabwe,13,Kenilworth,top
+icr072696,-16.240289999999998,14.90458833,Angola,6,Mucope,top
+icr030024,8.57689476,34.97977448,Ethiopia,1,Dambidolo,top
+icr012043,-3.06005502,33.08431244,Tanzania,13,Bukwaya,top
+icr041987,-1.75930798,35.77468491,Kenya,1,Morijo,top
+icr025055,-6.85391283,34.21279907,Tanzania,12,Itende,top
+icr074560,-21.7483,26.5266,Botswana,15,Paje,top
+icr042152,-1.73084498,35.81271362,Kenya,10,Morijo,top
+icr069809,14.83139,-7.843868333,Mali,2,Tambabougou,top
+icr072636,-16.21611333,14.88083,Angola,3,Mucope,top
+icr075676,-15.897394,26.093142,Zambia,1,Musungwa,top
+icr033445,-0.129155,39.01071167,Kenya,6,Mbalambala,top
+icr015512,6.6844800000000015,-1.28564,Ghana,5,Kubeasi,top
+icr030063,8.6298523,34.98375702,Ethiopia,3,Dambidolo,top
+icr023593,-14.7512,39.8859,Mozambique,9,Chica_b,top
+icr034282,7.00485667,9.30729,Nigeria,2,Katsina ala,top
+icr075776,-15.87001333,26.118435,Zambia,6,Musungwa,top
+icr049197,-22.85042333,35.273025,Mozambique,2,Chiculecule,top
+icr068279,13.38991667,1.77919,Niger,10,Nyalagari,top
+icr010845,12.45190833,-6.288508332999999,Mali,9,Koloko,top
+icr048468,-27.5922,30.0235,South Africa,2,Madadeni,top
+icr073917,-19.392763,28.802128000000003,Zimbabwe,15,Kenilworth,top
+icr038118,11.28125763,39.5773468,Ethiopia,2,Kutaber,top
+icr033871,4.19322205,38.3321991,Ethiopia,15,Mega,top
+icr074751,-19.3695,22.0389,Botswana,7,Gumare,top
+icr073028,-11.77340167,15.90902167,Angola,5,Bimbe,top
+icr015137,10.86856833,-2.663826667,Ghana,5,Lambussie,top
+icr034793,6.74489167,4.666406667,Nigeria,10,Imorun,top
+icr034030,8.146075,9.884018333,Nigeria,7,Ibi,top
+icr033371,-0.12604301,38.9902153,Kenya,2,Mbalambala,top
+icr062413,-18.2982,48.7534,Madagascar,15,Didy,top
+icr030571,9.63665199,42.73842239,Ethiopia,16,Merar,top
+icr056500,-16.04378333,28.32967,Zambia,16,Monga,top
+icr074318,-21.7779,26.4554,Botswana,2,Paje,top
+icr049635,-17.98034833,36.82528667,Mozambique,8,Ihassunge,top
+icr006684,-6.12214,36.5064,Tanzania,13,Pandambili,top
+icr070348,9.188533333,5.742303333,Nigeria,14,Kutigi,top
+icr073857,-19.36441167,28.77160167,Zimbabwe,12,Kenilworth,top
+icr042810,10.49729833,-13.42232167,Guinea,2,Fria,top
+icr073499,-12.31855667,15.2063,Angola,11,Luimbale,top
+icr012063,-3.03619504,33.09140778,Tanzania,14,Bukwaya,top
+icr005928,-6.93070316,36.09182358,Tanzania,1,Chinyanghuku,top
+icr062314,-18.3162,48.7348,Madagascar,10,Didy,top
+icr074413,-21.7559,26.4813,Botswana,7,Paje,top
+icr011901,-3.06098199,33.03066254,Tanzania,5,Bukwaya,top
+icr012087,-2.99145794,33.07735062,Tanzania,16,Bukwaya,top
+icr073839,-19.39583167,28.76500833,Zimbabwe,11,Kenilworth,top
+icr041659,-2.64596796,39.51325607,Kenya,2,Marafa,top
+icr054676,1.5015983330000002,31.53512667,Uganda,15,Hoima,top
+icr049130,-29.9771,22.7788,South Africa,13,Prieska,top
+icr049337,-22.87014333,35.313225,Mozambique,9,Chiculecule,top
+icr037927,5.25545667,10.26777667,Cameroon,10,Bana,top
+icr037491,11.27253667,-5.513963333,Mali,5,Finnkolo,top
+icr024956,-6.91006517,34.19247818,Tanzania,6,Itende,top
+icr069829,14.85631333,-7.846764999999999,Mali,3,Tambabougou,top
+icr049735,-18.048055,36.86693667,Mozambique,13,Ihassunge,top
+icr054258,0.51271302,32.28875732,Uganda,6,Namasuba,top
+icr068361,13.38568167,1.7982983330000002,Niger,14,Nyalagari,top
+icr042930,10.53327167,-13.410885,Guinea,8,Fria,top
+icr062275,-18.2724,48.7098,Madagascar,8,Didy,top
+icr010455,14.82445833,-11.00853333,Mali,7,Kontela,top
+icr010575,14.77818833,-10.964785,Mali,13,Kontela,top
+icr048977,-29.9721,22.7102,South Africa,1,Prieska,top
+icr011321,10.950885,-3.513765,Burkina Faso,16,Bondigui,top
+icr075856,-15.87658167,26.13388333,Zambia,10,Musungwa,top
+icr068439,11.307105,8.119573333,Nigeria,2,Pampaida,top
+icr070049,14.83130167,-7.780153332999999,Mali,14,Tambabougou,top
+icr033950,8.14880667,9.866153333,Nigeria,3,Ibi,top
+icr055862,-9.14041,29.689,Zambia,16,Chilende,top
+icr068599,11.30869,8.175328333,Nigeria,10,Pampaida,top
+icr054529,1.5029833330000002,31.490945,Uganda,7,Hoima,top
+icr074193,-18.1315,29.4801,Zimbabwe,13,Gambisa,top
+icr016012,5.39372667,-0.7071333329999999,Ghana,14,Ajumako,top
+icr072485,-7.372681667,15.76295333,Angola,13,Sanza Pompo,top
+icr034753,6.78485167,4.643185,Nigeria,8,Imorun,top
+icr048704,-27.5677,30.0907,South Africa,15,Madadeni,top
+icr056400,-16.068839999999998,28.30719667,Zambia,11,Monga,top
+icr070262,9.17576,5.711345,Nigeria,9,Kutigi,top
+icr034561,7.04615167,9.370495,Nigeria,16,Katsina ala,top
+icr006179,-6.871339999999999,36.1579,Tanzania,16,Chinyanghuku,top
+icr068619,11.332955,8.173293333,Nigeria,11,Pampaida,top
+icr072544,-7.31389,15.76066667,Angola,16,Sanza Pompo,top
+icr011164,10.94325667,-3.550565,Burkina Faso,8,Bondigui,top
+icr030387,9.56801796,42.69237518,Ethiopia,5,Merar,top
+icr072306,-7.315181667,15.69147833,Angola,4,Sanza Pompo,top
+icr043040,10.49347167,-13.36102833,Guinea,14,Fria,top
+icr010435,14.80017167,-11.01175833,Mali,6,Kontela,top
+icr006076,-6.93122,36.1357,Tanzania,9,Chinyanghuku,top
+icr030143,8.62714481,35.00778198,Ethiopia,7,Dambidolo,top
+icr030367,9.61504269,42.66503906,Ethiopia,3,Merar,top
+icr070089,14.87451333,-7.780065,Mali,16,Tambabougou,top
+icr055842,-9.16099,29.695,Zambia,15,Chilende,top
+icr048820,-29.8205,23.9277,South Africa,6,Hopetown,top
+icr072876,-16.221304999999994,14.94596167,Angola,15,Mucope,top
+icr033752,4.14850712,38.31196213,Ethiopia,9,Mega,top
+icr033771,4.1779871,38.30709839,Ethiopia,10,Mega,top
+icr023155,-13.39751667,35.463245,Mozambique,3,Macassangila,top
+icr073168,-11.70322333,15.92522667,Angola,12,Bimbe,top
+icr049277,-22.84669833,35.28799167,Mozambique,6,Chiculecule,top
+icr070009,14.87538667,-7.795621667000001,Mali,12,Tambabougou,top
+icr038016,5.255330000000002,10.28552,Cameroon,14,Bana,top
+icr015043,-15.905015,35.36222,Malawi,16,Thuchila,top
+icr068321,13.43786,1.7779616669999998,Niger,12,Nyalagari,top
+icr010687,12.45030667,-6.327395,Mali,1,Koloko,top
+icr042265,-1.68765497,35.8539772,Kenya,16,Morijo,top
+icr072756,-16.26354667,14.930115,Angola,9,Mucope,top
+icr055742,-9.18553,29.6753,Zambia,10,Chilende,top
+icr037787,5.28236667,10.22913667,Cameroon,3,Bana,top
+icr041935,-2.60346293,39.58199310000001,Kenya,16,Marafa,top
+icr072796,-16.21921167,14.932479999999998,Angola,11,Mucope,top
+icr023553,-14.70096833,39.86144167,Mozambique,7,Chica_b,top
+icr068419,11.28078,8.123596667000001,Nigeria,1,Pampaida,top
+icr034070,8.10638833,9.903975,Nigeria,9,Ibi,top
+icr034130,8.16784833,9.90665,Nigeria,12,Ibi,top
+icr041779,-2.5984931,39.53760147,Kenya,8,Marafa,top
+icr048622,-27.5668,30.0585,South Africa,11,Madadeni,top
+icr074356,-21.7213,26.457,Botswana,4,Paje,top
+icr015199,10.92868833,-2.664413333,Ghana,8,Lambussie,top
+icr068101,13.367585,1.735376667,Niger,1,Nyalagari,top
+icr023293,-13.41760667,35.511175,Mozambique,10,Macassangila,top
+icr049536,-17.998985,36.80058,Mozambique,3,Ihassunge,top
+icr050114,-24.175445,34.399384999999995,Mozambique,16,Massuque,top
+icr074376,-21.7919,26.4815,Botswana,5,Paje,top
+icr030458,9.59254456,42.7080574,Ethiopia,10,Merar,top
+icr048755,-29.8085,23.9044,South Africa,2,Hopetown,top
+icr049894,-24.243575,34.35064167,Mozambique,5,Massuque,top
+icr011241,10.94154333,-3.539666667,Burkina Faso,12,Bondigui,top
+icr010787,12.46614167,-6.312131667,Mali,6,Koloko,top
+icr015792,5.41379333,-0.780368333,Ghana,3,Ajumako,top
+icr054313,0.49551699,32.30453873,Uganda,9,Namasuba,top
+icr042908,10.524305,-13.40126833,Guinea,7,Fria,top
+icr050314,-16.15556667,38.98825167,Mozambique,10,Martinho,top
+icr005946,-6.90836716,36.08665466,Tanzania,2,Chinyanghuku,top
+icr023213,-13.414135,35.48740333,Mozambique,6,Macassangila,top
+icr073670,-19.41344,28.733862,Zimbabwe,2,Kenilworth,top
+icr010905,12.51425667,-6.280505000000002,Mali,12,Koloko,top
+icr042134,-1.74763703,35.82118225,Kenya,9,Morijo,top
+icr010535,14.82578833,-10.99383,Mali,11,Kontela,top
+icr073048,-11.75164667,15.904305,Angola,6,Bimbe,top
+icr030352,9.59475517,42.66899109,Ethiopia,2,Merar,top
+icr070328,9.170196667,5.738131667,Nigeria,13,Kutigi,top
+icr073988,-18.142,29.4097,Zimbabwe,1,Gambisa,top
+icr072988,-11.72324667,15.88526667,Angola,3,Bimbe,top
+icr054344,0.53860003,32.31171417,Uganda,11,Namasuba,top
+icr069909,14.858365,-7.82084,Mali,7,Tambabougou,top
+icr034733,6.76571833,4.644376667,Nigeria,7,Imorun,top
+icr011037,10.88517333,-3.581576667,Burkina Faso,1,Bondigui,top
+icr048942,-29.8188,23.9729,South Africa,14,Hopetown,top
+icr055663,-9.18733,29.6553,Zambia,6,Chilende,top
+icr073300,-12.35919,15.14388333,Angola,1,Luimbale,top
+icr055723,-9.20366,29.6761,Zambia,9,Chilende,top
+icr015672,6.69200167,-1.241593333,Ghana,13,Kubeasi,top
+icr054482,1.527395,31.46912333,Uganda,4,Hoima,top
+icr033831,4.14266682,38.33316422,Ethiopia,13,Mega,top
+icr024899,-6.88135815,34.17768097,Tanzania,3,Itende,top
+icr054606,1.501578333,31.51283333,Uganda,11,Hoima,top
+icr011263,10.87681333,-3.50814,Burkina Faso,13,Bondigui,top
+icr068521,11.31266,8.148253333,Nigeria,6,Pampaida,top
+icr068381,13.404805,1.802671667,Niger,15,Nyalagari,top
+icr049556,-17.98425333,36.79508667,Mozambique,4,Ihassunge,top
+icr054374,0.49447301,32.33593369,Uganda,13,Namasuba,top
+icr070288,9.21169,5.715875,Nigeria,11,Kutigi,top
+icr020986,-8.00173283,37.29563904,Tanzania,8,Kidatu,top
+icr049616,-18.00351833,36.81749667,Mozambique,7,Ihassunge,top
+icr055583,-9.17906,29.6372,Zambia,2,Chilende,top
+icr072736,-16.19894167,14.89918167,Angola,8,Mucope,top
+icr050274,-16.115579999999998,38.96545167,Mozambique,8,Martinho,top
+icr055822,-9.18747,29.7011,Zambia,14,Chilende,top
+icr034262,6.97864333,9.305081667,Nigeria,1,Katsina ala,top
+icr049795,-17.977923,36.861702,Mozambique,16,Ihassunge,top
+icr007928,-5.33933687,37.49335098,Tanzania,11,Kiberashi,top
+icr054293,0.56445801,32.29327011,Uganda,8,Namasuba,top
+icr056440,-16.10458833,28.324225,Zambia,13,Monga,top
+icr042189,-1.68407798,35.8180542,Kenya,12,Morijo,top
+icr055922,-13.08315833,28.44561,Zambia,3,Fisenge,top
+icr054550,1.524523333,31.48840667,Uganda,8,Hoima,top
+icr009998,-11.12320042,35.14569855,Tanzania,5,Mbinga,top
+icr015832,5.371555,-0.762728333,Ghana,5,Ajumako,top
+icr006474,-6.08874989,36.43598175,Tanzania,2,Pandambili,top
+icr048961,-29.7734,23.983,South Africa,16,Hopetown,top
+icr073937,-19.373928,28.786663,Zimbabwe,16,Kenilworth,top
+icr054183,0.51586801,32.26354218,Uganda,2,Namasuba,top
+icr050014,-24.19569833,34.37663333,Mozambique,11,Massuque,top
+icr043172,11.94272667,-13.17404833,Guinea,3,Boumeoul,top
+icr070370,9.217246667,5.73423,Nigeria,15,Kutigi,top
+icr005998,-6.93858,36.1244,Tanzania,5,Chinyanghuku,top
+icr006454,-6.12600994,36.44020081,Tanzania,1,Pandambili,top
+icr075876,-15.84979333,26.140195,Zambia,11,Musungwa,top
+icr072445,-7.337718333,15.73058833,Angola,11,Sanza Pompo,top
+icr050294,-16.178185,38.99062167,Mozambique,9,Martinho,top
+icr023613,-14.72912667,39.87938333,Mozambique,10,Chica_b,top
+icr034170,8.132995,9.929275,Nigeria,14,Ibi,top
+icr014823,-15.97529,35.31520167,Malawi,5,Thuchila,top
+icr014883,-15.904765,35.323465,Malawi,8,Thuchila,top
+icr042227,-1.73154998,35.84485626,Kenya,14,Morijo,top
+icr042048,-1.68905199,35.77809525,Kenya,4,Morijo,top
+icr014508,-11.636035,34.225515,Malawi,6,Nkhata Bay,top
+icr048886,-29.7874,23.9515,South Africa,11,Hopetown,top
+icr023195,-13.43447167,35.48144667,Mozambique,5,Macassangila,top
+icr075936,-15.871185,26.163502,Zambia,14,Musungwa,top
+icr023473,-14.70832833,39.83611667,Mozambique,3,Chica_b,top
+icr006530,-6.11749,36.4577,Tanzania,5,Pandambili,top
+icr033851,4.16091299,38.33256149,Ethiopia,14,Mega,top
+icr070124,9.191568333,5.671851667,Nigeria,2,Kutigi,top
+icr038289,11.2998848,39.61911392,Ethiopia,11,Kutaber,top
+icr048985,-29.9494,22.7059,South Africa,2,Prieska,top
+icr037969,5.29722333,10.26682167,Cameroon,12,Bana,top
+icr074631,-19.4157,22.0154,Botswana,1,Gumare,top
+icr033811,4.20917797,38.31288528,Ethiopia,12,Mega,top
+icr034853,6.71981167,4.688821667,Nigeria,13,Imorun,top
+icr074731,-19.3952,22.039,Botswana,6,Gumare,top
+icr049022,-29.9716,22.7325,South Africa,5,Prieska,top
+icr015103,10.90801333,-2.681893333,Ghana,3,Lambussie,top
+icr070164,9.233073333,5.676534999999999,Nigeria,4,Kutigi,top
+icr068662,11.28576667,8.197546667000001,Nigeria,13,Pampaida,top
+icr011301,10.92729667,-3.511266667,Burkina Faso,15,Bondigui,top
+icr042946,10.47709,-13.37363833,Guinea,9,Fria,top
+icr070069,14.853915,-7.781675,Mali,15,Tambabougou,top
+icr010985,12.51692167,-6.259611667000001,Mali,16,Koloko,top
+icr049174,-29.9066,22.7832,South Africa,16,Prieska,top
+icr006142,-6.92808008,36.16547012,Tanzania,13,Chinyanghuku,top
+icr010335,14.770079999999998,-11.03315333,Mali,1,Kontela,top
+icr073188,-11.77607833,15.95362833,Angola,13,Bimbe,top
+icr015275,10.92958167,-2.637041667,Ghana,12,Lambussie,top
+icr034210,8.17348833,9.927748333,Nigeria,16,Ibi,top
+icr007967,-5.37793303,37.51511383,Tanzania,13,Kiberashi,top
+icr034813,6.76660833,4.672126667,Nigeria,11,Imorun,top
+icr006492,-6.0639400000000006,36.4405,Tanzania,3,Pandambili,top
+icr034481,7.05069667,9.354231667,Nigeria,12,Katsina ala,top
+icr056300,-16.09358333,28.28641167,Zambia,6,Monga,top
+icr074811,-19.3947,22.0671,Botswana,10,Gumare,top
+icr023353,-13.44441167,35.52735167,Mozambique,13,Macassangila,top
+icr075430,-17.8328,31.8576,Zimbabwe,6,Chiqumbakwe,top
+icr070112,9.166063333,5.678096667,Nigeria,1,Kutigi,top
+icr015532,6.71250667,-1.292856667,Ghana,6,Kubeasi,top
+icr049357,-22.849915,35.31727333,Mozambique,10,Chiculecule,top
+icr037553,11.34812,-5.520495,Mali,8,Finnkolo,top
+icr030531,9.588364599999998,42.72484207,Ethiopia,14,Merar,top
+icr030103,8.58185482,34.99887466,Ethiopia,5,Dambidolo,top
+icr010727,12.49274333,-6.33263,Mali,3,Koloko,top
+icr048786,-29.7684,23.9145,South Africa,4,Hopetown,top
+icr006164,-6.88443995,36.16698837,Tanzania,15,Chinyanghuku,top
+icr068499,11.29146167,8.145926667000001,Nigeria,5,Pampaida,top
+icr007890,-5.381766799999999,37.49669647,Tanzania,9,Kiberashi,top
+icr025009,-6.927495,34.22314835,Tanzania,9,Itende,top
+icr074931,-19.3415,22.0791,Botswana,16,Gumare,top
+icr034150,8.10137667,9.921948333,Nigeria,13,Ibi,top
+icr008027,-5.30851889,37.51255035,Tanzania,16,Kiberashi,top
+icr068199,13.39504,1.75692,Niger,6,Nyalagari,top
+icr074102,-18.0663,29.4295,Zimbabwe,8,Gambisa,top
+icr049377,-22.830515,35.31782000000001,Mozambique,11,Chiculecule,top
+icr034893,6.761239999999999,4.692641667,Nigeria,15,Imorun,top
+icr074396,-21.7771,26.4829,Botswana,6,Paje,top
+icr049815,-24.24041833,34.33520333,Mozambique,1,Massuque,top
+icr073578,-12.31476833,15.21382333,Angola,15,Luimbale,top
+icr020888,-8.02105045,37.27035141,Tanzania,3,Kidatu,top
+icr037843,5.238615,10.258085,Cameroon,5,Bana,top
+icr015992,5.36981833,-0.714001667,Ghana,13,Ajumako,top
+icr048566,-27.535,30.0388,South Africa,8,Madadeni,top
+icr072505,-7.359855,15.761679999999998,Angola,14,Sanza Pompo,top
+icr034713,6.74281667,4.643856667,Nigeria,6,Imorun,top
+icr015083,10.88871,-2.684621667,Ghana,2,Lambussie,top
+icr049974,-24.24289667,34.37187333,Mozambique,9,Massuque,top
+icr014863,-15.93559667,35.30966833,Malawi,7,Thuchila,top
+icr011097,10.94759,-3.585211667,Burkina Faso,4,Bondigui,top
+icr041858,-2.60102701,39.56488037,Kenya,12,Marafa,top
+icr043287,11.90510833,-13.13042,Guinea,9,Boumeoul,top
+icr043211,11.90748167,-13.15499,Guinea,5,Boumeoul,top
+icr021141,-8.00446224,37.32851028,Tanzania,16,Kidatu,top
+icr016052,5.44766667,-0.717421667,Ghana,16,Ajumako,top
+icr015812,5.4497800000000005,-0.771613333,Ghana,4,Ajumako,top
+icr021023,-8.0423584,37.31354523,Tanzania,10,Kidatu,top
+icr056220,-16.09294,28.26640167,Zambia,2,Monga,top
+icr054469,1.507103333,31.4679,Uganda,3,Hoima,top
+icr021063,-8.00514507,37.31461716,Tanzania,12,Kidatu,top
+icr010098,-11.10509968,35.17229843,Tanzania,10,Mbinga,top
+icr011824,-3.06374502,33.01008606,Tanzania,1,Bukwaya,top
+icr034382,7.02818167,9.335976667,Nigeria,7,Katsina ala,top
+icr075587,-17.8355,31.9065,Zimbabwe,14,Chiqumbakwe,top
+icr033637,4.19490194,38.25834656,Ethiopia,3,Mega,top
+icr049655,-18.0472,36.84010167,Mozambique,9,Ihassunge,top
+icr015492,6.75996167,-1.309595,Ghana,4,Kubeasi,top
+icr074871,-19.4209,22.0793,Botswana,13,Gumare,top
+icr072405,-7.372464999999999,15.73818833,Angola,9,Sanza Pompo,top
+icr074018,-18.0948,29.4155,Zimbabwe,3,Gambisa,top
+icr041878,-2.66731191,39.57624435,Kenya,13,Marafa,top
+icr033389,-0.12994801,38.99116898,Kenya,2,Mbalambala,top
+icr033427,-0.12714501,39.014431,Kenya,6,Mbalambala,top
+icr006570,-6.06997013,36.46458817,Tanzania,7,Pandambili,top
+icr049576,-18.04411167,36.82392333,Mozambique,5,Ihassunge,top
+icr042208,-1.75810206,35.84511185,Kenya,13,Morijo,top
+icr015177,10.9093,-2.65447,Ghana,7,Lambussie,top
+icr014548,-11.59183667,34.230455,Malawi,8,Nkhata Bay,top
+icr015972,5.434675,-0.728883333,Ghana,12,Ajumako,top
+icr056320,-16.06947333,28.28348833,Zambia,7,Monga,top
+icr075528,-17.8183,31.8831,Zimbabwe,11,Chiqumbakwe,top
+icr049397,-22.80366,35.31284167,Mozambique,12,Chiculecule,top
+icr030494,9.63629723,42.71965027,Ethiopia,12,Merar,top
+icr073762,-19.38859667,28.74953333,Zimbabwe,7,Kenilworth,top
+icr055603,-9.15515,29.6233,Zambia,3,Chilende,top
+icr014608,-11.61035833,34.25054833,Malawi,11,Nkhata Bay,top
+icr030043,8.60079002,34.98501205,Ethiopia,2,Dambidolo,top
+icr015256,10.91673167,-2.6396,Ghana,11,Lambussie,top
+icr050134,-16.17747833,38.93670333,Mozambique,1,Martinho,top
+icr015912,5.377035,-0.726425,Ghana,9,Ajumako,top
+icr037699,11.34972,-5.469775,Mali,16,Finnkolo,top
+icr055782,-9.13654,29.6744,Zambia,12,Chilende,top
+icr074045,-18.137,29.4347,Zimbabwe,5,Gambisa,top
+icr037531,11.32956833,-5.518538333,Mali,7,Finnkolo,top
+icr054515,1.475106667,31.48906833,Uganda,6,Hoima,top
+icr010747,12.51337,-6.3217300000000005,Mali,4,Koloko,top
+icr049934,-24.18840333,34.34585833,Mozambique,7,Massuque,top
+icr033990,8.10690833,9.881415,Nigeria,5,Ibi,top
+icr056360,-16.11395,28.30799833,Zambia,9,Monga,top
+icr070387,9.24007,5.734768333,Nigeria,16,Kutigi,top
+icr075390,-17.7845,31.8373,Zimbabwe,4,Chiqumbakwe,top
+icr074651,-19.3975,22.0256,Botswana,2,Gumare,top
+icr034521,7.00900167,9.378645,Nigeria,14,Katsina ala,top
+icr062237,-18.3233,48.7092,Madagascar,6,Didy,top
+icr062215,-18.3362,48.71,Madagascar,5,Didy,top
+icr073723,-19.43525,28.754072,Zimbabwe,5,Kenilworth,top
+icr006646,-6.0698,36.4918,Tanzania,11,Pandambili,top
+icr049437,-22.84876167,35.33593,Mozambique,14,Chiculecule,top
+icr014468,-11.59462833,34.20611667,Malawi,4,Nkhata Bay,top
+icr020868,-8.04190826,37.27168274,Tanzania,2,Kidatu,top
+icr068539,11.33524167,8.150375,Nigeria,7,Pampaida,top
+icr049417,-22.87506833,35.33858167,Mozambique,13,Chiculecule,top
+icr043324,11.94712667,-13.13483167,Guinea,11,Boumeoul,top
+icr074159,-18.0962,29.4588,Zimbabwe,11,Gambisa,top
+icr042115,-1.68290997,35.80660629,Kenya,8,Morijo,top
+icr010635,14.84399167,-10.96401,Mali,16,Kontela,top
+icr011990,-3.03098702,33.06267166,Tanzania,10,Bukwaya,top
+icr010826,12.51964667,-6.302163332999999,Mali,8,Koloko,top
+icr024937,-6.92998695,34.19476318,Tanzania,5,Itende,top
+icr069989,14.85474833,-7.80709,Mali,11,Tambabougou,top
+icr054333,0.51432502,32.30515671,Uganda,10,Namasuba,top
+icr074231,-18.0911,29.4842,Zimbabwe,15,Gambisa,top
+icr050054,-24.24200667,34.39977333,Mozambique,13,Massuque,top
+icr038170,11.25986958,39.59523392,Ethiopia,5,Kutaber,top
+icr011202,10.90277,-3.530618333,Burkina Faso,10,Bondigui,top
+icr015216,10.86049667,-2.632743333,Ghana,9,Lambussie,top
+icr048721,-27.545,30.0929,South Africa,16,Madadeni,top
+icr010595,14.79109833,-10.95833333,Mali,14,Kontela,top
+icr037986,5.233795,10.28871167,Cameroon,13,Bana,top
+icr037755,5.232844999999998,10.226835,Cameroon,1,Bana,top
+icr072385,-7.31065,15.71785667,Angola,8,Sanza Pompo,top
+icr070202,9.192731667,5.697721667000001,Nigeria,6,Kutigi,top
+icr075796,-15.857948,26.111965,Zambia,7,Musungwa,top
+icr050434,-16.1104,39.01113833,Mozambique,16,Martinho,top
+icr074851,-19.3513,22.0571,Botswana,12,Gumare,top
+icr010885,12.49784667,-6.286193333,Mali,11,Koloko,top
+icr038251,11.26762962,39.61626434,Ethiopia,9,Kutaber,top
+icr010018,-11.10610008,35.14979935,Tanzania,6,Mbinga,top
+icr025092,-6.89881992,34.24073792,Tanzania,14,Itende,top
+icr048664,-27.6154,30.0861,South Africa,13,Madadeni,top
+icr049044,-29.9505,22.7371,South Africa,6,Prieska,top
+icr014963,-15.90355,35.33182833,Malawi,12,Thuchila,top
+icr073819,-19.41003,28.76292667,Zimbabwe,10,Kenilworth,top
+icr074911,-19.3686,22.0829,Botswana,15,Gumare,top
+icr056480,-16.066365,28.32649833,Zambia,15,Monga,top
+icr068717,11.34667,8.194856667,Nigeria,16,Pampaida,top
+icr033602,4.14386177,38.25843048,Ethiopia,1,Mega,top
+icr010615,14.82136667,-10.96745667,Mali,15,Kontela,top
+icr030163,8.64413834,34.99883270000001,Ethiopia,8,Dambidolo,top
+icr055563,-9.2127,29.6294,Zambia,1,Chilende,top
+icr025016,-6.90416813,34.21570587,Tanzania,10,Itende,top
+icr030296,8.62918758,35.05138397,Ethiopia,15,Dambidolo,top
+icr055902,-13.09985,28.43995333,Zambia,2,Fisenge,top
+icr030238,8.64140797,35.02413177,Ethiopia,12,Dambidolo,top
+icr072266,-7.351243332999999,15.68781667,Angola,2,Sanza Pompo,top
+icr056460,-16.088815,28.32333333,Zambia,14,Monga,top
+icr069949,14.80238833,-7.802876667,Mali,9,Tambabougou,top
+icr033407,-0.15257999,39.01852417,Kenya,5,Mbalambala,top
+icr015335,10.90988167,-2.62005,Ghana,15,Lambussie,top
+icr034110,8.15104,9.90334,Nigeria,11,Ibi,top
+icr033566,-0.109038,39.05654144,Kenya,15,Mbalambala,top
+icr034873,6.74387833,4.68995,Nigeria,14,Imorun,top
+icr034913,6.780285000000001,4.696635,Nigeria,16,Imorun,top
+icr011921,-3.03815293,33.04239655,Tanzania,6,Bukwaya,top
+icr025036,-6.87863302,34.2233963,Tanzania,11,Itende,top
+icr012083,-3.0151,33.08854294,Tanzania,15,Bukwaya,top
+icr070246,9.241345,5.689193333,Nigeria,8,Kutigi,top
+icr034673,6.78424333,4.627915,Nigeria,4,Imorun,top
+icr005985,-6.86680222,36.09944916,Tanzania,4,Chinyanghuku,top
+icr048992,-29.9487,22.7115,South Africa,2,Prieska,top
+icr048602,-27.5896,30.0597,South Africa,10,Madadeni,top
+icr074002,-18.1109,29.4157,Zimbabwe,2,Gambisa,top
+icr048837,-29.7781,23.933000000000003,South Africa,8,Hopetown,top
+icr007810,-5.38245487,37.46924591,Tanzania,5,Kiberashi,top
+icr049013,-29.9058,22.7159,South Africa,4,Prieska,top
+icr048740,-29.835,23.9142,South Africa,1,Hopetown,top
+icr030335,9.57485485,42.66679382,Ethiopia,1,Merar,top
+icr033351,-0.150345,38.99033356,Kenya,1,Mbalambala,top
+icr042004,-1.73033202,35.77527618,Kenya,2,Morijo,top
+icr023692,-14.72569333,39.90788167,Mozambique,14,Chica_b,top
+icr043248,11.94213,-13.157495,Guinea,7,Boumeoul,top
+icr010158,-11.12909985,35.20069885,Tanzania,13,Mbinga,top
+icr038034,5.28465667,10.28513333,Cameroon,15,Bana,top
+icr024917,-6.86510992,34.18169403,Tanzania,4,Itende,top
+icr043299,11.928245,-13.133870000000002,Guinea,10,Boumeoul,top
+icr033582,-0.091448,39.06403351,Kenya,16,Mbalambala,top
+icr030200,8.60359764,35.02456665,Ethiopia,10,Dambidolo,top
+icr056041,-13.12265333,28.49141167,Zambia,9,Fisenge,top
+icr049177,-22.86955833,35.26938,Mozambique,1,Chiculecule,top
+icr014708,-11.59017167,34.27192667,Malawi,16,Nkhata Bay,top
+icr037590,11.30168667,-5.48807,Mali,10,Finnkolo,top
+icr055762,-9.1576,29.6706,Zambia,11,Chilende,top
+icr072656,-16.196175,14.87335667,Angola,4,Mucope,top
+icr023433,-14.75066833,39.839635,Mozambique,1,Chica_b,top
+icr056101,-13.06236333,28.48207,Zambia,12,Fisenge,top
+icr011863,-3.00909805,33.01538086,Tanzania,3,Bukwaya,top
+icr015295,10.86627833,-2.607243333,Ghana,13,Lambussie,top
+icr025111,-6.87730789,34.24555969,Tanzania,15,Itende,top
+icr033656,4.21533012,38.26117706,Ethiopia,4,Mega,top
+icr048770,-29.7978,23.9075,South Africa,3,Hopetown,top
+icr068239,13.443970000000002,1.754626667,Niger,8,Nyalagari,top
+icr073128,-11.74299833,15.925165,Angola,10,Bimbe,top
+icr069849,14.87954,-7.8447,Mali,4,Tambabougou,top
+icr049237,-22.80203,35.26829167,Mozambique,4,Chiculecule,top
+icr041699,-2.60788202,39.5163269,Kenya,4,Marafa,top
+icr050254,-16.12728667,38.95530167,Mozambique,7,Martinho,top
+icr034613,6.717035000000001,4.630036667,Nigeria,1,Imorun,top
+icr015063,10.86386167,-2.686115,Ghana,1,Lambussie,top
+icr073379,-12.3554,15.16175667,Angola,5,Luimbale,top
+icr030551,9.61545658,42.73780441,Ethiopia,15,Merar,top
+icr073340,-12.31628333,15.15200333,Angola,3,Luimbale,top
+icr015632,6.74021833,-1.266893333,Ghana,11,Kubeasi,top
+icr011077,10.92339333,-3.57667,Burkina Faso,3,Bondigui,top
+icr074248,-18.0683,29.4841,Zimbabwe,16,Gambisa,top
+icr034501,6.98352667,9.376038333,Nigeria,13,Katsina ala,top
+icr049775,-17.99677167,36.86077167,Mozambique,15,Ihassunge,top
+icr075756,-15.896971,26.115347,Zambia,5,Musungwa,top
+icr055882,-13.12839833,28.43756500000001,Zambia,1,Fisenge,top
+icr043068,10.51575167,-13.35777833,Guinea,15,Fria,top
+icr075567,-17.8659,31.8962,Zimbabwe,13,Chiqumbakwe,top
+icr054410,0.52495998,32.33211136,Uganda,15,Namasuba,top
+icr015315,10.88011667,-2.620426667,Ghana,14,Lambussie,top
+icr021123,-8.02354813,37.33749771,Tanzania,15,Kidatu,top
+icr073399,-12.34284,15.17547833,Angola,6,Luimbale,top
+icr030083,8.65487957,34.98785019,Ethiopia,4,Dambidolo,top
+icr037947,5.28252333,10.27224833,Cameroon,11,Bana,top
+icr030123,8.59928799,35.00059891,Ethiopia,6,Dambidolo,top
+icr072286,-7.331673332999999,15.687965,Angola,3,Sanza Pompo,top
+icr006035,-6.88956308,36.12222672,Tanzania,7,Chinyanghuku,top
+icr034833,6.79339,4.666761667,Nigeria,12,Imorun,top
+icr048584,-27.602,30.06,South Africa,9,Madadeni,top
+icr037869,5.27953833,10.242555,Cameroon,7,Bana,top
+icr034302,7.02070167,9.30712,Nigeria,3,Katsina ala,top
+icr037445,11.30450833,-5.532908333,Mali,2,Finnkolo,top
+icr069869,14.80671333,-7.825015,Mali,5,Tambabougou,top
+icr030511,9.56637478,42.73178101,Ethiopia,13,Merar,top
+icr023633,-14.701545,39.88362667,Mozambique,11,Chica_b,top
+icr054201,0.53347302,32.26804352,Uganda,3,Namasuba,top
+icr006724,-6.07987,36.5067,Tanzania,15,Pandambili,top
+icr037767,5.26178333,10.22336667,Cameroon,2,Bana,top
+icr048485,-27.5684,30.0228,South Africa,3,Madadeni,top
+icr075816,-15.830405,26.121272,Zambia,8,Musungwa,top
+icr074771,-19.341,22.0368,Botswana,8,Gumare,top
+icr074298,-21.7905,26.458,Botswana,1,Paje,top
+icr033486,-0.13617,39.0349884,Kenya,10,Mbalambala,top
+icr054585,1.4806433330000002,31.513555,Uganda,10,Hoima,top
+icr038273,11.28393459,39.61522293,Ethiopia,10,Kutaber,top
+icr049914,-24.21181833,34.34482833,Mozambique,6,Massuque,top
+icr041739,-2.64416289,39.5366745,Kenya,6,Marafa,top
+icr049675,-18.02587333,36.846685,Mozambique,10,Ihassunge,top
+icr030276,8.603079800000001,35.04847336,Ethiopia,14,Dambidolo,top
+icr033676,4.14940786,38.29164124,Ethiopia,5,Mega,top
+icr030416,9.61859798,42.69437027,Ethiopia,7,Merar,top
+icr023273,-13.43872667,35.509765,Mozambique,9,Macassangila,top
+icr068677,11.30931667,8.19152,Nigeria,14,Pampaida,top
+icr015932,5.39910833,-0.7338216670000001,Ghana,10,Ajumako,top
+icr006152,-6.90498781,36.16339493,Tanzania,14,Chinyanghuku,top
+icr042836,10.51886667,-13.43299667,Guinea,3,Fria,top
+icr014803,-15.91097,35.30012,Malawi,4,Thuchila,top
+icr043390,11.950435,-13.11220667,Guinea,15,Boumeoul,top
+icr049835,-24.22272333,34.33146167,Mozambique,2,Massuque,top
+icr062195,-18.2759,48.6875,Madagascar,4,Didy,top
+icr073743,-19.4141,28.74545833,Zimbabwe,6,Kenilworth,top
+icr073148,-11.72815,15.92955167,Angola,11,Bimbe,top
+icr073897,-19.410165,28.794548,Zimbabwe,14,Kenilworth,top
+icr074433,-21.7275,26.4797,Botswana,8,Paje,top
+icr015752,5.37398667,-0.787106667,Ghana,1,Ajumako,top
+icr033970,8.17299167,9.854511667,Nigeria,4,Ibi,top
+icr068481,11.35407333,8.121323333,Nigeria,4,Pampaida,top
+icr073228,-11.72477,15.94343,Angola,15,Bimbe,top
+icr012008,-3.01006794,33.06552124,Tanzania,11,Bukwaya,top
+icr021083,-8.07075501,37.33062744,Tanzania,13,Kidatu,top
+icr010865,12.47088667,-6.281816667,Mali,10,Koloko,top
+icr015352,10.92147667,-2.616638333,Ghana,16,Lambussie,top
+icr033621,4.17808723,38.26189041,Ethiopia,2,Mega,top
+icr011881,-2.99281502,33.01611328,Tanzania,4,Bukwaya,top
+icr075331,-17.8653,31.8363,Zimbabwe,1,Chiqumbakwe,top
+icr023253,-13.37299833,35.47741667,Mozambique,8,Macassangila,top
+icr042867,10.477555,-13.40055167,Guinea,5,Fria,top
+icr023731,-14.68274,39.90612,Mozambique,16,Chica_b,top
+icr023233,-13.40028833,35.48778167,Mozambique,7,Macassangila,top
+icr030478,9.6164484,42.70803833,Ethiopia,11,Merar,top
+icr050094,-24.190955,34.40507,Mozambique,15,Massuque,top
+icr056420,-16.05019667,28.30818,Zambia,12,Monga,top
+icr015852,5.39815167,-0.7511766670000001,Ghana,6,Ajumako,top
+icr023533,-14.72360167,39.86317833,Mozambique,6,Chica_b,top
+icr006666,-6.05854988,36.49095154,Tanzania,12,Pandambili,top
+icr042896,10.50197833,-13.40440167,Guinea,6,Fria,top
+icr048450,-27.6111,30.0127,South Africa,1,Madadeni,top
+icr048912,-29.8379,23.9832,South Africa,13,Hopetown,top
+icr015892,5.44254833,-0.764775,Ghana,8,Ajumako,top
+icr049056,-29.9345,22.7283,South Africa,7,Prieska,top
+icr049755,-18.02614167,36.86523833,Mozambique,14,Ihassunge,top
+icr006085,-6.905239999999999,36.1372,Tanzania,10,Chinyanghuku,top
+icr024879,-6.89794493,34.17971039,Tanzania,2,Itende,top
+icr033447,-0.104105,39.01512146,Kenya,7,Mbalambala,top
+icr074454,-21.7992,26.5087,Botswana,9,Paje,top
+icr024976,-6.87918282,34.19307327,Tanzania,7,Itende,top
+icr049516,-18.02627,36.79851167,Mozambique,2,Ihassunge,top
+icr006586,-6.05574989,36.45772171,Tanzania,8,Pandambili,top
+icr054220,0.55131698,32.26622772,Uganda,4,Namasuba,top
+icr010767,12.45235333,-6.309545,Mali,5,Koloko,top
+icr006101,-6.88657,36.1374,Tanzania,11,Chinyanghuku,top
+icr037475,11.34459667,-5.52968,Mali,4,Finnkolo,top
+icr014488,-11.65235833,34.228905,Malawi,5,Nkhata Bay,top
+icr006510,-6.04692984,36.44385910000001,Tanzania,4,Pandambili,top
+icr006744,-6.0537300000000025,36.5135,Tanzania,16,Pandambili,top
+icr037851,5.253965,10.25103167,Cameroon,6,Bana,top
+icr015952,5.41552833,-0.736546667,Ghana,11,Ajumako,top
+icr038138,11.30827332,39.57263565,Ethiopia,3,Kutaber,top
+icr050194,-16.10983333,38.93812333,Mozambique,4,Martinho,top
+icr043266,11.96197,-13.153175,Guinea,8,Boumeoul,top
+icr070029,14.80921167,-7.78246,Mali,13,Tambabougou,top
+icr041898,-2.64556789,39.57897949,Kenya,14,Marafa,top
+icr054456,1.473473333,31.46200667,Uganda,2,Hoima,top
+icr073519,-12.295335,15.19546833,Angola,12,Luimbale,top
+icr070386,9.239531667,5.744221667000001,Nigeria,16,Kutigi,top
+icr015452,6.71096333,-1.309231667,Ghana,2,Kubeasi,top
+icr074062,-18.1169,29.4375,Zimbabwe,6,Gambisa,top
+icr023672,-14.74916833,39.90905167,Mozambique,13,Chica_b,top
+icr011960,-2.98746705,33.03326416,Tanzania,8,Bukwaya,top
+icr024868,-6.92843294,34.1724205,Tanzania,1,Itende,top
+icr023573,-14.68552,39.86471833,Mozambique,8,Chica_b,top
+icr010138,-11.05809975,35.16949844,Tanzania,12,Mbinga,top
+icr073439,-12.297935,15.17505,Angola,8,Luimbale,top
+icr075490,-17.8564,31.8759,Zimbabwe,9,Chiqumbakwe,top
+icr010707,12.47221667,-6.326855,Mali,2,Koloko,top
+icr015236,10.88649333,-2.640236667,Ghana,10,Lambussie,top
+icr048793,-29.8323,23.9373,South Africa,5,Hopetown,top
+icr007987,-5.35679007,37.50985718,Tanzania,14,Kiberashi,top
+icr074529,-21.7908,26.5175,Botswana,13,Paje,top
+icr075736,-15.827109,26.095398,Zambia,4,Musungwa,top
+icr006606,-6.12151,36.4836,Tanzania,9,Pandambili,top
+icr073459,-12.349295,15.20264667,Angola,9,Luimbale,top
+icr049317,-22.80476167,35.28788167,Mozambique,8,Chiculecule,top
+icr049596,-18.02787167,36.81948333,Mozambique,6,Ihassunge,top
+icr011978,-3.05848002,33.06501389,Tanzania,9,Bukwaya,top
+icr062155,-18.3172,48.6883,Madagascar,2,Didy,top
+icr011182,10.88015667,-3.5402949999999995,Burkina Faso,9,Bondigui,top
+icr068559,11.35515,8.146985,Nigeria,8,Pampaida,top
+icr072896,-16.20006,14.95128667,Angola,16,Mucope,top
+icr033545,-0.137943,39.05795670000001,Kenya,14,Mbalambala,top
+icr010965,12.49387,-6.255561667,Mali,15,Koloko,top
+icr074175,-18.0749,29.4566,Zimbabwe,12,Gambisa,top
+icr075548,-17.7929,31.8807,Zimbabwe,12,Chiqumbakwe,top
+icr049257,-22.87288167,35.29462,Mozambique,5,Chiculecule,top
+icr041819,-2.64218307,39.55010605,Kenya,10,Marafa,top
+icr050354,-16.11628667,38.98612833,Mozambique,12,Martinho,top
+icr074489,-21.749,26.5039,Botswana,11,Paje,top
+icr062134,-18.3471,48.6935,Madagascar,1,Didy,top
+icr073686,-19.38535333,28.72538333,Zimbabwe,3,Kenilworth,top
+icr050074,-24.21577667,34.398345,Mozambique,14,Massuque,top
+icr014783,-15.92747167,35.297925,Malawi,3,Thuchila,top
+icr072856,-16.24256167,14.94835667,Angola,14,Mucope,top
+icr034322,7.04608833,9.304748333,Nigeria,4,Katsina ala,top
+icr075370,-17.8199,31.8338,Zimbabwe,3,Chiqumbakwe,top
+icr033525,-0.15493301,39.06001282,Kenya,13,Mbalambala,top
+icr073320,-12.33987333,15.14360333,Angola,2,Luimbale,top
+icr074122,-18.1381,29.4551,Zimbabwe,9,Gambisa,top
+icr010555,14.83955333,-10.99074667,Mali,12,Kontela,top
+icr074831,-19.3763,22.062,Botswana,11,Gumare,top
+icr074580,-21.731,26.5229,Botswana,16,Paje,top
+icr014843,-15.95316167,35.32146333,Malawi,6,Thuchila,top
+icr006704,-6.09060001,36.50844955,Tanzania,14,Pandambili,top
+icr048682,-27.5834,30.0894,South Africa,14,Madadeni,top
+icr049496,-18.04285667,36.79774333,Mozambique,1,Ihassunge,top
+icr007870,-5.30757999,37.47093964,Tanzania,8,Kiberashi,top
+icr068697,11.32778667,8.192435000000001,Nigeria,15,Pampaida,top
+icr043021,10.47198167,-13.36306333,Guinea,13,Fria,top
+icr072676,-16.26719667,14.89980667,Angola,5,Mucope,top
+icr062373,-18.3387,48.7558,Madagascar,13,Didy,top
+icr009918,-11.12269974,35.12689972,Tanzania,1,Mbinga,top
+icr055941,-13.062885,28.44091,Zambia,4,Fisenge,top
+icr049994,-24.21673333,34.37512,Mozambique,10,Massuque,top
+icr034402,7.04311,9.33436,Nigeria,8,Katsina ala,top
+icr014668,-11.63818833,34.281434999999995,Malawi,14,Nkhata Bay,top
+icr070142,9.221401667,5.666751667000001,Nigeria,3,Kutigi,top
+icr048642,-27.5431,30.071,South Africa,12,Madadeni,top
+icr041719,-2.66981196,39.53773499,Kenya,5,Marafa,top
+icr054618,1.526595,31.51443,Uganda,12,Hoima,top
+icr074671,-19.3805,22.0165,Botswana,3,Gumare,top
+icr068181,13.37571833,1.7597633330000002,Niger,5,Nyalagari,top
+icr014528,-11.61275667,34.22261833,Malawi,7,Nkhata Bay,top
+icr037901,5.30427333,10.249175,Cameroon,8,Bana,top
+icr038305,11.33621693,39.61544418,Ethiopia,12,Kutaber,top
+icr030430,9.63597775,42.69142151,Ethiopia,8,Merar,top
+icr068149,13.418404999999998,1.7315933330000002,Niger,3,Nyalagari,top
+icr021043,-8.02555275,37.31706238,Tanzania,11,Kidatu,top
+icr072596,-16.26941333,14.883505,Angola,1,Mucope,top
+icr073361,-12.30484,15.14741667,Angola,4,Luimbale,top
+icr023712,-14.70472833,39.91341833,Mozambique,15,Chica_b,top
+icr062175,-18.2959,48.692,Madagascar,3,Didy,top
+icr073558,-12.32752333,15.22182667,Angola,14,Luimbale,top
+icr074030,-18.066,29.4092,Zimbabwe,4,Gambisa,top
+icr010515,14.80662167,-10.98228,Mali,10,Kontela,top
+icr038216,11.31150246,39.59640884,Ethiopia,7,Kutaber,top
+icr011941,-3.00733495,33.04496384,Tanzania,7,Bukwaya,top
+icr049715,-17.980610000000006,36.84061,Mozambique,12,Ihassunge,top
+icr010945,12.47028667,-6.265613332999999,Mali,14,Koloko,top
+icr055961,-13.12469,28.47377833,Zambia,5,Fisenge,top
+icr062334,-18.2968,48.7352,Madagascar,11,Didy,top
+icr033506,-0.106482,39.03767776,Kenya,11,Mbalambala,top
+icr009978,-11.05970001,35.12659836,Tanzania,4,Mbinga,top
+icr006550,-6.08820009,36.46326065,Tanzania,6,Pandambili,top
+icr050214,-16.17429833,38.96290833,Mozambique,5,Martinho,top
+icr074082,-18.0858,29.4351,Zimbabwe,7,Gambisa,top
+icr050034,-24.16965333,34.38194667,Mozambique,12,Massuque,top
+icr014923,-15.95095333,35.33888167,Malawi,10,Thuchila,top
+icr056380,-16.09050667,28.30285,Zambia,10,Monga,top
+icr038331,11.28757477,39.63938141,Ethiopia,14,Kutaber,top
+icr055623,-9.14338,29.6314,Zambia,4,Chilende,top
+icr073539,-12.357305,15.21692167,Angola,13,Luimbale,top
+icr010375,14.82152167,-11.03285833,Mali,3,Kontela,top
+icr037574,11.28301667,-5.486493332999999,Mali,9,Finnkolo,top
+icr048932,-29.816,23.9757,South Africa,14,Hopetown,top
+icr056181,-13.06836667,28.51594667,Zambia,16,Fisenge,top
+icr050414,-16.13769833,39.00373,Mozambique,15,Martinho,top
+icr074336,-21.7522,26.4592,Botswana,3,Paje,top
+icr010178,-11.09879971,35.19520187,Tanzania,14,Mbinga,top
+icr072365,-7.340811667,15.71909667,Angola,7,Sanza Pompo,top
+icr054697,1.524801667,31.53509333,Uganda,16,Hoima,top
+icr062433,-18.2793,48.7545,Madagascar,16,Didy,top
+icr007750,-5.35250807,37.44896698,Tanzania,2,Kiberashi,top
+icr033910,8.10135,9.867401667,Nigeria,1,Ibi,top
+icr012027,-2.98789811,33.06058121,Tanzania,12,Bukwaya,top
+icr054277,0.53307802,32.2866745,Uganda,7,Namasuba,top
+icr021103,-8.04930496,37.33369827,Tanzania,14,Kidatu,top
+icr056001,-13.08003,28.47069333,Zambia,7,Fisenge,top
+icr049100,-29.9347,22.7598,South Africa,11,Prieska,top
+icr069889,14.83103333,-7.823068332999999,Mali,6,Tambabougou,top
+icr025135,-6.8516202,34.24331284,Tanzania,16,Itende,top
+icr073703,-19.372857,28.721183,Zimbabwe,4,Kenilworth,top
+icr014763,-15.94640333,35.29900667,Malawi,2,Thuchila,top
+icr056240,-16.06627833,28.260995,Zambia,3,Monga,top
+icr068639,11.35259,8.169905,Nigeria,12,Pampaida,top
+icr073479,-12.345895,15.19027833,Angola,10,Luimbale,top
+icr042170,-1.70667195,35.82385635,Kenya,11,Morijo,top
+icr010495,14.77771167,-10.98879,Mali,9,Kontela,top
+icr037511,11.30263,-5.513288332999999,Mali,6,Finnkolo,top
+icr050174,-16.1334,38.94113333,Mozambique,3,Martinho,top
+icr038351,11.30782032,39.64009476,Ethiopia,15,Kutaber,top
+icr030400,9.59038162,42.68822861,Ethiopia,6,Merar,top
+icr041838,-2.61965704,39.55268478,Kenya,11,Marafa,top
+icr034090,8.12839333,9.910415,Nigeria,10,Ibi,top
+icr041799,-2.67196488,39.55476761,Kenya,9,Marafa,top
+icr033392,-0.102418,38.9889183,Kenya,3,Mbalambala,top
+icr038312,11.2650528,39.64179229999999,Ethiopia,13,Kutaber,top
+icr049855,-24.19612167,34.33393167,Mozambique,3,Massuque,top
+icr011133,10.90319167,-3.555051667,Burkina Faso,6,Bondigui,top
+icr042098,-1.70412803,35.80501556,Kenya,7,Morijo,top
+icr033930,8.13086,9.857668333,Nigeria,2,Ibi,top
+icr055643,-9.2096,29.6525,Zambia,5,Chilende,top
+icr006015,-6.91083193,36.11650848,Tanzania,6,Chinyanghuku,top
+icr033714,4.19285202,38.2822876,Ethiopia,7,Mega,top
+icr074509,-21.7232,26.4957,Botswana,12,Paje,top
+icr034773,6.72280333,4.667463333,Nigeria,9,Imorun,top
+icr014428,-11.64441667,34.208565,Malawi,2,Nkhata Bay,top
+icr073108,-11.778855,15.92085333,Angola,9,Bimbe,top
+icr038368,11.32898712,39.64373779,Ethiopia,16,Kutaber,top
+icr037626,11.351895,-5.48847,Mali,12,Finnkolo,top
+icr034422,6.97757667,9.348373333,Nigeria,9,Katsina ala,top
+icr069929,14.869855,-7.819491667,Mali,8,Tambabougou,top
+icr034541,7.02543,9.366843333,Nigeria,15,Katsina ala,top
+icr024994,-6.859828,34.19452667,Tanzania,8,Itende,top
+icr015122,10.93269333,-2.682308333,Ghana,4,Lambussie,top
+icr023393,-13.402779999999998,35.52307667,Mozambique,15,Macassangila,top
+icr056121,-13.127745,28.51711333,Zambia,13,Fisenge,top
+icr023373,-13.41841667,35.52110333,Mozambique,14,Macassangila,top
+icr034441,7.0012,9.357101667,Nigeria,10,Katsina ala,top
